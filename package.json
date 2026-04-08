@@ -8,7 +8,8 @@
     "update": "npm run dist && docker-compose restart game",
     "dist": "export MODE=production; npm run build ",
     "watch": "npx webpack --watch",
-    "start": "node main.js"
+    "start": "node main.js",
+    "dev": "concurrently -n webpack,server -c cyan,yellow \"npm run watch\" \"npm start\""
   },
   "author": "Isaac Hirschfeld",
   "license": "ISC",
@@ -39,6 +40,7 @@
     "webpack": "^5.88.2"
   },
   "devDependencies": {
+    "concurrently": "^9.1.2",
     "webpack-cli": "^4.10.0"
   },
   "overrides": {
