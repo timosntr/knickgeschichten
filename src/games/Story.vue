@@ -16,6 +16,9 @@
       <h2 is="sui-header" icon="pencil" v-else-if="player.link.length === 0">
         Write the first line
       </h2>
+      <div v-if="player.deadline" class="countdown" :class="{urgent: secondsLeft <= 10}">
+        ⏱ {{ secondsLeft }}s remaining
+      </div>
       <sui-form @submit="writeLine" :inverted="darkMode">
         <sui-form-field>
           <label>The Story Goes...</label>
@@ -32,12 +35,22 @@
           {{player.isLastLink ? 'Finish' : 'Sign'}}
         </sui-button>
       </sui-form>
+      <div v-if="lobby.admin === $root.playerId" style="margin-top: 12px">
+        <sui-button size="tiny" @click="requestExport" :inverted="darkMode">
+          Export Stories
+        </sui-button>
+      </div>
     </div>
     <div v-else-if="player.state === 'WAITING'"
       style="margin: 16px">
       <sui-loader active centered inline size="huge" :inverted="darkMode">
         Waiting on Other Authors
       </sui-loader>
+      <div v-if="lobby.admin === $root.playerId" style="margin-top: 24px">
+        <sui-button size="tiny" @click="requestExport" :inverted="darkMode">
+          Export Stories
+        </sui-button>
+      </div>
     </div>
     <div v-else-if="player.state === 'READING' || !player.state && stories.length">
       <sui-divider horizontal :inverted="darkMode">
@@ -79,14 +92,22 @@
           </sui-card>
         </div>
       </div>
-      <sui-button v-if="player.state === 'READING'"
-        style="margin-top: 16px"
-        @click="$socket.emit('game:message', 'story:done', game.icons[player.id] !== 'check')"
-        color="blue"
-        :inverted="darkMode"
-        :basic="game.icons[player.id] === 'check'" >
-        {{game.icons[player.id] === 'check' ? 'Still Reading' : 'Done Reading'}}
-      </sui-button>
+      <div style="margin-top: 16px">
+        <sui-button v-if="player.state === 'READING'"
+          @click="$socket.emit('game:message', 'story:done', game.icons[player.id] !== 'check')"
+          color="blue"
+          :inverted="darkMode"
+          :basic="game.icons[player.id] === 'check'" >
+          {{game.icons[player.id] === 'check' ? 'Still Reading' : 'Done Reading'}}
+        </sui-button>
+        <sui-button
+          @click="copyStories"
+          :inverted="darkMode"
+          color="teal"
+          size="small">
+          {{ copied ? 'Copied!' : 'Copy to Clipboard' }}
+        </sui-button>
+      </div>
     </div>
     <div v-else style="margin: 16px">
       <sui-loader active centered inline size="huge" :inverted="darkMode">
@@ -112,6 +133,17 @@
 .sub.header {
   word-break: break-word;
   max-width: 292px;
+}
+
+.countdown {
+  margin-bottom: 8px;
+  font-size: 0.95em;
+  color: #555;
+}
+
+.countdown.urgent {
+  color: #db2828;
+  font-weight: bold;
 }
 
 </style>
@@ -153,6 +185,7 @@ export default {
         case 'WAITING':
           this.line = '';
           logWait('turn_event', 'turn_duration', true);
+          this.stopCountdown();
           break;
         case 'EDITING':
           vibrate(40);
@@ -162,14 +195,23 @@ export default {
         case 'READING':
           vibrate(40, 100, 40);
           logWait('wait_event', 'wait_duration', false);
+          this.stopCountdown();
           break;
         }
       }
       this.player = info;
+
+      // Start countdown if we have a deadline
+      if (info.state === 'EDITING' && info.deadline) {
+        this.startCountdown(info.deadline);
+      } else if (info.state !== 'EDITING') {
+        this.stopCountdown();
+      }
     }
   },
   beforeDestroy() {
     this.bus.$off('toggle-dark-mode', this.update);
+    this.stopCountdown();
   },
   created() {
     this.bus.$on('toggle-dark-mode', this.update);
@@ -192,6 +234,34 @@ export default {
       this.$socket.emit('game:message', 'story:line', this.line);
       this.line = '';
     },
+    startCountdown(deadline) {
+      this.stopCountdown();
+      this.secondsLeft = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      this.countdownInterval = setInterval(() => {
+        this.secondsLeft = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        if (this.secondsLeft <= 0) this.stopCountdown();
+      }, 1000);
+    },
+    stopCountdown() {
+      if (this.countdownInterval) {
+        clearInterval(this.countdownInterval);
+        this.countdownInterval = null;
+      }
+    },
+    requestExport() {
+      this.$socket.emit('game:message', 'story:export');
+    },
+    copyStories() {
+      const text = this.stories.map((story, i) =>
+        `=== Story ${i + 1} ===\n` +
+        story.map(e =>
+          e.link + (e.editor && this.nameTable[e.editor] ? ` (${this.nameTable[e.editor]})` : '')
+        ).join('\n')
+      ).join('\n\n');
+      navigator.clipboard.writeText(text).catch(() => {});
+      this.copied = true;
+      setTimeout(() => { this.copied = false; }, 2000);
+    },
   },
   data() {
     return {
@@ -210,6 +280,9 @@ export default {
         game: '',
         config: {},
       }),
+      secondsLeft: 0,
+      countdownInterval: null,
+      copied: false,
     };
   },
 };

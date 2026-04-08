@@ -15,6 +15,8 @@ module.exports = class Story extends Game {
       this.lastEdit[p] = 0;
 
     this.finishedReading = {};
+    this.timers = {};
+    this.deadlines = {};
   }
 
 
@@ -24,6 +26,18 @@ module.exports = class Story extends Game {
 
     this.chains = blob.chains.map(Chain.restore);
     this.finishedReading = blob.finishedReading;
+
+    // Restore timers from saved deadlines
+    if (blob.deadlines && this.config.timeLimit > 0) {
+      for (const pid in blob.deadlines) {
+        const deadline = blob.deadlines[pid];
+        const remaining = deadline - Date.now();
+        if (remaining > 0) {
+          this.deadlines[pid] = deadline;
+          this.timers[pid] = setTimeout(() => this.timeoutPlayer(pid), remaining);
+        }
+      }
+    }
   }
 
   save() {
@@ -31,9 +45,40 @@ module.exports = class Story extends Game {
       version: 1,
       chains: this.chains.map(s => s.save()),
       finishedReading: this.finishedReading,
+      deadlines: this.deadlines,
     }
   }
 
+
+  // Assign a chain to a player, starting a timer if configured
+  assignChain(pid, chain) {
+    chain.editor = pid;
+    if (this.config.timeLimit > 0) {
+      const deadline = Date.now() + this.config.timeLimit * 1000;
+      this.deadlines[pid] = deadline;
+      this.timers[pid] = setTimeout(() => this.timeoutPlayer(pid), this.config.timeLimit * 1000);
+    }
+  }
+
+  // Clear a player's active timer
+  clearTimer(pid) {
+    if (this.timers[pid]) {
+      clearTimeout(this.timers[pid]);
+      delete this.timers[pid];
+    }
+    delete this.deadlines[pid];
+  }
+
+  // Called when a player's time runs out — release their chain and redistribute
+  timeoutPlayer(pid) {
+    delete this.timers[pid];
+    delete this.deadlines[pid];
+    const chain = this.chains.find(s => s.editor === pid);
+    if (chain) {
+      chain.editor = '';
+    }
+    this.redistribute();
+  }
 
   // Find a story for a player
   findChainForPlayer(player) {
@@ -73,7 +118,7 @@ module.exports = class Story extends Game {
       if(!story) {
         break;
       }
-      story.editor = player;
+      this.assignChain(player, story);
     }
 
     this.sendGameInfo();
@@ -90,13 +135,26 @@ module.exports = class Story extends Game {
       const story = this.findChainForPlayer(player);
       if(!story)
         continue;
-      story.editor = player;
+      this.assignChain(player, story);
     }
 
     this.sendGameInfo();
   }
 
-  stop() {}
+  stop() {
+    // Clear all timers
+    for (const pid in this.timers) {
+      clearTimeout(this.timers[pid]);
+    }
+    this.timers = {};
+    this.deadlines = {};
+
+    // Emit partial or complete results to all players before lobby transitions to WAITING
+    const stories = this.getGameProgress() === 1
+      ? this.compileStories()
+      : this.compilePartialStories();
+    this.lobby.emitAll('story:result', stories);
+  }
 
   cleanup() {}
 
@@ -107,6 +165,11 @@ module.exports = class Story extends Game {
       if (this.getGameProgress() === 1) {
         this.emitTo(pid, 'story:result', this.compileStories());
       }
+      break;
+
+    // Export current stories as a snapshot (admin only, no state change)
+    case 'story:export':
+      this.emitTo(pid, 'story:result', this.compilePartialStories());
       break;
 
     // Handle writing the next line
@@ -123,6 +186,7 @@ module.exports = class Story extends Game {
       if(line.length < 1 || line.length > 512)
         return;
 
+      this.clearTimer(pid);
       this.lastEdit[pid] = Date.now();
       story.addLink(pid, line);
 
@@ -165,6 +229,7 @@ module.exports = class Story extends Game {
       state: 'EDITING',
       isLastLink: story.chain.length === this.config.numLinks - 1,
       link: story.chain.slice(-this.config.contextLen),
+      deadline: this.deadlines[pid] || null,
     } : {
       id: pid,
       liked: this.chains.map(s => s.likes[pid]),
@@ -182,6 +247,16 @@ module.exports = class Story extends Game {
         }))
       );
     return this.compiled;
+  }
+
+  compilePartialStories() {
+    return this.chains.map(s =>
+      _.zip(s.chain, s.editors)
+      .map(([link, e]) => ({
+        link,
+        editor: this.config.anonymous ? '' : e,
+      }))
+    );
   }
 
   getState() {

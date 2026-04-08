@@ -72,7 +72,35 @@ module.exports = {
           text: '4 Lines',
           value: 4,
         }],
-      }
+      },
+      timeLimit: {
+        name: 'Turn Time Limit',
+        text: 'Time Limit',
+        info: 'How long each player has to write their line before it is skipped',
+        type: 'list',
+        defaults: 'none',
+        options: [{
+          name: 'none',
+          text: 'None',
+          value: 0,
+        }, {
+          name: 'sec30',
+          text: '30 sec',
+          value: 30,
+        }, {
+          name: 'min1',
+          text: '1 min',
+          value: 60,
+        }, {
+          name: 'min2',
+          text: '2 min',
+          value: 120,
+        }, {
+          name: 'min5',
+          text: '5 min',
+          value: 300,
+        }],
+      },
     },
   },
   comic: {
