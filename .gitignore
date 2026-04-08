@@ -1,5 +1,9 @@
 public/
 node_modules/
-ssl
+ssl/
 docker-compose.yml
 nginx.conf
+nginx.letsencrypt.conf
+.DS_Store
+.env
+persistence/

@@ -13,14 +13,14 @@
   "author": "Isaac Hirschfeld",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^1.18.3",
+    "body-parser": "^1.20.3",
     "clean-webpack-plugin": "^3.0.0",
     "css-loader": "^5.1.2",
-    "express": "^4.16.4",
+    "express": "^4.21.3",
     "file-loader": "^3.0.1",
     "glob": "^7.1.6",
     "html-webpack-plugin": "^4.5.2",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "node-cron": "^2.0.3",
     "pako": "^1.0.10",
     "paper": "^0.12.0",
@@ -28,7 +28,7 @@
     "portal-vue": "^1.5.1",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-vue": "^0.8.1",
-    "socket.io": "^2.5.0",
+    "socket.io": "^4.8.3",
     "style-loader": "^2.0.0",
     "vue": "^2.6.8",
     "vue-loader": "^15.10.2",
@@ -40,5 +40,18 @@
   },
   "devDependencies": {
     "webpack-cli": "^4.10.0"
+  },
+  "overrides": {
+    "postcss": "^8.4.47",
+    "minimatch": "^3.1.4",
+    "nanoid": "^3.3.8",
+    "serialize-javascript": "^6.0.2",
+    "cross-spawn": "^7.0.6",
+    "cookie": "^0.7.0",
+    "debug": "^4.3.7",
+    "socket.io-client": "^4.8.1",
+    "ws": "^8.18.0",
+    "engine.io": "^6.6.4",
+    "engine.io-client": "^6.6.4"
   }
 }

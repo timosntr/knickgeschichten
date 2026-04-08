@@ -1,6 +1,6 @@
-# Out Of Context Party Games
+# Knickgeschichten
 
-See [OutOfContext.party](https://www.outofcontext.party) for more info!
+A fork of [Out Of Context Party Games](https://github.com/Meshiest/outofcontext) by Meshiest.
 
 ## Contribute
 
