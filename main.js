@@ -349,6 +349,13 @@ cron.schedule('0 0 4 * * Monday', Persistence.cullSaves);
 cron.schedule('0 * * * * *', Lobby.cullEmpty);
 cron.schedule('0 * * * * *', Member.cullInactive);
 
+// save active lobbies every 5 minutes to limit data loss on crash
+cron.schedule('*/5 * * * *', () => {
+  _.each(Lobby.lobbies, lobby => {
+    if (!lobby.empty()) Persistence.saveLobbyState(lobby);
+  });
+});
+
 // Every request goes through the index, Vue will handle 404s
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
