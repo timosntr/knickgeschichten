@@ -11,8 +11,8 @@ A fork of [Out Of Context Party Games](https://github.com/Meshiest/outofcontext)
 
 ### Development
 
-1. Leave `npm run watch` running to rebuild the frontend.
-2. Leave `npm start` running for the backend, restart when server changes are made.
+1. Run `npm run dev` to start the frontend watcher and backend in one terminal.
+2. Restart the server manually when backend changes are made (`Ctrl+C`, then `npm run dev` again).
 3. Use Lobby `devaaaa` for development
 4. Open `localhost:8080` in browser
 
