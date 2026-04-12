@@ -15,7 +15,7 @@ module.exports = class Game {
     this.lobby.emitPlayers(...msg);
   }
 
-  // broadcast each player's state and 
+  // broadcast each player's state and
   sendGameInfo() {
     this.lobby.emitAll('game:info', this.getState());
     for(const player of this.players) {
@@ -37,6 +37,12 @@ module.exports = class Game {
 
   // force stop the game
   stop() {}
+
+  // pause the game (clear timers without emitting results — used for async lobbies going empty)
+  pause() {}
+
+  // add a new player to a running game (used for async mid-game joins)
+  addPlayer(pid) {}
 
   // clean up after game finishes
   cleanup() {}

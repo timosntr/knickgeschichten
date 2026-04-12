@@ -69,6 +69,23 @@ module.exports = class Story extends Game {
     delete this.deadlines[pid];
   }
 
+  // Add a new player to a running async game and assign them a chain
+  addPlayer(pid) {
+    if (this.players.includes(pid)) return;
+    this.players.push(pid);
+    this.lastEdit[pid] = 0;
+    this.redistribute();
+  }
+
+  // Clear timers without emitting results (used when async lobby empties)
+  pause() {
+    for (const pid in this.timers) {
+      clearTimeout(this.timers[pid]);
+    }
+    this.timers = {};
+    this.deadlines = {};
+  }
+
   // Called when a player's time runs out — release their chain and redistribute
   timeoutPlayer(pid) {
     delete this.timers[pid];

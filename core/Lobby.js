@@ -4,12 +4,6 @@ const Persistence = require('./Persistence');
 
 const GAMES = {
   story: require('./games/story'),
-  comic: require('./games/comic'),
-  draw: require('./games/draw'),
-  assassin: require('./games/assassin'),
-  redacted: require('./games/redacted'),
-  locations: require('./games/locations'),
-  recipe: require('./games/recipe'),
 };
 
 const CODE_LENGTH = 4;
@@ -41,8 +35,8 @@ class Lobby {
         continue;
       }
 
-      // delete empty, non-persist, lobbies that are older than 60 seconds
-      if (lobby.empty() && !lobby.persist && now - lobby.created > 60000) {
+      // delete empty, non-persist, non-async lobbies that are older than 60 seconds
+      if (lobby.empty() && !lobby.persist && !lobby.isAsync && now - lobby.created > 60000) {
         Lobby.cull(code);
         ++count;
       }
@@ -66,6 +60,27 @@ class Lobby {
       code = prefix + _.sampleSize('abcdefghijklmnopqrstuvwxyz0123456789', length).join('');
     } while(Lobby.lobbyExists(code));
     return code;
+  }
+
+  // list all public async sessions for the session browser
+  static publicList() {
+    return Object.values(Lobby.lobbies)
+      .filter(l => l && l.isAsync)
+      .map(l => {
+        const progress = l.game ? l.game.getGameProgress() : 0;
+        const config = l.gameConfig;
+        return {
+          code: l.code,
+          title: l.title,
+          progress,
+          isComplete: progress === 1,
+          numStories: typeof config.numStories === 'number' ? config.numStories : l.players.length,
+          numLinks: typeof config.numLinks === 'number' ? config.numLinks : 10,
+          playersOnline: l.members.length,
+          createdAt: l.created,
+        };
+      })
+      .sort((a, b) => Number(a.isComplete) - Number(b.isComplete) || b.createdAt - a.createdAt);
   }
 
   // create a new lobby with a code
@@ -94,8 +109,14 @@ class Lobby {
         // save the lobby state
         Persistence.saveLobbyState(lobby);
       } catch (err) {
-        // error saving lobby state
-        console.error(new Date(), 'error saving', lobbyState.code, err);
+        console.error(new Date(), 'error saving', lobby.code, err);
+      }
+
+      // async sessions stay alive in memory — just clear timers
+      if (lobby.isAsync) {
+        if (lobby.game) lobby.game.pause();
+        console.log(new Date(), `-- [lobby ${lobby.code}] async session emptied, keeping alive`);
+        return;
       }
 
       try {
@@ -146,6 +167,8 @@ class Lobby {
     this.admin = '';
     this.lobbyState = 'WAITING';
     this.game = null;
+    this.isAsync = false;
+    this.title = '';
   }
 
     // get the lobby's current save state
@@ -165,6 +188,8 @@ class Lobby {
         config: this.game.config,
         state: this.game.save(),
       } : null,
+      isAsync: this.isAsync,
+      title: this.title,
     }
   }
 
@@ -195,6 +220,8 @@ class Lobby {
 
     this.admin = '';
     this.lobbyState = lobbyState.lobbyState || 'WAITING';
+    this.isAsync = lobbyState.isAsync || false;
+    this.title = lobbyState.title || '';
 
     if (lobbyState.game && this.players.length > 0) {
       const { config, state } = lobbyState.game;
@@ -238,8 +265,10 @@ class Lobby {
 
     const numPlayers = this.players.length;
 
-    // cap players
-    this.gameConfig.players = numPlayers;
+    // cap players (async sessions allow unlimited contributors — don't cap)
+    if (!this.isAsync) {
+      this.gameConfig.players = numPlayers;
+    }
 
     // parse config values
     const newConfig = this.configVals();
@@ -612,6 +641,25 @@ class Lobby {
           this.admin = this.players[i].id;
         }
       }
+
+      // For async sessions: add new named members as players mid-game
+      if (this.isAsync) {
+        for (const m of this.members) {
+          if (!m.name) continue;
+          const alreadyPlayer = this.players.find(p => p.id === m.id);
+          if (!alreadyPlayer && !this.spectators.find(p => p.id === m.id)) {
+            const pid = _.uniqueId('player');
+            this.players.push({
+              id: m.id,
+              playerId: pid,
+              name: m.name,
+              member: m,
+              connected: true,
+            });
+            if (this.game) this.game.addPlayer(pid);
+          }
+        }
+      }
     }
   }
 
@@ -625,6 +673,8 @@ class Lobby {
       state: this.lobbyState,
       config: this.gameConfig,
       admin: this.admin,
+      isAsync: this.isAsync,
+      title: this.title,
       gameState: this.game ? this.game.getState() : {},
       members: this.members.map(m => ({
         id: m.id,

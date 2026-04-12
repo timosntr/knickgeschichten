@@ -1,15 +1,37 @@
 <template>
   <ooc-page>
     <ooc-menu
-      title="Out of Context"
-      subtitle="Party games fueled by your insanity!">
+      title="Knickgeschichten"
+      subtitle="Collaborative stories, one line at a time">
       <div>
         <sui-divider horizontal :inverted="darkMode">
-          Lobby
+          Stories
+        </sui-divider>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <sui-button
+            color="green"
+            :inverted="darkMode"
+            :loading="!connected"
+            @click="showCreateAsync = true"
+            fluid>
+            Start Async Story
+          </sui-button>
+          <sui-button
+            color="teal"
+            :inverted="darkMode"
+            :loading="!connected"
+            is="router-link"
+            to="/sessions"
+            fluid>
+            Browse Public Sessions
+          </sui-button>
+        </div>
+        <sui-divider horizontal :inverted="darkMode">
+          Private Game
         </sui-divider>
         <sui-button-group>
           <sui-button
-            color="green"
+            color="blue"
             :inverted="darkMode"
             :loading="!connected || creatingLobby"
             @click="createLobby">
@@ -21,49 +43,18 @@
             :inverted="darkMode"
             @click="showJoinLobby = true"
             :loading="!connected || showJoinLobby">
-            Join
+            Join by Code
           </sui-button>
-        </sui-button-group>
-        <sui-divider horizontal :inverted="darkMode">
-          Info
-        </sui-divider>
-        <sui-button-group vertical :inverted="darkMode" :basic="!darkMode">
-          <router-link
-            is="sui-button"
-            :basic="darkMode"
-            :inverted="darkMode"
-            to="/games">
-            Game Info
-          </router-link>
-          <a is="sui-button"
-            href="https://github.com/meshiest/outofcontext"
-            target="_blank"
-            :basic="darkMode"
-            :inverted="darkMode"
-            rel="noopener noreferrer">
-            Read the Code
-          </a>
-          <a is="sui-button"
-            href="https://github.com/Meshiest/outofcontext/issues/new"
-            target="_blank"
-            :basic="darkMode"
-            :inverted="darkMode"
-            rel="noopener noreferrer">
-            Request a Game
-          </a>
         </sui-button-group>
       </div>
     </ooc-menu>
     <ooc-join-lobby :active="showJoinLobby" @close="showJoinLobby = false">
     </ooc-join-lobby>
+    <ooc-create-async :active="showCreateAsync" @close="showCreateAsync = false">
+    </ooc-create-async>
     <ooc-util></ooc-util>
   </ooc-page>
 </template>
-
-<style>
-
-</style>
-
 
 <script>
 export default {
@@ -94,6 +85,7 @@ export default {
       connected: this.$root.connected,
       creatingLobby: false,
       showJoinLobby: false,
+      showCreateAsync: false,
     };
   },
 };

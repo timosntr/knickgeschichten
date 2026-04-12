@@ -75,62 +75,10 @@
       </sui-form>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'LOBBY_WAITING'"
-      :title="currGame ? currGame.title : 'No Game Selected'"
-      :subtitle="currGame ? currGame.subtitle : 'Waiting for a game to be selected'">
+      :title="lobbyInfo.title || (currGame ? currGame.title : 'Raconteur')"
+      :subtitle="currGame ? currGame.subtitle : 'Ghost Writers'">
       <div>
-        <div v-if="currGame">
-          <sui-divider horizontal :inverted="darkMode">
-            Game Info
-          </sui-divider>
-          <sui-card :inverted="darkMode">
-            <sui-card-content>
-              <sui-card-header>
-                {{currGame.title}}
-              </sui-card-header>
-              <sui-card-description>
-                {{currGame.description}}
-              </sui-card-description>
-            </sui-card-content>
-            <sui-card-content>
-              <sui-card-content style="text-align: left;">
-                <sui-accordion exclusive styled :inverted="darkMode">
-                  <sui-accordion-title>
-                    <sui-icon name="dropdown"/>More Info
-                  </sui-accordion-title>
-                  <sui-accordion-content>
-                    {{currGame.more}}
-                  </sui-accordion-content>
-                  <sui-accordion-title>
-                    <sui-icon name="dropdown"/>How to Play
-                  </sui-accordion-title>
-                  <sui-accordion-content>
-                    <ul style="padding-left: 20px; margin: 0">
-                      <li v-for="(step, i) in currGame.howTo" :key="i">{{step}}</li>
-                    </ul>
-                  </sui-accordion-content>
-                  <sui-accordion-title>
-                    <sui-icon name="dropdown"/>Configurations
-                  </sui-accordion-title>
-                  <sui-accordion-content>
-                    <div v-for="(opt, name) in currGame.config" :key="name">
-                      <b>{{opt.name}}</b>: {{opt.info}}
-                    </div>
-                  </sui-accordion-content>
-                </sui-accordion>
-              </sui-card-content>
-            </sui-card-content>
-            <sui-card-content extra>
-              <sui-icon name="clock"/> {{currGame.playTime}}
-              <span style="padding-left: 20px"/>
-              <sui-icon name="users"/> {{
-                `${currGame.config.players.min}${currGame.config.players.max != 256 ? '-' + currGame.config.players.max : '+'}`
-              }}
-              <span style="padding-left: 20px"/>
-              <sui-icon name="fire"/> {{currGame.difficulty}}
-            </sui-card-content>
-          </sui-card>
-        </div>
-        <div v-else-if="!hideLobbyCode">
+        <div v-if="!hideLobbyCode && !lobbyInfo.isAsync">
           <sui-divider horizontal :inverted="darkMode">
             Lobby Code
           </sui-divider>
@@ -143,24 +91,13 @@
             </sui-statistic-label>
           </sui-statistic>
         </div>
-        <div v-if="lobbyInfo.admin === $root.playerId" style="text-align: left">
+        <div v-if="lobbyInfo.admin === $root.playerId && !lobbyInfo.isAsync" style="text-align: left">
           <sui-divider horizontal :inverted="darkMode">
             Game Settings
           </sui-divider>
           <sui-form @submit="event => event.preventDefault()" :inverted="darkMode">
-            <sui-form-field>
-              <label>Game</label>
-              <sui-dropdown
-                placeholder="Select a Game"
-                :value="lobbyInfo.game"
-                :loading="changeGame"
-                @input="tryChangeGame"
-                :options="gameOptions"
-                selection>
-              </sui-dropdown>
-            </sui-form-field>
             <div v-if="currGame">
-              <sui-form-field v-for="(opt, name) in currGame.config" :key="name">
+              <sui-form-field v-for="(opt, name) in configFieldsForDisplay" :key="name">
                 <label>{{opt.name}}</label>
                 <div v-if="opt.type === 'int'" style="display: flex">
                   <sui-input
@@ -178,7 +115,7 @@
                     style="margin-left: 8px"
                     icon="users"/>
                 </div>
-                <div class="char-count" v-if="typeof opt.max !== 'undefined'  && deriveConfigValue(name) > opt.max">
+                <div class="char-count" v-if="typeof opt.max !== 'undefined' && deriveConfigValue(name) > opt.max">
                   Maximum: {{opt.max}}
                 </div>
                 <div class="char-count" v-if="typeof opt.min !== 'undefined' &&
@@ -214,13 +151,13 @@
             </div>
           </sui-form>
         </div>
-        <div v-else-if="currGame">
+        <div v-else-if="currGame && !lobbyInfo.isAsync">
           <sui-divider horizontal :inverted="darkMode">
             Game Setup
           </sui-divider>
           <sui-card>
             <div style="display: flex; flex-flow: row wrap; align-items: center; justify-content: center;">
-              <div v-for="(opt, name) in currGame.config"
+              <div v-for="(opt, name) in configFieldsForDisplay"
                 :key="name"
                 style="margin: 8px;">
                 <sui-statistic :inverted="darkMode">
@@ -247,8 +184,8 @@
       </ooc-player-list>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'PLAYING'"
-      :title="currGame.title"
-      :subtitle="currGame.subtitle">
+      :title="lobbyInfo.title || (currGame ? currGame.title : 'Raconteur')"
+      :subtitle="currGame ? currGame.subtitle : 'Ghost Writers'">
       <ooc-game :game="lobbyInfo.game">
       </ooc-game>
       <ooc-player-list
@@ -332,6 +269,8 @@ const emptyInfo = () => ({
   spectators: [],
   game: '',
   config: {},
+  isAsync: false,
+  title: '',
 });
 
 export default {
@@ -345,13 +284,9 @@ export default {
       gameState: { icons: {} },
       loadingName: false,
       validName: true,
-      changeGame: false,
       lobbyInfo: emptyInfo(),
       state: 'LOADING',
       gameInfo,
-      gameOptions: Object.entries(gameInfo)
-        .map(([k, v]) => ({value: k, text: v.title, h: v.hidden}))
-        .filter(o => !o.h),
     };
   },
   computed:  {
@@ -360,6 +295,12 @@ export default {
     },
     isSpectator() {
       return this.lobbyInfo.spectators.find(p => p.id === this.$root.playerId);
+    },
+    // Config fields to show in the lobby waiting UI (exclude 'players' for cleaner display)
+    configFieldsForDisplay() {
+      if (!this.currGame) return {};
+      const { players, ...rest } = this.currGame.config;
+      return rest;
     },
     invalidConfig() {
       const numPlayers = this.lobbyInfo.players.length;
@@ -436,12 +377,6 @@ export default {
     updateConfig(name, val) {
       this.$socket.emit('lobby:game:config', name, val);
     },
-    tryChangeGame(game) {
-      if(!game)
-        return;
-      this.changeGame = true;
-      this.$socket.emit('lobby:game:set', game);
-    },
     enterName(event) {
       event.preventDefault();
       const name = event.target.playerName.value;
@@ -507,7 +442,6 @@ export default {
       this.gameState = state;
     },
     'lobby:info': function(info) {
-      this.changeGame = false;
       // TODO implement spectators on server
 
       // Remove gameState if we are not playing

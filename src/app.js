@@ -87,7 +87,7 @@ const router = new VueRouter({
   base: '/',
   routes: [
     { name: 'lobby', path: '/lobby/:code?' },
-    { name: 'games', path: '/games' },
+    { name: 'sessions', path: '/sessions' },
     { name: 'home', path: '/' },
   ]
 });
@@ -96,7 +96,7 @@ import './widgets';
 
 import Home from './pages/Home.vue';
 import Lobby from './pages/Lobby.vue';
-import GameList from './pages/GameList.vue';
+import Sessions from './pages/Sessions.vue';
 import NotFound from './pages/NotFound.vue';
 
 import GameRenderer from './games/GameRenderer.vue';
@@ -157,7 +157,7 @@ new Vue({
     return h({
       home: Home,
       lobby: Lobby,
-      games: GameList,
+      sessions: Sessions,
     }[this.$route.name] || NotFound);
   }
 });

@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const _ = require('lodash');
 const path = require('path');
 const cron = require('node-cron');
+const glob = require('glob');
+const Sanitize = require('./core/games/util/Sanitize');
 
 const app = express();
 const server = require('http').Server(app);
@@ -60,13 +62,18 @@ io.on('connection', socket => {
       if(player.lobby) {
         player.lobby.updateMembers();
         player.lobby.sendLobbyInfo();
+        // Auto-start async sessions when first player joins
+        if (player.lobby.isAsync && player.lobby.lobbyState === 'WAITING' && player.lobby.players.length > 0) {
+          player.lobby.startGame();
+          console.log(new Date(), `-- [lobby ${player.lobby.code}] async session auto-started`);
+        }
       }
     } else {
       socket.emit('member:nameOk', false);
     }
   });
 
-  // Create a lobby if the player is not in one
+  // Create a private sync lobby
   socket.on('lobby:create', () => {
     if(!player.lobby) {
       player.interact();
@@ -74,10 +81,49 @@ io.on('connection', socket => {
       const code = lobby.code;
       player.lobby = lobby;
       Lobby.lobbies[code] = lobby;
+      lobby.setGame('story');
       socket.emit('lobby:join', code);
       Lobby.lobbies[code].addMember(player);
       console.log(new Date(), `-- [lobby ${code}] created`);
     }
+  });
+
+  // Create a public async story session
+  socket.on('lobby:create:async', ({ title, config } = {}) => {
+    if (player.lobby) return;
+    if (!title || typeof title !== 'string') return;
+
+    const sanitizedTitle = Sanitize.str(title).trim().slice(0, 60);
+    if (!sanitizedTitle) return;
+
+    player.interact();
+    const code = Lobby.newCode();
+    const lobby = new Lobby();
+    lobby.code = code;
+    lobby.isAsync = true;
+    lobby.title = sanitizedTitle;
+    lobby.persist = true;
+    lobby.selectedGame = 'story';
+
+    // Initialize config from story defaults
+    lobby.gameConfig = _.mapValues(GAMES.story.config, v => v.defaults);
+    // Allow up to 256 contributors
+    lobby.gameConfig.players = 256;
+
+    // Apply user-supplied config values for allowed fields
+    if (config && typeof config === 'object') {
+      for (const field of ['numStories', 'numLinks', 'contextLen', 'timeLimit', 'anonymous']) {
+        if (config[field] !== undefined) {
+          lobby.setConfig(field, config[field]);
+        }
+      }
+    }
+
+    Lobby.lobbies[code] = lobby;
+    player.lobby = lobby;
+    socket.emit('lobby:join', code);
+    lobby.addMember(player);
+    console.log(new Date(), `-- [lobby ${code}] created async session "${sanitizedTitle}"`);
   });
 
   // Allow players to request current lobby info
@@ -248,6 +294,11 @@ app.get('/api/v1/lobby/:code', (req, res) => {
   }
 });
 
+// List all public async sessions
+app.get('/api/v1/lobbies', (req, res) => {
+  res.json(Lobby.publicList());
+});
+
 app.get('/api/v1/info', (req, res) => {
   let lobbies = 0, games = 0, players = 0, idleLobbies = 0, idlePlayers = 0, lobbyPlayers = 0, rocketcrabs = 0;
   const gameDistribution = {}, playerDistribution = {};
@@ -360,6 +411,26 @@ cron.schedule('*/5 * * * *', () => {
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public/index.html'));
 });
+
+// Restore async sessions from persistence on startup
+try {
+  const asyncSaveFiles = glob.sync('persistence/*.json.gz');
+  let restored = 0;
+  for (const file of asyncSaveFiles) {
+    try {
+      const code = path.basename(file, '.json.gz');
+      if (Lobby.lobbies[code]) continue;
+      const state = Persistence.restoreLobbyState(code);
+      if (state.isAsync && state.lobbyState === 'PLAYING') {
+        const lobby = Lobby.create(code, state);
+        lobby.persist = true;
+        ++restored;
+      }
+    } catch {}
+  }
+  if (restored > 0)
+    console.log(new Date(), `-- restored ${restored} async session(s)`);
+} catch {}
 
 // Start the webserver
 server.listen(PORT, () => console.log(`Started ${VERSION} server on :${PORT}!`));
