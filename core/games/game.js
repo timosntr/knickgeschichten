@@ -44,6 +44,9 @@ module.exports = class Game {
   // add a new player to a running game (used for async mid-game joins)
   addPlayer(pid) {}
 
+  // release a disconnected player's chain so others aren't blocked
+  releasePlayer(pid) {}
+
   // clean up after game finishes
   cleanup() {}
 

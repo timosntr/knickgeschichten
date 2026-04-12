@@ -115,6 +115,9 @@ class Lobby {
       // async sessions stay alive in memory — just clear timers
       if (lobby.isAsync) {
         if (lobby.game) lobby.game.pause();
+        // clear any pending disconnect timers
+        for (const t of Object.values(lobby.disconnectTimers || {})) clearTimeout(t);
+        lobby.disconnectTimers = {};
         console.log(new Date(), `-- [lobby ${lobby.code}] async session emptied, keeping alive`);
         return;
       }
@@ -169,6 +172,7 @@ class Lobby {
     this.game = null;
     this.isAsync = false;
     this.title = '';
+    this.disconnectTimers = {};
   }
 
     // get the lobby's current save state
@@ -433,6 +437,16 @@ class Lobby {
       playerObj.connected = false;
       playerObj.member = null;
       playerObj.id = -1;
+
+      // For async sessions: release chain after 60s so others aren't kept waiting
+      if (this.isAsync && this.lobbyState === 'PLAYING' && playerObj.playerId) {
+        const pid = playerObj.playerId;
+        if (this.disconnectTimers[pid]) clearTimeout(this.disconnectTimers[pid]);
+        this.disconnectTimers[pid] = setTimeout(() => {
+          delete this.disconnectTimers[pid];
+          if (this.game) this.game.releasePlayer(pid);
+        }, 60000);
+      }
     }
 
     const isSpectator = this.spectators.find(p => p.id === member.id);
@@ -515,6 +529,12 @@ class Lobby {
       targetPlayer.name = member.name;
       targetPlayer.member = member;
       targetPlayer.connected = true;
+
+      // Cancel pending chain-release timer for this player
+      if (this.disconnectTimers && this.disconnectTimers[targetPlayer.playerId]) {
+        clearTimeout(this.disconnectTimers[targetPlayer.playerId]);
+        delete this.disconnectTimers[targetPlayer.playerId];
+      }
 
       // if the player was a spectator, remove them from the spectators
       if (isSpectator) {
