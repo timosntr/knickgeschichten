@@ -69,6 +69,13 @@ module.exports = class Story extends Game {
     delete this.deadlines[pid];
   }
 
+  // Remove player from active list so redistribute() won't assign them new chains.
+  // Does NOT release their currently held chain (used on disconnect, before grace period).
+  detachPlayer(pid) {
+    const idx = this.players.indexOf(pid);
+    if (idx >= 0) this.players.splice(idx, 1);
+  }
+
   // Release a disconnected player's chain so other players aren't blocked
   // Returns true if a chain was released
   releasePlayer(pid) {

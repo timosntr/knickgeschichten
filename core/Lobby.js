@@ -441,6 +441,8 @@ class Lobby {
         const name = member.name || playerObj.name || pid;
         this.players.splice(playerIdx, 1);
         if (pid) {
+          // Detach from game.players immediately so redistribute() ignores them
+          if (this.game) this.game.detachPlayer(pid);
           if (this.disconnectTimers[pid]) clearTimeout(this.disconnectTimers[pid]);
           this.disconnectTimers[pid] = setTimeout(() => {
             delete this.disconnectTimers[pid];
