@@ -444,7 +444,13 @@ class Lobby {
         if (this.disconnectTimers[pid]) clearTimeout(this.disconnectTimers[pid]);
         this.disconnectTimers[pid] = setTimeout(() => {
           delete this.disconnectTimers[pid];
-          if (this.game) this.game.releasePlayer(pid);
+          if (this.game) {
+            const released = this.game.releasePlayer(pid);
+            if (released) {
+              const name = playerObj.name || pid;
+              console.log(new Date(), `-- [lobby ${this.code}] released chain of absent player "${name}" after 60s`);
+            }
+          }
         }, 60000);
       }
     }

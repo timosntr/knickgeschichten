@@ -70,13 +70,16 @@ module.exports = class Story extends Game {
   }
 
   // Release a disconnected player's chain so other players aren't blocked
+  // Returns true if a chain was released
   releasePlayer(pid) {
     const chain = this.chains.find(s => s.editor === pid);
     if (chain) {
       this.clearTimer(pid);
       chain.editor = '';
       this.redistribute();
+      return true;
     }
+    return false;
   }
 
   // Add a new player to a running async game and assign them a chain
