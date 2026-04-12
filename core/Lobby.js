@@ -431,27 +431,31 @@ class Lobby {
     }
 
     // Remove the player from the current players
-    const playerObj = _.find(this.players, {id: member.id});
+    const playerIdx = this.players.findIndex(p => p.id === member.id);
+    const playerObj = playerIdx >= 0 ? this.players[playerIdx] : null;
     if(playerObj) {
-      playerObj.name = member.name;
-      playerObj.connected = false;
-      playerObj.member = null;
-      playerObj.id = -1;
-
-      // For async sessions: release chain after 60s so others aren't kept waiting
-      if (this.isAsync && this.lobbyState === 'PLAYING' && playerObj.playerId) {
+      // For async sessions: remove from player list immediately (they'll rejoin as new contributor)
+      // and schedule chain release after 60s so others aren't kept waiting
+      if (this.isAsync && this.lobbyState === 'PLAYING') {
         const pid = playerObj.playerId;
-        if (this.disconnectTimers[pid]) clearTimeout(this.disconnectTimers[pid]);
-        this.disconnectTimers[pid] = setTimeout(() => {
-          delete this.disconnectTimers[pid];
-          if (this.game) {
-            const released = this.game.releasePlayer(pid);
-            if (released) {
-              const name = playerObj.name || pid;
-              console.log(new Date(), `-- [lobby ${this.code}] released chain of absent player "${name}" after 60s`);
+        const name = member.name || playerObj.name || pid;
+        this.players.splice(playerIdx, 1);
+        if (pid) {
+          if (this.disconnectTimers[pid]) clearTimeout(this.disconnectTimers[pid]);
+          this.disconnectTimers[pid] = setTimeout(() => {
+            delete this.disconnectTimers[pid];
+            if (this.game) {
+              const released = this.game.releasePlayer(pid);
+              if (released)
+                console.log(new Date(), `-- [lobby ${this.code}] released chain of absent player "${name}" after 60s`);
             }
-          }
-        }, 60000);
+          }, 60000);
+        }
+      } else {
+        playerObj.name = member.name;
+        playerObj.connected = false;
+        playerObj.member = null;
+        playerObj.id = -1;
       }
     }
 
