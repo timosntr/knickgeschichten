@@ -223,6 +223,10 @@ module.exports = class Story extends Game {
       if(line.length < 1 || line.length > 512)
         return;
 
+      const wordCount = line.trim().split(/\s+/).filter(w => w.length > 0).length;
+      if(this.config.minWords > 0 && wordCount < this.config.minWords)
+        return;
+
       this.clearTimer(pid);
       this.lastEdit[pid] = Date.now();
       story.addLink(pid, line);
