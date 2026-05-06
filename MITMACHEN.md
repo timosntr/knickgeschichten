@@ -10,7 +10,7 @@ Diese Anleitung erklärt Schritt für Schritt, wie ihr das Projekt lokal einrich
 2. [Repository klonen](#2-repository-klonen)
 3. [Abhängigkeiten installieren & Server starten](#3-abhängigkeiten-installieren--server-starten)
 4. [Claude Pro einrichten](#4-claude-pro-einrichten)
-5. [An GitHub teilnehmen: Pull Requests](#5-an-github-teilnehmen-pull-requests)
+5. [An GitHub teilnehmen: Feature Branches & Pull Requests](#5-an-github-teilnehmen-feature-branches--pull-requests)
 6. [Häufige Probleme](#6-häufige-probleme)
 
 ---
@@ -80,7 +80,7 @@ git config --global user.email "eure@email.de"
 
 ## 2. Repository klonen
 
-„Klonen" bedeutet: das Projekt von GitHub auf euren Computer herunterladen.
+„Klonen" bedeutet: das Projekt von GitHub auf euren Computer herunterladen. Ihr seid Maintainer des Repos und arbeitet direkt darin – kein Fork nötig.
 
 1. Geht auf die Projektseite auf GitHub und klickt auf den grünen **Code**-Button.
 2. Kopiert die URL (sie endet auf `.git`).
@@ -101,10 +101,8 @@ git config --global user.email "eure@email.de"
 4. Repo klonen:
 
    ```bash
-   git clone https://github.com/ORGANISATION/knickgeschichten.git
+   git clone https://github.com/timosntr/knickgeschichten.git
    ```
-
-   *(Die genaue URL findet ihr auf der GitHub-Seite des Projekts unter dem Code-Button.)*
 
 5. In den neuen Ordner wechseln:
 
@@ -212,46 +210,46 @@ Claude sieht dabei euren gesamten Code und kann direkt Änderungen vorschlagen o
 
 ---
 
-## 5. An GitHub teilnehmen: Pull Requests
+## 5. An GitHub teilnehmen: Feature Branches & Pull Requests
 
-Ein **Pull Request (PR)** ist der offizielle Weg, Änderungen am Projekt vorzuschlagen. Ihr bearbeitet eine eigene Kopie des Codes und schlagt dann vor, diese Änderungen ins Hauptprojekt zu übernehmen.
+Ihr seid Maintainer des Repos und arbeitet direkt darin – kein Fork nötig. Das Grundprinzip: jedes Feature bekommt seinen eigenen Branch, der per Pull Request in `main` gemergt wird.
 
-### 5.1 Das Repo forken
+### Der Ablauf auf einen Blick
 
-„Forken" erstellt eine eigene Kopie des Repos unter eurem GitHub-Account.
-
-1. Auf der GitHub-Seite des Projekts oben rechts auf **Fork** klicken.
-2. Euren Account als Ziel auswählen → **Create fork**.
-3. Ihr habt jetzt `euer-name/knickgeschichten` als eigene Kopie.
-
-### 5.2 Euren Fork klonen (statt des Originals)
-
-Falls ihr das Original schon geklont habt, fügt euren Fork als neue Remote-Quelle hinzu:
-
-```bash
-git remote add mein-fork https://github.com/EUER-NAME/knickgeschichten.git
+```
+main ──┬── feature/mein-feature ──► PR ──► merge ──► main (aktuell)
+       │
+       └── feature/anderes-feature ──► PR ──► ...
 ```
 
-Oder klont gleich euren Fork:
+---
+
+### 5.1 main aktuell halten
+
+Bevor ihr anfangt zu arbeiten, holt ihr euch den neuesten Stand von `main`:
 
 ```bash
-git clone https://github.com/EUER-NAME/knickgeschichten.git
-cd knickgeschichten
-# Original-Repo als "upstream" eintragen, um Updates zu holen:
-git remote add upstream https://github.com/ORGANISATION/knickgeschichten.git
+git checkout main
+git pull
 ```
 
-### 5.3 Einen neuen Branch erstellen
+---
 
-Jede Änderung gehört auf einen eigenen Branch (Arbeitszweig). Nennt ihn beschreibend:
+### 5.2 Feature Branch erstellen
+
+Jede Änderung bekommt einen eigenen Branch, der von `main` abzweigt. Benennt ihn beschreibend:
 
 ```bash
-git checkout -b fix/tippfehler-lobby-text
-# oder
 git checkout -b feature/dunkelmodus-button
+# oder
+git checkout -b fix/tippfehler-lobby-text
 ```
 
-### 5.4 Änderungen machen und speichern
+> **Konvention:** `feature/` für neue Funktionen, `fix/` für Bugfixes, `docs/` für reine Textänderungen.
+
+---
+
+### 5.3 Änderungen machen und committen
 
 Ändert die gewünschten Dateien in eurem Editor (z. B. VS Code: `code .` im Projektordner).
 
@@ -268,45 +266,86 @@ git add src/pages/Home.vue
 git commit -m "Tippfehler in der Lobby-Beschreibung korrigiert"
 ```
 
-> **Gute Commit-Nachrichten:** Schreibt auf Deutsch oder Englisch, was ihr geändert habt – nicht warum, das gehört in den PR. Beispiele: `Farbe des Buttons angepasst`, `Neuen Willkommenstext hinzugefügt`.
+> **Gute Commit-Nachrichten:** Schreibt auf Deutsch oder Englisch, was ihr geändert habt. Beispiele: `Farbe des Buttons angepasst`, `Neuen Willkommenstext hinzugefügt`.
 
-### 5.5 Branch auf GitHub hochladen
+---
+
+### 5.4 Branch auf GitHub hochladen
 
 ```bash
-git push mein-fork fix/tippfehler-lobby-text
+git push origin feature/dunkelmodus-button
 ```
 
-*(Falls ihr direkt den geklonten Fork nutzt, ohne extra Remote: `git push origin fix/tippfehler-lobby-text`)*
+---
 
-### 5.6 Pull Request erstellen
+### 5.5 Pull Request erstellen
 
-1. Geht auf GitHub zu eurem Fork (`github.com/EUER-NAME/knickgeschichten`).
+1. Geht auf GitHub zu `github.com/timosntr/knickgeschichten`.
 2. Ihr seht einen gelben Banner: **„Compare & pull request"** – darauf klicken.
 3. Füllt das Formular aus:
-   - **Titel:** Kurz und klar, z. B. `Tippfehler in Lobby-Beschreibung behoben`
-   - **Beschreibung:** Was habt ihr geändert, und warum? Gibt es Hintergründe oder Screenshots?
+   - **Titel:** Kurz und klar, z. B. `Dunkelmodus-Button hinzugefügt`
+   - **Beschreibung:** Was habt ihr geändert, und warum?
+   - **Base branch** muss `main` sein (sollte automatisch stimmen).
 4. Klickt auf **Create pull request**.
 
-Das war's – die Projektverantwortlichen werden euren Vorschlag sehen, kommentieren und ggf. übernehmen.
+---
 
-### 5.7 Feedback einarbeiten
+### 5.6 Feedback einarbeiten
 
 Wenn jemand euren PR kommentiert und Änderungen wünscht:
 
 1. Macht die Änderungen lokal in eurem Branch.
 2. Committet wie gehabt: `git add .` → `git commit -m "..."`.
-3. Pusht erneut: `git push mein-fork fix/tippfehler-lobby-text`.
+3. Pusht erneut: `git push origin feature/dunkelmodus-button`.
 4. Der PR aktualisiert sich automatisch – kein neuer PR nötig.
 
-### 5.8 Euren Fork aktuell halten
+---
 
-Wenn das Hauptprojekt Änderungen bekommt, holt ihr diese so:
+### 5.7 Nach dem Merge: main pullen und neu starten
+
+Sobald euer PR genehmigt und gemergt wurde, wechselt ihr zurück zu `main` und holt euch den aktuellen Stand:
 
 ```bash
-git checkout master
-git pull upstream master
-git push mein-fork master
+git checkout main
+git pull
 ```
+
+Ab jetzt basiert euer nächstes Feature auf diesem aktuellen `main`:
+
+```bash
+git checkout -b feature/naechstes-feature
+```
+
+---
+
+### 5.8 Wenn main sich weiterentwickelt hat (Rebase)
+
+Falls `main` sich verändert hat, während ihr noch an eurem Branch arbeitet, bringt ihr euren Branch mit einem Rebase auf den neuesten Stand:
+
+```bash
+# Zuerst main aktualisieren:
+git checkout main
+git pull
+
+# Zurück zu eurem Branch, dann rebasen:
+git checkout feature/mein-feature
+git rebase main
+```
+
+Falls beim Rebase Konflikte auftauchen, zeigt Git euch die betroffenen Dateien an. Öffnet sie, löst die markierten Stellen auf, und führt dann aus:
+
+```bash
+git add .
+git rebase --continue
+```
+
+Danach den Branch mit `--force-with-lease` hochladen (nötig, weil der Rebase die History umschreibt):
+
+```bash
+git push --force-with-lease origin feature/mein-feature
+```
+
+> **Wann rebasen?** Immer dann, wenn euer PR-Review „Please rebase on main" meldet, oder wenn ihr Änderungen aus `main` in eurer laufenden Arbeit braucht.
 
 ---
 
@@ -322,11 +361,7 @@ git push mein-fork master
 → Richtet SSH-Authentifizierung ein: [docs.github.com/en/authentication/connecting-to-github-with-ssh](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
 
 **`git push` meldet `rejected` / `non-fast-forward`**
-→ Euer Branch ist hinter dem Remote. Führt zuerst aus:
-```bash
-git pull --rebase mein-fork fix/euer-branch-name
-```
-Dann erneut pushen.
+→ Euer Branch ist hinter dem Remote. Führt zuerst einen Rebase durch (siehe 5.8), dann erneut pushen.
 
 **Windows: `npm` wird nicht erkannt**
 → Node.js wurde nicht korrekt installiert oder das Terminal wurde nicht neu gestartet. Node.js nochmals installieren, Git Bash neu öffnen.
@@ -348,11 +383,12 @@ Den angezeigten Pfad + `/bin` (Mac) oder `\bin` (Windows) zu eurer PATH-Variable
 | Server starten | `npm run dev` |
 | Server stoppen | `Ctrl + C` |
 | Claude starten | `claude` |
-| Neuen Branch erstellen | `git checkout -b name/beschreibung` |
+| main aktualisieren | `git checkout main && git pull` |
+| Neuen Branch erstellen | `git checkout -b feature/beschreibung` |
 | Änderungen vormerken | `git add .` |
 | Commit erstellen | `git commit -m "Beschreibung"` |
-| Branch hochladen | `git push mein-fork branch-name` |
-| Upstream-Updates holen | `git pull upstream master` |
+| Branch hochladen | `git push origin branch-name` |
+| Branch auf main rebasen | `git rebase main` |
 
 ---
 
