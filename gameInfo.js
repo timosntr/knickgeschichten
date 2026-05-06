@@ -49,30 +49,6 @@ module.exports = {
         type: 'bool',
         defaults: 'false',
       },
-      contextLen: {
-        name: 'Context',
-        text: 'Context',
-        info: 'Adding additional lines of context helps make stories flow better',
-        type: 'list',
-        defaults: 'regular',
-        options: [{
-          name: 'regular',
-          text: '1 Line',
-          value: 1,
-        }, {
-          name: 'two',
-          text: '2 Lines',
-          value: 2,
-        }, {
-          name: 'three',
-          text: '3 Lines',
-          value: 3,
-        }, {
-          name: 'four',
-          text: '4 Lines',
-          value: 4,
-        }],
-      },
       timeLimit: {
         name: 'Turn Time Limit',
         text: 'Time Limit',

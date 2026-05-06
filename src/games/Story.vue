@@ -3,7 +3,7 @@
     <div v-if="player.state === 'EDITING'"
       style="margin: 16px 0">
       <h2 is="sui-header" icon="pencil" v-if="player.link.length !== 0">
-        {{player.isLastLink ? 'Finish the story! ' : ''}}The last author{{player.link.length !== 1 ? 's' : ''}} wrote....
+        {{player.isLastLink ? 'Finish the story! ' : ''}}The story so far ends with...
         <div style="margin-top: 10px">
           <div v-for="(link, i) in player.link" :key="i">
             <sui-divider horizontal v-if="i !== 0" :inverted="darkMode">Then</sui-divider>
