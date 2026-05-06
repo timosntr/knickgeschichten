@@ -27,4 +27,4 @@ A fork of [Out Of Context Party Games](https://github.com/Meshiest/outofcontext)
 
 ### LetsEncrypt
 
-Follow nginx instructions on certbot swag
+Follow nginx instructions on certbot
