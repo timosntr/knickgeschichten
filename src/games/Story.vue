@@ -3,7 +3,7 @@
     <div v-if="player.state === 'EDITING'"
       style="margin: 16px 0">
       <h2 is="sui-header" icon="pencil" v-if="player.link.length !== 0">
-        {{player.isLastLink ? 'Finish the story! ' : ''}}The last author{{player.link.length !== 1 ? 's' : ''}} wrote....
+        {{player.isLastLink ? 'Finish the story! ' : ''}}The story so far ends with...
         <div style="margin-top: 10px">
           <div v-for="(link, i) in player.link" :key="i">
             <sui-divider horizontal v-if="i !== 0" :inverted="darkMode">Then</sui-divider>
@@ -27,11 +27,14 @@
           <div class="char-count">
             {{line.length}}/512
           </div>
+          <div v-if="game.minWords > 0" class="word-count" :class="{insufficient: wordCount < game.minWords}">
+            {{wordCount}} / {{game.minWords}} Wörter
+          </div>
         </sui-form-field>
         <sui-button type="submit"
           :color="player.isLastLink ? 'green' : 'blue'"
           :inverted="darkMode"
-          :disabled="line.length < 1 || line.length > 512">
+          :disabled="line.length < 1 || line.length > 512 || wordCount < game.minWords">
           {{player.isLastLink ? 'Finish' : 'Sign'}}
         </sui-button>
       </sui-form>
@@ -146,6 +149,16 @@
   font-weight: bold;
 }
 
+.word-count {
+  margin-top: 4px;
+  font-size: 0.85em;
+  color: #21ba45;
+}
+
+.word-count.insufficient {
+  color: #db2828;
+}
+
 </style>
 
 <script>
@@ -221,7 +234,10 @@ export default {
   computed: {
     nameTable() {
       return this.lobby.players.reduce((obj, p) => ({...obj, [p.playerId]: p.name}), {});
-    }
+    },
+    wordCount() {
+      return this.line.trim().split(/\s+/).filter(w => w.length > 0).length;
+    },
   },
   methods: {
     update() { this.$forceUpdate(); },

@@ -3,12 +3,16 @@ const _ = require('lodash');
 const Chain = require('./util/Chain');
 const Sanitize = require('./util/Sanitize');
 
+const MIN_WORDS = 10;
+const CONTEXT_LEN = 1;
+const CONTEXT_WORDS = 6;
+
 module.exports = class Story extends Game {
   constructor(lobby, config, players) {
     super(lobby, config, players);
     this.chains = [];
 
-    this.clearance = Math.min(config.players - 1, config.contextLen + 1);
+    this.clearance = Math.min(config.players - 1, CONTEXT_LEN + 1);
 
     this.lastEdit = {};
     for(const p of players)
@@ -223,6 +227,10 @@ module.exports = class Story extends Game {
       if(line.length < 1 || line.length > 512)
         return;
 
+      const wordCount = line.trim().split(/\s+/).filter(w => w.length > 0).length;
+      if(wordCount < MIN_WORDS)
+        return;
+
       this.clearTimer(pid);
       this.lastEdit[pid] = Date.now();
       story.addLink(pid, line);
@@ -265,7 +273,13 @@ module.exports = class Story extends Game {
       id: pid,
       state: 'EDITING',
       isLastLink: story.chain.length === this.config.numLinks - 1,
-      link: story.chain.slice(-this.config.contextLen),
+      link: story.chain.slice(-CONTEXT_LEN).map((line, i, arr) => {
+        if (i < arr.length - 1) return line;
+        const words = line.trim().split(/\s+/);
+        return words.length > CONTEXT_WORDS
+          ? '…' + words.slice(-CONTEXT_WORDS).join(' ')
+          : line;
+      }),
       deadline: this.deadlines[pid] || null,
     } : {
       id: pid,
@@ -310,6 +324,7 @@ module.exports = class Story extends Game {
           : hasStory[p] ? 'pencil' : 'clock',
       ]))),
       progress,
+      minWords: MIN_WORDS,
       likes: this.chains.map(s => _.size(_.filter(s.likes, l => l))),
       isComplete: progress === 1,
     };

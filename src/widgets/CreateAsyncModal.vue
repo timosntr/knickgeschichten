@@ -28,14 +28,6 @@
         </div>
 
         <sui-form-field>
-          <label>Context Lines Shown</label>
-          <sui-dropdown
-            v-model="config.contextLen"
-            :options="contextOptions"
-            selection/>
-        </sui-form-field>
-
-        <sui-form-field>
           <label>Turn Time Limit</label>
           <sui-dropdown
             v-model="config.timeLimit"
@@ -70,16 +62,9 @@ export default {
       config: {
         numStories: 3,
         numLinks: 10,
-        contextLen: 'regular',
         timeLimit: 'none',
       },
       anonymousChecked: false,
-      contextOptions: [
-        { text: '1 Line', value: 'regular' },
-        { text: '2 Lines', value: 'two' },
-        { text: '3 Lines', value: 'three' },
-        { text: '4 Lines', value: 'four' },
-      ],
       timeLimitOptions: [
         { text: 'None', value: 'none' },
         { text: '30 sec', value: 'sec30' },
@@ -109,7 +94,6 @@ export default {
         config: {
           numStories: this.config.numStories,
           numLinks: this.config.numLinks,
-          contextLen: this.config.contextLen,
           timeLimit: this.config.timeLimit,
           anonymous: this.anonymousChecked ? 'true' : 'false',
         },
