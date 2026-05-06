@@ -3,6 +3,8 @@ const _ = require('lodash');
 const Chain = require('./util/Chain');
 const Sanitize = require('./util/Sanitize');
 
+const MIN_WORDS = 10;
+
 module.exports = class Story extends Game {
   constructor(lobby, config, players) {
     super(lobby, config, players);
@@ -224,7 +226,7 @@ module.exports = class Story extends Game {
         return;
 
       const wordCount = line.trim().split(/\s+/).filter(w => w.length > 0).length;
-      if(this.config.minWords > 0 && wordCount < this.config.minWords)
+      if(wordCount < MIN_WORDS)
         return;
 
       this.clearTimer(pid);
@@ -314,6 +316,7 @@ module.exports = class Story extends Game {
           : hasStory[p] ? 'pencil' : 'clock',
       ]))),
       progress,
+      minWords: MIN_WORDS,
       likes: this.chains.map(s => _.size(_.filter(s.likes, l => l))),
       isComplete: progress === 1,
     };

@@ -73,15 +73,6 @@ module.exports = {
           value: 4,
         }],
       },
-      minWords: {
-        name: 'Minimum Words',
-        text: 'Min. Wörter',
-        info: 'Mindestanzahl an Wörtern, die pro Zeile geschrieben werden müssen (0 = deaktiviert)',
-        type: 'int',
-        min: 0,
-        max: 50,
-        defaults: 0,
-      },
       timeLimit: {
         name: 'Turn Time Limit',
         text: 'Time Limit',

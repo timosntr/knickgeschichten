@@ -27,14 +27,14 @@
           <div class="char-count">
             {{line.length}}/512
           </div>
-          <div v-if="lobby.config.minWords > 0" class="word-count" :class="{insufficient: wordCount < lobby.config.minWords}">
-            {{wordCount}} / {{lobby.config.minWords}} Wörter
+          <div v-if="game.minWords > 0" class="word-count" :class="{insufficient: wordCount < game.minWords}">
+            {{wordCount}} / {{game.minWords}} Wörter
           </div>
         </sui-form-field>
         <sui-button type="submit"
           :color="player.isLastLink ? 'green' : 'blue'"
           :inverted="darkMode"
-          :disabled="line.length < 1 || line.length > 512 || (lobby.config.minWords > 0 && wordCount < lobby.config.minWords)">
+          :disabled="line.length < 1 || line.length > 512 || wordCount < game.minWords">
           {{player.isLastLink ? 'Finish' : 'Sign'}}
         </sui-button>
       </sui-form>
