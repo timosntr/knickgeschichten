@@ -98,6 +98,9 @@ module.exports = class Story extends Game {
     if (this.players.includes(pid)) return;
     this.players.push(pid);
     this.lastEdit[pid] = 0;
+    if (this.getGameProgress() === 1) {
+      this.emitTo(pid, 'story:result', this.compileStories());
+    }
     this.redistribute();
   }
 
@@ -179,6 +182,14 @@ module.exports = class Story extends Game {
       this.assignChain(player, story);
     }
 
+    // When all stories are complete, save them to lobby so they survive endGame()
+    if (this.getGameProgress() === 1 && !this.lobby.completedStories) {
+      this.lobby.completedStories = this.compileStories();
+      this.lobby.completedAuthors = Object.keys(
+        this.chains.reduce((acc, chain) => Object.assign(acc, chain.collaborators), {})
+      ).length;
+    }
+
     this.sendGameInfo();
   }
 
@@ -243,7 +254,7 @@ module.exports = class Story extends Game {
       this.finishedReading[pid] = data === true;
       this.sendGameInfo();
 
-      if(this.players.every(p => this.finishedReading[p]))
+      if(!this.lobby.isAsync && this.players.every(p => this.finishedReading[p]))
         this.lobby.endGame();
 
       break;

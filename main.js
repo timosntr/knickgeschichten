@@ -62,10 +62,14 @@ io.on('connection', socket => {
       if(player.lobby) {
         player.lobby.updateMembers();
         player.lobby.sendLobbyInfo();
-        // Auto-start async sessions when first player joins
-        if (player.lobby.isAsync && player.lobby.lobbyState === 'WAITING' && player.lobby.players.length > 0) {
+        // Auto-start async sessions when first player joins (but not if stories are already completed)
+        if (player.lobby.isAsync && player.lobby.lobbyState === 'WAITING' && player.lobby.players.length > 0 && !player.lobby.completedStories) {
           player.lobby.startGame();
           console.log(new Date(), `-- [lobby ${player.lobby.code}] async session auto-started`);
+        }
+        // Send completed stories to player joining a finished session
+        if (player.lobby.completedStories) {
+          socket.emit('story:result', player.lobby.completedStories);
         }
       }
     } else {
