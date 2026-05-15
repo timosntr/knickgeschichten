@@ -67,8 +67,11 @@ class Lobby {
     return Object.values(Lobby.lobbies)
       .filter(l => l && l.isAsync)
       .map(l => {
-        const progress = l.game ? l.game.getGameProgress() : 0;
+        const progress = l.game ? l.game.getGameProgress() : (l.completedStories ? 1 : 0);
         const config = l.gameConfig;
+        const numAuthors = l.game
+          ? Object.keys(l.game.chains.reduce((acc, chain) => Object.assign(acc, chain.collaborators), {})).length
+          : (l.completedAuthors || 0);
         return {
           code: l.code,
           title: l.title,
@@ -76,6 +79,7 @@ class Lobby {
           isComplete: progress === 1,
           numStories: typeof config.numStories === 'number' ? config.numStories : l.players.length,
           numLinks: typeof config.numLinks === 'number' ? config.numLinks : 10,
+          numAuthors,
           playersOnline: l.members.length,
           createdAt: l.created,
         };
@@ -173,6 +177,8 @@ class Lobby {
     this.isAsync = false;
     this.title = '';
     this.disconnectTimers = {};
+    this.completedStories = null;
+    this.completedAuthors = 0;
   }
 
     // get the lobby's current save state
@@ -194,6 +200,8 @@ class Lobby {
       } : null,
       isAsync: this.isAsync,
       title: this.title,
+      completedStories: this.completedStories || null,
+      completedAuthors: this.completedAuthors || 0,
     }
   }
 
@@ -226,6 +234,9 @@ class Lobby {
     this.lobbyState = lobbyState.lobbyState || 'WAITING';
     this.isAsync = lobbyState.isAsync || false;
     this.title = lobbyState.title || '';
+    this.disconnectTimers = {};
+    this.completedStories = lobbyState.completedStories || null;
+    this.completedAuthors = lobbyState.completedAuthors || 0;
 
     if (lobbyState.game && this.players.length > 0) {
       const { config, state } = lobbyState.game;

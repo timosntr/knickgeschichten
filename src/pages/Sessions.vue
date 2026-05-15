@@ -51,7 +51,8 @@
               </div>
               <div class="session-meta">
                 {{ session.numStories }} {{ session.numStories === 1 ? 'story' : 'stories' }},
-                {{ session.numLinks }} lines each
+                {{ session.numLinks }} lines each ·
+                {{ session.numAuthors }} {{ session.numAuthors === 1 ? 'author' : 'authors' }}
               </div>
               <div class="session-footer">
                 <span class="session-age">{{ timeAgo(session.createdAt) }}</span>
