@@ -38,6 +38,11 @@
           {{player.isLastLink ? 'Finish' : 'Sign'}}
         </sui-button>
       </sui-form>
+      <div v-if="player.canEnd" style="margin-top: 12px">
+        <sui-button size="tiny" color="red" @click="endStory" :inverted="darkMode">
+          Geschichte beenden
+        </sui-button>
+      </div>
       <div v-if="lobby.admin === $root.playerId" style="margin-top: 12px">
         <sui-button size="tiny" @click="requestExport" :inverted="darkMode">
           Export Stories
@@ -49,6 +54,11 @@
       <sui-loader active centered inline size="huge" :inverted="darkMode">
         Waiting on Other Authors
       </sui-loader>
+      <div v-if="player.canEnd" style="margin-top: 24px">
+        <sui-button size="tiny" color="red" @click="endStory" :inverted="darkMode">
+          Geschichte beenden
+        </sui-button>
+      </div>
       <div v-if="lobby.admin === $root.playerId" style="margin-top: 24px">
         <sui-button size="tiny" @click="requestExport" :inverted="darkMode">
           Export Stories
@@ -263,6 +273,9 @@ export default {
         clearInterval(this.countdownInterval);
         this.countdownInterval = null;
       }
+    },
+    endStory() {
+      this.$socket.emit('game:message', 'story:end', {});
     },
     requestExport() {
       this.$socket.emit('game:message', 'story:export');
