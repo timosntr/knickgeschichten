@@ -425,7 +425,7 @@ try {
       const code = path.basename(file, '.json.gz');
       if (Lobby.lobbies[code]) continue;
       const state = Persistence.restoreLobbyState(code);
-      if (state.isAsync && state.lobbyState === 'PLAYING') {
+      if (state.isAsync && (state.lobbyState === 'PLAYING' || state.completedStories)) {
         const lobby = Lobby.create(code, state);
         lobby.persist = true;
         ++restored;
