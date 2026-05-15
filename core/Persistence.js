@@ -1,18 +1,31 @@
 const _ = require('lodash');
 const pako = require('pako');
 const fs = require('fs');
+const path = require('path');
 const glob = require('glob');
 
 // ~1 month expire time
 const EXPIRE_TIME = 1000 * 60 * 60 * 24 * 30;
 
-const saveName = code => `persistence/${code}.json.gz`;
+// Only accept codes that are 4–8 lowercase letters, optionally prefixed with 'rc'
+const VALID_CODE = /^(?:rc)?[a-z]{4,8}$/;
+
+function validateCode(code) {
+  if (!VALID_CODE.test(code)) throw new Error(`Invalid lobby code: ${code}`);
+  return code;
+}
+
+const saveName = code => `persistence/${validateCode(code)}.json.gz`;
 // Legacy name used before gzip migration
-const legacySaveName = code => `persistence/${code}.json.zip`;
+const legacySaveName = code => `persistence/${validateCode(code)}.json.zip`;
 
 // determine if there is a file named after a lobby code
 function saveExists(code) {
-  return fs.existsSync(saveName(code)) || fs.existsSync(legacySaveName(code));
+  try {
+    return fs.existsSync(saveName(code)) || fs.existsSync(legacySaveName(code));
+  } catch {
+    return false; // invalid code format — no such lobby
+  }
 }
 
 // remove an expired lobby

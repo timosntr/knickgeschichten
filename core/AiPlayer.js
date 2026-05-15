@@ -20,6 +20,8 @@ async function ollamaChat(messages) {
   });
   if (!res.ok) throw new Error(`Ollama ${res.status}: ${await res.text()}`);
   const data = await res.json();
+  if (typeof data.message?.content !== 'string')
+    throw new Error(`Unexpected Ollama response shape: ${JSON.stringify(data).slice(0, 200)}`);
   return data.message.content.trim();
 }
 
