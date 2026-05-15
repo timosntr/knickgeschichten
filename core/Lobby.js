@@ -272,8 +272,12 @@ class Lobby {
   startGame() {
     if(!this.selectedGame) return;
 
-    // Inject AI players into the player list before computing numPlayers
-    const numAi = Math.max(0, Math.min(3, Math.floor(Number(this.gameConfig.aiPlayers)) || 0));
+    // Inject AI players — only if Ollama was reachable at startup
+    const requestedAi = Math.max(0, Math.min(3, Math.floor(Number(this.gameConfig.aiPlayers)) || 0));
+    const numAi = AiPlayer.available === false ? 0 : requestedAi;
+    if (requestedAi > 0 && numAi === 0) {
+      console.warn(new Date(), `-- [lobby ${this.code}] AI players requested but Ollama unavailable — skipping`);
+    }
     this.aiInstances = [];
     for (let i = 0; i < numAi; i++) {
       const ai = new AiPlayer(this, i);

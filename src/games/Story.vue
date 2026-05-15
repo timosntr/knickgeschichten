@@ -94,7 +94,7 @@
                     </sui-comment-text>
                     <sui-comment-author v-if="nameTable[entry.editor]"
                       style="text-align: right;">
-                      &mdash;{{nameTable[entry.editor]}}
+                      &mdash;{{nameTable[entry.editor]}}<span v-if="aiTable[entry.editor]"> 🤖</span>
                     </sui-comment-author>
                   </sui-comment-content>
                 </sui-comment>
@@ -243,6 +243,9 @@ export default {
     nameTable() {
       return this.lobby.players.reduce((obj, p) => ({...obj, [p.playerId]: p.name}), {});
     },
+    aiTable() {
+      return this.lobby.players.reduce((obj, p) => ({...obj, [p.playerId]: p.isAi || false}), {});
+    },
     wordCount() {
       return this.line.trim().split(/\s+/).filter(w => w.length > 0).length;
     },
@@ -283,7 +286,7 @@ export default {
       const text = this.stories.map((story, i) =>
         `=== Story ${i + 1} ===\n` +
         story.map(e =>
-          e.link + (e.editor && this.nameTable[e.editor] ? ` (${this.nameTable[e.editor]})` : '')
+          e.link + (e.editor && this.nameTable[e.editor] ? ` (${this.nameTable[e.editor]}${this.aiTable[e.editor] ? ' 🤖' : ''})` : '')
         ).join('\n')
       ).join('\n\n');
       navigator.clipboard.writeText(text).catch(() => {});

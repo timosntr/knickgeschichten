@@ -21,6 +21,10 @@ const Member = require('./core/Member');
 const Lobby = require('./core/Lobby');
 const Persistence = require('./core/Persistence');
 const GAMES = require('./gameInfo.js');
+const AiPlayer = require('./core/AiPlayer');
+
+// Check Ollama availability — result determines whether AI players can be used
+AiPlayer.checkAvailability();
 
 let asyncSessionCounter = 0;
 
