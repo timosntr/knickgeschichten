@@ -17,6 +17,7 @@ module.exports = class Story extends Game {
     this.finishedReading = {};
     this.timers = {};
     this.deadlines = {};
+    this.ended = false;
   }
 
 
@@ -26,6 +27,7 @@ module.exports = class Story extends Game {
 
     this.chains = blob.chains.map(Chain.restore);
     this.finishedReading = blob.finishedReading;
+    this.ended = blob.ended || false;
 
     // Restore timers from saved deadlines
     if (blob.deadlines && this.config.timeLimit > 0) {
@@ -46,6 +48,7 @@ module.exports = class Story extends Game {
       chains: this.chains.map(s => s.save()),
       finishedReading: this.finishedReading,
       deadlines: this.deadlines,
+      ended: this.ended,
     }
   }
 
@@ -231,6 +234,29 @@ module.exports = class Story extends Game {
 
       break;
 
+    // Allow the last writer to manually end the game once 23+ lines are written
+    case 'story:end': {
+      if (this.ended || this.getGameProgress() === 1) return;
+      if (this.getTotalLines() < 23) return;
+      if (this.getLastWriter() !== pid) return;
+
+      // Clear all timers
+      for (const p of Object.keys(this.timers)) {
+        clearTimeout(this.timers[p]);
+      }
+      this.timers = {};
+      this.deadlines = {};
+
+      // Release all chains so no further writing is possible
+      for (const chain of this.chains) {
+        chain.editor = '';
+      }
+
+      this.ended = true;
+      this.sendGameInfo();
+      break;
+    }
+
     case 'story:done':
       this.finishedReading[pid] = data === true;
       this.sendGameInfo();
@@ -250,16 +276,30 @@ module.exports = class Story extends Game {
     }
   }
 
+  getTotalLines() {
+    return _.sumBy(this.chains, s => s.chain.length);
+  }
+
+  // Returns the playerId of whoever wrote the most recent line, or null if nobody has written yet
+  getLastWriter() {
+    const entries = Object.entries(this.lastEdit).filter(([, t]) => t > 0);
+    if (entries.length === 0) return null;
+    return _.maxBy(entries, ([, t]) => t)[0];
+  }
+
   getGameProgress() {
+    if (this.ended) return 1;
     const { numStories, numLinks } = this.config;
     const totalLines = numStories * numLinks;
-    const writtenLines = _.sumBy(this.chains, s => s.chain.length);
+    const writtenLines = this.getTotalLines();
     return writtenLines / totalLines;
   }
 
   getPlayerState(pid) {
     const story = this.chains.find(s => s.editor === pid);
     const done = this.getGameProgress() === 1;
+    // canEnd: true only for the last writer, once 23+ lines exist, and game isn't finished yet
+    const canEnd = !done && this.getTotalLines() >= 23 && this.getLastWriter() === pid;
 
     return story ? {
       id: pid,
@@ -267,10 +307,12 @@ module.exports = class Story extends Game {
       isLastLink: story.chain.length === this.config.numLinks - 1,
       link: story.chain.slice(-this.config.contextLen),
       deadline: this.deadlines[pid] || null,
+      canEnd,
     } : {
       id: pid,
       liked: this.chains.map(s => s.likes[pid]),
       state: done ? 'READING' : 'WAITING',
+      canEnd,
     };
   }
 
