@@ -50,7 +50,7 @@
           :negative="!p.connected"
           :positive="$root.playerId === p.id">
           <td>
-            {{p.name}}
+            {{p.name}}<span v-if="p.isAi" class="ai-badge" title="KI-Spieler"> 🤖</span>
             <span class="emote-container" :ref="`emote_${p.id}`"></span>
             <span class="user-icons">
               <sui-button v-if="!p.connected && isSpectator"
@@ -60,7 +60,7 @@
                 basic>
                 Join
               </sui-button>
-              <sui-button v-if="isAdmin && removeMode && p.id !== $root.playerId && p.connected"
+              <sui-button v-if="isAdmin && removeMode && p.id !== $root.playerId && p.connected && !p.isAi"
                 size="tiny"
                 color="red"
                 :inverted="darkMode"
@@ -68,7 +68,7 @@
                 basic>
                 Remove
               </sui-button>
-              <sui-button v-if="isAdmin && changeMode && p.id !== $root.playerId && p.connected"
+              <sui-button v-if="isAdmin && changeMode && p.id !== $root.playerId && p.connected && !p.isAi"
                 size="tiny"
                 :inverted="darkMode"
                 color="blue"

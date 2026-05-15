@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const gameInfo = require('../gameInfo');
 const Persistence = require('./Persistence');
+const AiPlayer = require('./AiPlayer');
 
 const GAMES = {
   story: require('./games/story'),
@@ -179,6 +180,7 @@ class Lobby {
     this.disconnectTimers = {};
     this.completedStories = null;
     this.completedAuthors = 0;
+    this.aiInstances = [];
   }
 
     // get the lobby's current save state
@@ -190,7 +192,7 @@ class Lobby {
       lobbyState: this.lobbyState,
       selectedGame: this.selectedGame,
       gameConfig: this.gameConfig,
-      players: this.players.map(p => ({
+      players: this.players.filter(p => !p.isAi).map(p => ({
         playerId: p.playerId,
         name: p.member ? p.member.name : p.name,
       })),
@@ -270,6 +272,22 @@ class Lobby {
   startGame() {
     if(!this.selectedGame) return;
 
+    // Inject AI players into the player list before computing numPlayers
+    const numAi = Math.max(0, Math.min(3, Math.floor(Number(this.gameConfig.aiPlayers)) || 0));
+    this.aiInstances = [];
+    for (let i = 0; i < numAi; i++) {
+      const ai = new AiPlayer(this, i);
+      this.aiInstances.push(ai);
+      this.players.push({
+        id: `__ai__${ai.playerId}`,
+        playerId: ai.playerId,
+        name: ai.name,
+        member: null,
+        connected: true,
+        isAi: true,
+      });
+    }
+
     const isPlayer = {};
     for (const p of this.players) isPlayer[p.id] = true;
     for(const p of this.members) {
@@ -296,6 +314,12 @@ class Lobby {
 
     if(Constructor) {
       this.game = new Constructor(...args);
+
+      // Attach AI players so they detect chain assignments and generate lines
+      for (const ai of this.aiInstances) {
+        ai.attachToGame(this.game);
+      }
+
       this.lobbyState = 'PLAYING';
       this.updateMembers();
       this.sendLobbyInfo();
@@ -314,6 +338,11 @@ class Lobby {
 
     this.game = undefined;
     this.lobbyState = 'WAITING';
+
+    // Destroy AI instances and remove them from the player list
+    for (const ai of this.aiInstances) ai.destroy();
+    this.players = this.players.filter(p => !p.isAi);
+    this.aiInstances = [];
 
     this.updateMembers();
     this.sendLobbyInfo();
@@ -665,9 +694,9 @@ class Lobby {
         }
       }
 
-      // Delegate a new admin
+      // Delegate a new admin (never assign AI players as admin)
       for(let i = 0; !this.admin && i < this.players.length; i++) {
-        if(this.players[i].connected) {
+        if(this.players[i].connected && !this.players[i].isAi) {
           this.admin = this.players[i].id;
         }
       }
@@ -680,9 +709,9 @@ class Lobby {
       if(admin && !admin.connected)
         this.admin = '';
 
-      // Delegate a new admin
+      // Delegate a new admin (never assign AI players as admin)
       for(let i = 0; !this.admin && i < this.players.length; i++) {
-        if(this.players[i].connected) {
+        if(this.players[i].connected && !this.players[i].isAi) {
           this.admin = this.players[i].id;
         }
       }
@@ -728,8 +757,9 @@ class Lobby {
       players: this.players.map(p => ({
         id: p.id,
         playerId: p.playerId,
-        connected: p.connected && !!p.member,
+        connected: p.isAi ? true : (p.connected && !!p.member),
         name: p.member ? p.member.name : p.name,
+        isAi: p.isAi || false,
       })),
       spectators: this.members.filter(m => !isPlayer[m.id]).map(m => ({
         id: m.id,

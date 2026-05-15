@@ -52,6 +52,15 @@ module.exports = {
         defaults: 'false',
         hidden: true,
       },
+      aiPlayers: {
+        name: 'KI-Spieler',
+        text: 'KI',
+        info: 'Anzahl KI-Spieler die mitschreiben',
+        type: 'int',
+        min: 0,
+        max: 3,
+        defaults: 0,
+      },
       timeLimit: {
         name: 'Turn Time Limit',
         text: 'Time Limit',
