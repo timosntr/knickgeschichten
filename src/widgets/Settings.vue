@@ -1,6 +1,12 @@
 <template>
-  <div class="settings">
-    <sui-accordion styled :inverted="isDarkMode">
+  <div class="settings" :class="{minimal: minimal}">
+    <div v-if="minimal" class="minimal-dark-mode">
+      <sui-checkbox
+        :label="isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'"
+        @input="handleDarkMode"
+        v-model="isDarkMode"/>
+    </div>
+    <sui-accordion v-else styled :inverted="isDarkMode">
       <sui-accordion-title>
         <sui-icon name="dropdown"/>User Preferences
       </sui-accordion-title>
@@ -49,12 +55,32 @@
   padding-bottom: 28px;
 }
 
+.settings.minimal {
+  padding-bottom: 16px;
+}
+
+.minimal-dark-mode {
+  text-align: center;
+  opacity: 0.5;
+  font-size: 0.85em;
+}
+
+.minimal-dark-mode:hover {
+  opacity: 1;
+}
+
 </style>
 
 <script>
 import gameInfo from '../../gameInfo';
 
 export default {
+  props: {
+    minimal: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     return {
       sounds: [

@@ -1,5 +1,5 @@
 <template>
-  <ooc-page>
+  <ooc-page :minimal="lobbyInfo.isAsync">
     <ooc-menu v-if="state === 'NO_LOBBY'"
       title="Invalid Lobby"
       subtitle="This lobby does not exist">
@@ -208,7 +208,7 @@
       <sui-loader :inverted="darkMode" />
     </sui-dimmer>
     <sui-label
-      v-if="validLobby && !rocketcrab && !hideLobbyCode"
+      v-if="validLobby && !rocketcrab && !hideLobbyCode && !lobbyInfo.isAsync"
       class="lobby-code left"
       attached="top left">
       <code>

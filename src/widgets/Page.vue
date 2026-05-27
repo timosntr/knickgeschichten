@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <slot></slot>
-    <ooc-settings></ooc-settings>
+    <ooc-settings :minimal="minimal"></ooc-settings>
   </div>
 </template>
 
@@ -13,3 +13,14 @@ body {
   overflow-y: auto;
 }
 </style>
+
+<script>
+export default {
+  props: {
+    minimal: {
+      type: Boolean,
+      default: false,
+    },
+  },
+};
+</script>
