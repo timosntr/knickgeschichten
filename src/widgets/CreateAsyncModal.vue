@@ -2,16 +2,14 @@
   <sui-modal :open="active" @close="$emit('close')" size="small">
     <sui-modal-header>Start Async Story</sui-modal-header>
     <sui-modal-content>
-      <sui-form :inverted="darkMode" @submit.prevent="submit" :loading="creating">
-        <sui-form-field>
-          <sui-checkbox v-model="anonymousChecked" label="Anonymous (hide author names)"/>
-        </sui-form-field>
-      </sui-form>
+      <p :style="{color: darkMode ? '#ccc' : '#555', fontSize: '0.9em', margin: 0}">
+        Eine öffentliche Knickgeschichte wird erstellt. Du kannst deinen Namen beim Beitreten wählen oder anonym bleiben.
+      </p>
     </sui-modal-content>
     <sui-modal-actions>
-      <sui-button @click="$emit('close')" :inverted="darkMode">Cancel</sui-button>
+      <sui-button @click="$emit('close')" :inverted="darkMode">Abbrechen</sui-button>
       <sui-button color="green" :inverted="darkMode" @click="submit" :loading="creating">
-        Start Session
+        Story starten
       </sui-button>
     </sui-modal-actions>
   </sui-modal>
@@ -25,7 +23,6 @@ export default {
   data() {
     return {
       creating: false,
-      anonymousChecked: false,
     };
   },
   sockets: {
@@ -38,11 +35,7 @@ export default {
     update() { this.$forceUpdate(); },
     submit() {
       this.creating = true;
-      this.$socket.emit('lobby:create:async', {
-        config: {
-          anonymous: this.anonymousChecked ? 'true' : 'false',
-        },
-      });
+      this.$socket.emit('lobby:create:async', {});
     },
   },
   beforeDestroy() {
