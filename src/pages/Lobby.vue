@@ -51,19 +51,25 @@
         @submit="e => enterName(e)"
         :error="!validName"
         :loading="loadingName">
-        <sui-form-field>
+        <sui-form-field :disabled="anonymousJoin">
           <label>Name</label>
           <input name="playerName"
-            required
+            :required="!anonymousJoin"
             @input="validName = true"
             v-model="name"
+            :disabled="anonymousJoin"
             minlength="1"
             maxlength="15"
             autocomplete="on"
             placeholder="Ethan">
         </sui-form-field>
+        <sui-form-field v-if="lobbyInfo.isAsync">
+          <sui-checkbox
+            v-model="anonymousJoin"
+            label="Anonym bleiben"/>
+        </sui-form-field>
         <sui-button color="blue" :inverted="darkMode" type="submit">
-          Join
+          Mitmachen
         </sui-button>
         <router-link
           is="sui-button"
@@ -277,6 +283,7 @@ export default {
   data() {
     return {
       name: localStorage.oocName || '',
+      anonymousJoin: false,
       loading: true,
       creatingLobby: false,
       showJoinLobby: false,
@@ -379,8 +386,8 @@ export default {
     },
     enterName(event) {
       event.preventDefault();
-      const name = event.target.playerName.value;
-      localStorage.oocName = name;
+      const name = this.anonymousJoin ? '' : event.target.playerName.value;
+      if (!this.anonymousJoin) localStorage.oocName = name;
       this.loadingName = true;
       this.$socket.emit('member:name', name);
     },

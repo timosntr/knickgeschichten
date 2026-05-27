@@ -58,7 +58,8 @@ io.on('connection', socket => {
     // remove zero width no break spaces, trim spaces
     name = name.replace(/[\u200B-\u200D\uFEFF\n\t]/g, '').trim()
 
-    if(name.length > 0 && name.length < 16) {
+    const isAsync = player.lobby && player.lobby.isAsync;
+    if((isAsync ? name.length < 16 : name.length > 0 && name.length < 16)) {
       player.name = name;
       socket.emit('member:nameOk', true);
       if(player.lobby) {
@@ -274,7 +275,7 @@ io.on('connection', socket => {
 
   // Leave the lobby if a player is in one
   socket.on('lobby:leave', () => {
-    player.name = '';
+    player.name = null;
     Lobby.removePlayer(player);
   });
 

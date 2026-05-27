@@ -50,6 +50,7 @@ module.exports = {
         info: 'Whether names are shown at the end.',
         type: 'bool',
         defaults: 'false',
+        hidden: true,
       },
       timeLimit: {
         name: 'Turn Time Limit',

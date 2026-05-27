@@ -651,7 +651,9 @@ class Lobby {
       // Determine if more members should be added into the players list
       if(!this.gameConfig.players || this.gameConfig.players === '#numPlayers' || this.players.length < this.gameConfig.players) {
         for(const m of this.members) {
-          if(m.name && !this.players.find(p => p.id === m.id) && !this.spectators.find(p => p.id === m.id)) {
+          // For async: allow empty string names (anonymous); for sync: require non-empty name
+          const nameReady = this.isAsync ? m.name !== null : !!m.name;
+          if(nameReady && !this.players.find(p => p.id === m.id) && !this.spectators.find(p => p.id === m.id)) {
             this.players.push({
               id: m.id,
               playerId: _.uniqueId('player'),
@@ -685,10 +687,10 @@ class Lobby {
         }
       }
 
-      // For async sessions: add new named members as players mid-game
+      // For async sessions: add new members as players mid-game (null = no name yet; '' = anonymous)
       if (this.isAsync) {
         for (const m of this.members) {
-          if (!m.name) continue;
+          if (m.name === null) continue;
           const alreadyPlayer = this.players.find(p => p.id === m.id);
           if (!alreadyPlayer && !this.spectators.find(p => p.id === m.id)) {
             const pid = _.uniqueId('player');
@@ -721,7 +723,7 @@ class Lobby {
       gameState: this.game ? this.game.getState() : {},
       members: this.members.map(m => ({
         id: m.id,
-        name: m.name || false,
+        name: m.name !== null ? m.name : false,
       })),
       players: this.players.map(p => ({
         id: p.id,
