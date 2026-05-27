@@ -3,15 +3,6 @@
     <sui-modal-header>Start Async Story</sui-modal-header>
     <sui-modal-content>
       <sui-form :inverted="darkMode" @submit.prevent="submit" :loading="creating">
-
-        <sui-form-field>
-          <label>Turn Time Limit</label>
-          <sui-dropdown
-            v-model="config.timeLimit"
-            :options="timeLimitOptions"
-            selection/>
-        </sui-form-field>
-
         <sui-form-field>
           <sui-checkbox v-model="anonymousChecked" label="Anonymous (hide author names)"/>
         </sui-form-field>
@@ -34,17 +25,7 @@ export default {
   data() {
     return {
       creating: false,
-      config: {
-        timeLimit: 'none',
-      },
       anonymousChecked: false,
-      timeLimitOptions: [
-        { text: 'None', value: 'none' },
-        { text: '30 sec', value: 'sec30' },
-        { text: '1 min', value: 'min1' },
-        { text: '2 min', value: 'min2' },
-        { text: '5 min', value: 'min5' },
-      ],
     };
   },
   sockets: {
@@ -59,7 +40,6 @@ export default {
       this.creating = true;
       this.$socket.emit('lobby:create:async', {
         config: {
-          timeLimit: this.config.timeLimit,
           anonymous: this.anonymousChecked ? 'true' : 'false',
         },
       });

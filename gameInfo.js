@@ -57,6 +57,7 @@ module.exports = {
         info: 'How long each player has to write their line before it is skipped',
         type: 'list',
         defaults: 'none',
+        hidden: true,
         options: [{
           name: 'none',
           text: 'None',
@@ -65,6 +66,10 @@ module.exports = {
           name: 'sec30',
           text: '30 sec',
           value: 30,
+        }, {
+          name: 'sec100',
+          text: '100 sec',
+          value: 100,
         }, {
           name: 'min1',
           text: '1 min',
