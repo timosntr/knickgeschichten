@@ -43,7 +43,7 @@
           basic
           @click="skipTurn"
           style="margin-top: 6px;">
-          Überspringen
+          Abbrechen
         </sui-button>
       </sui-form>
       <div v-if="lobby.admin === $root.playerId" style="margin-top: 12px">
@@ -274,6 +274,7 @@ export default {
     },
     skipTurn() {
       this.$socket.emit('game:message', 'story:skip');
+      this.$router.push('/');
     },
     requestExport() {
       this.$socket.emit('game:message', 'story:export');
