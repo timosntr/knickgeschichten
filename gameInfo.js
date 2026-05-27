@@ -42,6 +42,7 @@ module.exports = {
         min: 3,
         max: 256,
         defaults: 10,
+        hidden: true,
       },
       anonymous: {
         name: 'Hide Authors',

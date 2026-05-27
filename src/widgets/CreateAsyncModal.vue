@@ -3,10 +3,6 @@
     <sui-modal-header>Start Async Story</sui-modal-header>
     <sui-modal-content>
       <sui-form :inverted="darkMode" @submit.prevent="submit" :loading="creating">
-        <sui-form-field>
-          <label>Lines per Story</label>
-          <input type="number" v-model.number="config.numLinks" min="3" max="50"/>
-        </sui-form-field>
 
         <sui-form-field>
           <label>Turn Time Limit</label>
@@ -39,7 +35,6 @@ export default {
     return {
       creating: false,
       config: {
-        numLinks: 10,
         timeLimit: 'none',
       },
       anonymousChecked: false,
@@ -64,7 +59,6 @@ export default {
       this.creating = true;
       this.$socket.emit('lobby:create:async', {
         config: {
-          numLinks: this.config.numLinks,
           timeLimit: this.config.timeLimit,
           anonymous: this.anonymousChecked ? 'true' : 'false',
         },
