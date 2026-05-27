@@ -22,6 +22,8 @@ const Lobby = require('./core/Lobby');
 const Persistence = require('./core/Persistence');
 const GAMES = require('./gameInfo.js');
 
+let asyncSessionCounter = 0;
+
 const EMOTES = [
   'smile',
   'meh',
@@ -93,19 +95,15 @@ io.on('connection', socket => {
   });
 
   // Create a public async story session
-  socket.on('lobby:create:async', ({ title, config } = {}) => {
+  socket.on('lobby:create:async', ({ config } = {}) => {
     if (player.lobby) return;
-    if (!title || typeof title !== 'string') return;
-
-    const sanitizedTitle = Sanitize.str(title).trim().slice(0, 60);
-    if (!sanitizedTitle) return;
 
     player.interact();
     const code = Lobby.newCode();
     const lobby = new Lobby();
     lobby.code = code;
     lobby.isAsync = true;
-    lobby.title = sanitizedTitle;
+    lobby.title = `Knickgeschichte ${++asyncSessionCounter}`;
     lobby.persist = true;
     lobby.selectedGame = 'story';
 
@@ -116,7 +114,7 @@ io.on('connection', socket => {
 
     // Apply user-supplied config values for allowed fields
     if (config && typeof config === 'object') {
-      for (const field of ['numStories', 'numLinks', 'contextLen', 'timeLimit', 'anonymous']) {
+      for (const field of ['numStories', 'numLinks', 'timeLimit', 'anonymous']) {
         if (config[field] !== undefined) {
           lobby.setConfig(field, config[field]);
         }
@@ -127,7 +125,7 @@ io.on('connection', socket => {
     player.lobby = lobby;
     socket.emit('lobby:join', code);
     lobby.addMember(player);
-    console.log(new Date(), `-- [lobby ${code}] created async session "${sanitizedTitle}"`);
+    console.log(new Date(), `-- [lobby ${code}] created async session "${lobby.title}"`);
   });
 
   // Allow players to request current lobby info
@@ -432,8 +430,9 @@ try {
       }
     } catch {}
   }
+  asyncSessionCounter = Object.values(Lobby.lobbies).filter(l => l && l.isAsync).length;
   if (restored > 0)
-    console.log(new Date(), `-- restored ${restored} async session(s)`);
+    console.log(new Date(), `-- restored ${restored} async session(s), counter at ${asyncSessionCounter}`);
 } catch {}
 
 // Start the webserver

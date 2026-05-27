@@ -3,19 +3,6 @@
     <sui-modal-header>Start Async Story</sui-modal-header>
     <sui-modal-content>
       <sui-form :inverted="darkMode" @submit.prevent="submit" :loading="creating">
-        <sui-form-field :error="titleError">
-          <label>Session Title</label>
-          <input
-            v-model="title"
-            placeholder="e.g. The Great Adventure"
-            maxlength="60"
-            @input="titleError = false"
-            required/>
-          <div v-if="titleError" class="ui pointing red basic label">
-            Title is required
-          </div>
-        </sui-form-field>
-
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
           <sui-form-field style="flex: 1; min-width: 100px;">
             <label>Stories</label>
@@ -56,8 +43,6 @@ export default {
   },
   data() {
     return {
-      title: '',
-      titleError: false,
       creating: false,
       config: {
         numStories: 3,
@@ -83,14 +68,8 @@ export default {
   methods: {
     update() { this.$forceUpdate(); },
     submit() {
-      const trimmedTitle = this.title.trim();
-      if (!trimmedTitle) {
-        this.titleError = true;
-        return;
-      }
       this.creating = true;
       this.$socket.emit('lobby:create:async', {
-        title: trimmedTitle,
         config: {
           numStories: this.config.numStories,
           numLinks: this.config.numLinks,
