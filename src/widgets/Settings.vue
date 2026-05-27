@@ -37,10 +37,6 @@
               </sui-button>
             </div>
           </sui-form-field>
-          <sui-form-field>
-            <label>Hide Lobby Code</label>
-            <sui-checkbox label="Hidden" @input="handleHideLobby" v-model="isLobbyHidden" />
-          </sui-form-field>
         </sui-form>
       </sui-accordion-content>
     </sui-accordion>
@@ -93,7 +89,6 @@ export default {
       ],
       turnSound: localStorage.oocTurnSound || '',
       isDarkMode: this.darkMode,
-      isLobbyHidden: localStorage.oocHideLobby === 'true',
       gameInfo: Object.entries(gameInfo)
         .filter((key, val) => !val.hidden),
       showMore: {},
@@ -105,9 +100,6 @@ export default {
     },
     handleTurnSound(sound) {
       this.setTurnSound(sound);
-    },
-    handleHideLobby(event) {
-      this.setLobbyHidden(event.target.checked);
     },
   },
 };

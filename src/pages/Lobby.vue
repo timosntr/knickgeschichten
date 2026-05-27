@@ -84,7 +84,7 @@
       :title="lobbyInfo.title || (currGame ? currGame.title : 'Raconteur')"
       :subtitle="currGame ? currGame.subtitle : 'Ghost Writers'">
       <div>
-        <div v-if="!hideLobbyCode && !lobbyInfo.isAsync">
+        <div v-if="!lobbyInfo.isAsync">
           <sui-divider horizontal :inverted="darkMode">
             Lobby Code
           </sui-divider>
@@ -210,7 +210,7 @@
       <sui-loader :inverted="darkMode" />
     </sui-dimmer>
     <sui-label
-      v-if="validLobby && !rocketcrab && !hideLobbyCode && !lobbyInfo.isAsync"
+      v-if="validLobby && !rocketcrab && !lobbyInfo.isAsync"
       class="lobby-code left"
       attached="top left">
       <code>
