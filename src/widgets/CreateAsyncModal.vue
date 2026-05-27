@@ -3,16 +3,10 @@
     <sui-modal-header>Start Async Story</sui-modal-header>
     <sui-modal-content>
       <sui-form :inverted="darkMode" @submit.prevent="submit" :loading="creating">
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <sui-form-field style="flex: 1; min-width: 100px;">
-            <label>Stories</label>
-            <input type="number" v-model.number="config.numStories" min="1" max="10"/>
-          </sui-form-field>
-          <sui-form-field style="flex: 1; min-width: 100px;">
-            <label>Lines per Story</label>
-            <input type="number" v-model.number="config.numLinks" min="3" max="50"/>
-          </sui-form-field>
-        </div>
+        <sui-form-field>
+          <label>Lines per Story</label>
+          <input type="number" v-model.number="config.numLinks" min="3" max="50"/>
+        </sui-form-field>
 
         <sui-form-field>
           <label>Turn Time Limit</label>
@@ -45,7 +39,6 @@ export default {
     return {
       creating: false,
       config: {
-        numStories: 3,
         numLinks: 10,
         timeLimit: 'none',
       },
@@ -71,7 +64,6 @@ export default {
       this.creating = true;
       this.$socket.emit('lobby:create:async', {
         config: {
-          numStories: this.config.numStories,
           numLinks: this.config.numLinks,
           timeLimit: this.config.timeLimit,
           anonymous: this.anonymousChecked ? 'true' : 'false',

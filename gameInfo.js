@@ -32,6 +32,7 @@ module.exports = {
         min: 1,
         max: 256,
         defaults: '#numPlayers',
+        hidden: true,
       },
       numLinks: {
         name: 'Lines per Story',

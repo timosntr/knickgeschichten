@@ -296,11 +296,11 @@ export default {
     isSpectator() {
       return this.lobbyInfo.spectators.find(p => p.id === this.$root.playerId);
     },
-    // Config fields to show in the lobby waiting UI (exclude 'players' for cleaner display)
+    // Config fields to show in the lobby waiting UI (exclude 'players' and hidden fields)
     configFieldsForDisplay() {
       if (!this.currGame) return {};
       const { players, ...rest } = this.currGame.config;
-      return rest;
+      return Object.fromEntries(Object.entries(rest).filter(([, v]) => !v.hidden));
     },
     invalidConfig() {
       const numPlayers = this.lobbyInfo.players.length;
