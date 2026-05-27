@@ -180,6 +180,7 @@
         </div>
       </div>
       <ooc-player-list
+        v-if="!lobbyInfo.isAsync"
         :admin="lobbyInfo.admin"
         :players="lobbyInfo.players"
         :spectators="lobbyInfo.spectators"
@@ -195,6 +196,7 @@
       <ooc-game :game="lobbyInfo.game">
       </ooc-game>
       <ooc-player-list
+        v-if="!lobbyInfo.isAsync"
         :admin="lobbyInfo.admin"
         :players="lobbyInfo.players"
         :spectators="lobbyInfo.spectators"
