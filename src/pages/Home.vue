@@ -4,6 +4,9 @@
       title="Knickgeschichten"
       subtitle="Collaborative stories, one line at a time">
       <div>
+        <p class="intro-text">
+          Gemeinsam kreative Geschichten schreiben – in privaten Sessions mit euren Freund:innen oder zusammen mit Unbekannten.
+        </p>
         <sui-divider horizontal :inverted="darkMode">
           Stories
         </sui-divider>
@@ -55,6 +58,20 @@
     <ooc-util></ooc-util>
   </ooc-page>
 </template>
+
+<style>
+.intro-text {
+  color: #555;
+  font-family: Lato, sans-serif;
+  font-size: 0.95em;
+  line-height: 1.5;
+  margin: 0 0 8px 0;
+}
+
+.dark-theme .intro-text {
+  color: #bbb;
+}
+</style>
 
 <script>
 export default {
