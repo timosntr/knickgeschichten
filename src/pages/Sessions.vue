@@ -1,5 +1,5 @@
 <template>
-  <ooc-page>
+  <ooc-page :minimal="true">
     <ooc-menu title="Public Stories" subtitle="Join a story in progress">
       <div>
         <div v-if="loading" style="text-align: center; padding: 24px">

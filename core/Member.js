@@ -35,7 +35,7 @@ class Member {
     this.socket = socket;
     this.id = _.uniqueId('member');
     this.lobby = undefined;
-    this.name = '';
+    this.name = null;
     this.color = 0;
     this.lastEmote = Date.now();
     this.activity = Date.now();

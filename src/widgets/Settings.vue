@@ -1,6 +1,12 @@
 <template>
-  <div class="settings">
-    <sui-accordion styled :inverted="isDarkMode">
+  <div class="settings" :class="{minimal: minimal}">
+    <div v-if="minimal" class="minimal-dark-mode">
+      <sui-checkbox
+        :label="isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'"
+        @input="handleDarkMode"
+        v-model="isDarkMode"/>
+    </div>
+    <sui-accordion v-else styled :inverted="isDarkMode">
       <sui-accordion-title>
         <sui-icon name="dropdown"/>User Preferences
       </sui-accordion-title>
@@ -31,10 +37,6 @@
               </sui-button>
             </div>
           </sui-form-field>
-          <sui-form-field>
-            <label>Hide Lobby Code</label>
-            <sui-checkbox label="Hidden" @input="handleHideLobby" v-model="isLobbyHidden" />
-          </sui-form-field>
         </sui-form>
       </sui-accordion-content>
     </sui-accordion>
@@ -49,12 +51,32 @@
   padding-bottom: 28px;
 }
 
+.settings.minimal {
+  padding-bottom: 16px;
+}
+
+.minimal-dark-mode {
+  text-align: center;
+  opacity: 0.5;
+  font-size: 0.85em;
+}
+
+.minimal-dark-mode:hover {
+  opacity: 1;
+}
+
 </style>
 
 <script>
 import gameInfo from '../../gameInfo';
 
 export default {
+  props: {
+    minimal: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     return {
       sounds: [
@@ -67,7 +89,6 @@ export default {
       ],
       turnSound: localStorage.oocTurnSound || '',
       isDarkMode: this.darkMode,
-      isLobbyHidden: localStorage.oocHideLobby === 'true',
       gameInfo: Object.entries(gameInfo)
         .filter((key, val) => !val.hidden),
       showMore: {},
@@ -79,9 +100,6 @@ export default {
     },
     handleTurnSound(sound) {
       this.setTurnSound(sound);
-    },
-    handleHideLobby(event) {
-      this.setLobbyHidden(event.target.checked);
     },
   },
 };

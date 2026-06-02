@@ -32,6 +32,7 @@ module.exports = {
         min: 1,
         max: 256,
         defaults: '#numPlayers',
+        hidden: true,
       },
       numLinks: {
         name: 'Lines per Story',
@@ -41,6 +42,7 @@ module.exports = {
         min: 3,
         max: 256,
         defaults: 10,
+        hidden: true,
       },
       anonymous: {
         name: 'Hide Authors',
@@ -48,6 +50,7 @@ module.exports = {
         info: 'Whether names are shown at the end.',
         type: 'bool',
         defaults: 'false',
+        hidden: true,
       },
       timeLimit: {
         name: 'Turn Time Limit',
@@ -55,6 +58,7 @@ module.exports = {
         info: 'How long each player has to write their line before it is skipped',
         type: 'list',
         defaults: 'none',
+        hidden: true,
         options: [{
           name: 'none',
           text: 'None',
@@ -63,6 +67,10 @@ module.exports = {
           name: 'sec30',
           text: '30 sec',
           value: 30,
+        }, {
+          name: 'sec100',
+          text: '100 sec',
+          value: 100,
         }, {
           name: 'min1',
           text: '1 min',

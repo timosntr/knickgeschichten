@@ -250,6 +250,18 @@ module.exports = class Story extends Game {
 
       break;
 
+    // Player skips their turn — release the chain so someone else can continue
+    case 'story:skip': {
+      if (!this.lobby.isAsync) return;
+      const skipChain = this.chains.find(s => s.editor === pid);
+      if (!skipChain) return;
+      this.clearTimer(pid);
+      skipChain.lastEditor = pid; // prevent immediate re-assignment
+      skipChain.editor = '';
+      this.redistribute();
+      break;
+    }
+
     case 'story:done':
       this.finishedReading[pid] = data === true;
       this.sendGameInfo();

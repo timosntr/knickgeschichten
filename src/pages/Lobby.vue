@@ -1,5 +1,5 @@
 <template>
-  <ooc-page>
+  <ooc-page :minimal="lobbyInfo.isAsync">
     <ooc-menu v-if="state === 'NO_LOBBY'"
       title="Invalid Lobby"
       subtitle="This lobby does not exist">
@@ -51,19 +51,25 @@
         @submit="e => enterName(e)"
         :error="!validName"
         :loading="loadingName">
-        <sui-form-field>
+        <sui-form-field :disabled="anonymousJoin">
           <label>Name</label>
           <input name="playerName"
-            required
+            :required="!anonymousJoin"
             @input="validName = true"
             v-model="name"
+            :disabled="anonymousJoin"
             minlength="1"
             maxlength="15"
             autocomplete="on"
             placeholder="Ethan">
         </sui-form-field>
+        <sui-form-field v-if="lobbyInfo.isAsync">
+          <sui-checkbox
+            v-model="anonymousJoin"
+            label="Anonym bleiben"/>
+        </sui-form-field>
         <sui-button color="blue" :inverted="darkMode" type="submit">
-          Join
+          Mitmachen
         </sui-button>
         <router-link
           is="sui-button"
@@ -78,7 +84,7 @@
       :title="lobbyInfo.title || (currGame ? currGame.title : 'Raconteur')"
       :subtitle="currGame ? currGame.subtitle : 'Ghost Writers'">
       <div>
-        <div v-if="!hideLobbyCode && !lobbyInfo.isAsync">
+        <div v-if="!lobbyInfo.isAsync">
           <sui-divider horizontal :inverted="darkMode">
             Lobby Code
           </sui-divider>
@@ -174,6 +180,7 @@
         </div>
       </div>
       <ooc-player-list
+        v-if="!lobbyInfo.isAsync"
         :admin="lobbyInfo.admin"
         :players="lobbyInfo.players"
         :spectators="lobbyInfo.spectators"
@@ -189,6 +196,7 @@
       <ooc-game :game="lobbyInfo.game">
       </ooc-game>
       <ooc-player-list
+        v-if="!lobbyInfo.isAsync"
         :admin="lobbyInfo.admin"
         :players="lobbyInfo.players"
         :spectators="lobbyInfo.spectators"
@@ -202,7 +210,7 @@
       <sui-loader :inverted="darkMode" />
     </sui-dimmer>
     <sui-label
-      v-if="validLobby && !rocketcrab && !hideLobbyCode"
+      v-if="validLobby && !rocketcrab && !lobbyInfo.isAsync"
       class="lobby-code left"
       attached="top left">
       <code>
@@ -277,6 +285,7 @@ export default {
   data() {
     return {
       name: localStorage.oocName || '',
+      anonymousJoin: false,
       loading: true,
       creatingLobby: false,
       showJoinLobby: false,
@@ -296,11 +305,11 @@ export default {
     isSpectator() {
       return this.lobbyInfo.spectators.find(p => p.id === this.$root.playerId);
     },
-    // Config fields to show in the lobby waiting UI (exclude 'players' for cleaner display)
+    // Config fields to show in the lobby waiting UI (exclude 'players' and hidden fields)
     configFieldsForDisplay() {
       if (!this.currGame) return {};
       const { players, ...rest } = this.currGame.config;
-      return rest;
+      return Object.fromEntries(Object.entries(rest).filter(([, v]) => !v.hidden));
     },
     invalidConfig() {
       const numPlayers = this.lobbyInfo.players.length;
@@ -379,8 +388,8 @@ export default {
     },
     enterName(event) {
       event.preventDefault();
-      const name = event.target.playerName.value;
-      localStorage.oocName = name;
+      const name = this.anonymousJoin ? '' : event.target.playerName.value;
+      if (!this.anonymousJoin) localStorage.oocName = name;
       this.loadingName = true;
       this.$socket.emit('member:name', name);
     },

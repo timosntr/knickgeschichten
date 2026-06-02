@@ -37,6 +37,14 @@
           :disabled="line.length < 1 || line.length > 512 || wordCount < game.minWords">
           {{player.isLastLink ? 'Finish' : 'Sign'}}
         </sui-button>
+        <sui-button v-if="lobby.isAsync"
+          type="button"
+          :inverted="darkMode"
+          basic
+          @click="skipTurn"
+          style="margin-top: 6px;">
+          Abbrechen
+        </sui-button>
       </sui-form>
       <div v-if="lobby.admin === $root.playerId" style="margin-top: 12px">
         <sui-button size="tiny" @click="requestExport" :inverted="darkMode">
@@ -264,6 +272,10 @@ export default {
         this.countdownInterval = null;
       }
     },
+    skipTurn() {
+      this.$socket.emit('game:message', 'story:skip');
+      this.$router.push('/');
+    },
     requestExport() {
       this.$socket.emit('game:message', 'story:export');
     },
@@ -295,6 +307,7 @@ export default {
         spectators: [],
         game: '',
         config: {},
+        isAsync: false,
       }),
       secondsLeft: 0,
       countdownInterval: null,

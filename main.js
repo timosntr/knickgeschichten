@@ -22,6 +22,8 @@ const Lobby = require('./core/Lobby');
 const Persistence = require('./core/Persistence');
 const GAMES = require('./gameInfo.js');
 
+let asyncSessionCounter = 0;
+
 const EMOTES = [
   'smile',
   'meh',
@@ -56,7 +58,8 @@ io.on('connection', socket => {
     // remove zero width no break spaces, trim spaces
     name = name.replace(/[\u200B-\u200D\uFEFF\n\t]/g, '').trim()
 
-    if(name.length > 0 && name.length < 16) {
+    const isAsync = player.lobby && player.lobby.isAsync;
+    if((isAsync ? name.length < 16 : name.length > 0 && name.length < 16)) {
       player.name = name;
       socket.emit('member:nameOk', true);
       if(player.lobby) {
@@ -93,30 +96,29 @@ io.on('connection', socket => {
   });
 
   // Create a public async story session
-  socket.on('lobby:create:async', ({ title, config } = {}) => {
+  socket.on('lobby:create:async', ({ config } = {}) => {
     if (player.lobby) return;
-    if (!title || typeof title !== 'string') return;
-
-    const sanitizedTitle = Sanitize.str(title).trim().slice(0, 60);
-    if (!sanitizedTitle) return;
 
     player.interact();
     const code = Lobby.newCode();
     const lobby = new Lobby();
     lobby.code = code;
     lobby.isAsync = true;
-    lobby.title = sanitizedTitle;
+    lobby.title = `Knickgeschichte ${++asyncSessionCounter}`;
     lobby.persist = true;
     lobby.selectedGame = 'story';
 
     // Initialize config from story defaults
     lobby.gameConfig = _.mapValues(GAMES.story.config, v => v.defaults);
-    // Allow up to 256 contributors
+    // Allow up to 256 contributors; async sessions always have exactly 1 story
     lobby.gameConfig.players = 256;
+    lobby.gameConfig.numStories = 1;
+    // Async sessions have a fixed 100s turn time limit
+    lobby.gameConfig.timeLimit = 'sec100';
 
     // Apply user-supplied config values for allowed fields
     if (config && typeof config === 'object') {
-      for (const field of ['numStories', 'numLinks', 'contextLen', 'timeLimit', 'anonymous']) {
+      for (const field of ['numStories', 'numLinks', 'timeLimit', 'anonymous']) {
         if (config[field] !== undefined) {
           lobby.setConfig(field, config[field]);
         }
@@ -127,7 +129,7 @@ io.on('connection', socket => {
     player.lobby = lobby;
     socket.emit('lobby:join', code);
     lobby.addMember(player);
-    console.log(new Date(), `-- [lobby ${code}] created async session "${sanitizedTitle}"`);
+    console.log(new Date(), `-- [lobby ${code}] created async session "${lobby.title}"`);
   });
 
   // Allow players to request current lobby info
@@ -273,7 +275,7 @@ io.on('connection', socket => {
 
   // Leave the lobby if a player is in one
   socket.on('lobby:leave', () => {
-    player.name = '';
+    player.name = null;
     Lobby.removePlayer(player);
   });
 
@@ -432,8 +434,14 @@ try {
       }
     } catch {}
   }
+  asyncSessionCounter = Object.values(Lobby.lobbies)
+    .filter(l => l && l.isAsync)
+    .reduce((max, l) => {
+      const m = /(\d+)\s*$/.exec(l.title || '');
+      return m ? Math.max(max, Number(m[1])) : max;
+    }, 0);
   if (restored > 0)
-    console.log(new Date(), `-- restored ${restored} async session(s)`);
+    console.log(new Date(), `-- restored ${restored} async session(s), counter at ${asyncSessionCounter}`);
 } catch {}
 
 // Start the webserver

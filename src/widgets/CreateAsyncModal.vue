@@ -2,48 +2,14 @@
   <sui-modal :open="active" @close="$emit('close')" size="small">
     <sui-modal-header>Start Async Story</sui-modal-header>
     <sui-modal-content>
-      <sui-form :inverted="darkMode" @submit.prevent="submit" :loading="creating">
-        <sui-form-field :error="titleError">
-          <label>Session Title</label>
-          <input
-            v-model="title"
-            placeholder="e.g. The Great Adventure"
-            maxlength="60"
-            @input="titleError = false"
-            required/>
-          <div v-if="titleError" class="ui pointing red basic label">
-            Title is required
-          </div>
-        </sui-form-field>
-
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-          <sui-form-field style="flex: 1; min-width: 100px;">
-            <label>Stories</label>
-            <input type="number" v-model.number="config.numStories" min="1" max="10"/>
-          </sui-form-field>
-          <sui-form-field style="flex: 1; min-width: 100px;">
-            <label>Lines per Story</label>
-            <input type="number" v-model.number="config.numLinks" min="3" max="50"/>
-          </sui-form-field>
-        </div>
-
-        <sui-form-field>
-          <label>Turn Time Limit</label>
-          <sui-dropdown
-            v-model="config.timeLimit"
-            :options="timeLimitOptions"
-            selection/>
-        </sui-form-field>
-
-        <sui-form-field>
-          <sui-checkbox v-model="anonymousChecked" label="Anonymous (hide author names)"/>
-        </sui-form-field>
-      </sui-form>
+      <p :style="{color: darkMode ? '#ccc' : '#555', fontSize: '0.9em', margin: 0}">
+        Eine öffentliche Knickgeschichte wird erstellt. Du kannst deinen Namen beim Beitreten wählen oder anonym bleiben.
+      </p>
     </sui-modal-content>
     <sui-modal-actions>
-      <sui-button @click="$emit('close')" :inverted="darkMode">Cancel</sui-button>
+      <sui-button @click="$emit('close')" :inverted="darkMode">Abbrechen</sui-button>
       <sui-button color="green" :inverted="darkMode" @click="submit" :loading="creating">
-        Start Session
+        Story starten
       </sui-button>
     </sui-modal-actions>
   </sui-modal>
@@ -56,22 +22,7 @@ export default {
   },
   data() {
     return {
-      title: '',
-      titleError: false,
       creating: false,
-      config: {
-        numStories: 3,
-        numLinks: 10,
-        timeLimit: 'none',
-      },
-      anonymousChecked: false,
-      timeLimitOptions: [
-        { text: 'None', value: 'none' },
-        { text: '30 sec', value: 'sec30' },
-        { text: '1 min', value: 'min1' },
-        { text: '2 min', value: 'min2' },
-        { text: '5 min', value: 'min5' },
-      ],
     };
   },
   sockets: {
@@ -83,21 +34,8 @@ export default {
   methods: {
     update() { this.$forceUpdate(); },
     submit() {
-      const trimmedTitle = this.title.trim();
-      if (!trimmedTitle) {
-        this.titleError = true;
-        return;
-      }
       this.creating = true;
-      this.$socket.emit('lobby:create:async', {
-        title: trimmedTitle,
-        config: {
-          numStories: this.config.numStories,
-          numLinks: this.config.numLinks,
-          timeLimit: this.config.timeLimit,
-          anonymous: this.anonymousChecked ? 'true' : 'false',
-        },
-      });
+      this.$socket.emit('lobby:create:async', {});
     },
   },
   beforeDestroy() {

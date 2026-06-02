@@ -1,5 +1,5 @@
 <template>
-  <ooc-page>
+  <ooc-page :minimal="true">
     <ooc-menu
       title="Knickgeschichten"
       subtitle="Collaborative stories, one line at a time">
