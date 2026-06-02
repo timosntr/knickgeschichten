@@ -72,15 +72,15 @@ class AiPlayer {
     });
 
     const userMessage = context.length > 0
-      ? `Continue the story with exactly one sentence (10 to 40 words). Output only the sentence — no quotes, no explanation.\n\nThe story so far ends with:\n${context.join('\n')}\n\nYour next line:`
-      : `Write an interesting opening sentence for a collaborative story (10 to 40 words). Output only the sentence — no quotes, no explanation.`;
+      ? `Continue the story with exactly one sentence (10 to 40 words). Write in the SAME language as the excerpt below — do not translate it or switch languages. Output only the sentence — no quotes, no explanation.\n\nThe story so far ends with:\n${context.join('\n')}\n\nYour next line:`
+      : `Write an interesting opening sentence in German for a collaborative story (10 to 40 words). Output only the sentence — no quotes, no explanation.`;
 
     let line;
     try {
       line = await ollamaChat([
         {
           role: 'system',
-          content: 'You are a creative participant in a collaborative story-writing game. Write vivid, engaging sentences that flow naturally from what came before.',
+          content: 'You are a creative participant in a collaborative story-writing game. Write vivid, engaging sentences that flow naturally from what came before. Always write in the same language as the text you are given.',
         },
         { role: 'user', content: userMessage },
       ]);
