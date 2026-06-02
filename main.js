@@ -434,7 +434,12 @@ try {
       }
     } catch {}
   }
-  asyncSessionCounter = Object.values(Lobby.lobbies).filter(l => l && l.isAsync).length;
+  asyncSessionCounter = Object.values(Lobby.lobbies)
+    .filter(l => l && l.isAsync)
+    .reduce((max, l) => {
+      const m = /(\d+)\s*$/.exec(l.title || '');
+      return m ? Math.max(max, Number(m[1])) : max;
+    }, 0);
   if (restored > 0)
     console.log(new Date(), `-- restored ${restored} async session(s), counter at ${asyncSessionCounter}`);
 } catch {}
