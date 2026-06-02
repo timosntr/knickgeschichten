@@ -229,7 +229,7 @@ io.on('connection', socket => {
 
   // Let admins make players spectators
   socket.on('lobby:admin:toggle', targetId => {
-    if(player.isAdmin && targetId !== player.id) {
+    if(player.isAdmin() && targetId !== player.id) {
       const targetPlayer = player.lobby.players.find(p => p.id === targetId);
       if(targetPlayer && targetPlayer.member) {
         player.lobby.toggleSpectate(targetPlayer.member);
@@ -239,7 +239,7 @@ io.on('connection', socket => {
 
   // Change the admin
   socket.on('lobby:admin:grant', targetId => {
-    if(player.isAdmin && targetId !== player.id) {
+    if(player.isAdmin() && targetId !== player.id) {
       player.interact();
       const targetPlayer = player.lobby.players.find(p => p.id === targetId);
       if(targetPlayer && targetPlayer.member) {
