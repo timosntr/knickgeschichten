@@ -782,7 +782,9 @@ class Lobby {
 }
 
 // dev lobby
-Lobby.create('devaaaa').persist = true;
+const devLobby = Lobby.create('devaaaa');
+devLobby.persist = true;
+devLobby.setGame('story');
 
 
 module.exports = Lobby;
