@@ -7,8 +7,9 @@ const glob = require('glob');
 // ~1 month expire time
 const EXPIRE_TIME = 1000 * 60 * 60 * 24 * 30;
 
-// Only accept codes that are 4–8 lowercase letters, optionally prefixed with 'rc'
-const VALID_CODE = /^(?:rc)?[a-z]{4,8}$/;
+// Lobby codes are lowercase alphanumeric (see Lobby.newCode); length grows on
+// collision, so allow a generous range. This blocks path traversal (no / or .).
+const VALID_CODE = /^[a-z0-9]{4,16}$/;
 
 function validateCode(code) {
   if (!VALID_CODE.test(code)) throw new Error(`Invalid lobby code: ${code}`);
@@ -43,9 +44,11 @@ function cullSave(filename) {
 
 // attempt to cull the saves (both new .json.gz and legacy .json.zip)
 function cullSaves() {
+  // Glob the persistence dir directly — don't route the '*' wildcard through
+  // validateCode (it would reject the pattern and throw).
   const files = [
-    ...glob.sync(saveName('*'), {}),
-    ...glob.sync(legacySaveName('*'), {}),
+    ...glob.sync('persistence/*.json.gz'),
+    ...glob.sync('persistence/*.json.zip'),
   ];
   let count = 0;
   for (const f of files) {
