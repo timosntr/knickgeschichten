@@ -312,7 +312,10 @@ export default {
       return Object.fromEntries(Object.entries(rest).filter(([, v]) => !v.hidden));
     },
     invalidConfig() {
-      const numPlayers = this.lobbyInfo.players.length;
+      // AI players are injected server-side at game start, so count the
+      // requested AI toward the minimum (lets 1 human + AI start a game).
+      const numPlayers = this.lobbyInfo.players.length
+        + (Number(this.lobbyInfo.config.aiPlayers) || 0);
       for (const key in this.currGame.config) {
         if (this.lobbyInfo.config[key] === '#numPlayers' &&
           numPlayers < this.currGame.config[key].min)
