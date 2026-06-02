@@ -678,7 +678,7 @@ class Lobby {
       // Determine if the admin disconnected
       const admin = this.players.find(p => p.id === this.admin);
       if(admin && !admin.connected)
-        admin = '';
+        this.admin = '';
 
       // Delegate a new admin
       for(let i = 0; !this.admin && i < this.players.length; i++) {
