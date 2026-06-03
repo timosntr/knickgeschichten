@@ -268,6 +268,7 @@ const emptyInfo = () => ({
   game: '',
   config: {},
   isAsync: false,
+  isComplete: false,
   title: '',
 });
 
@@ -439,6 +440,13 @@ export default {
       // If the lobby says we're not playing, we're probably not playing
       if (this.state === 'PLAYING' && info.state === 'WAITING')
         this.state = 'LOBBY_WAITING';
+
+      // Skip name entry for completed async sessions — join anonymously to read
+      if (this.state === 'JOIN_LOBBY' && info.isAsync && info.isComplete) {
+        this.loadingName = true;
+        this.$socket.emit('member:name', '');
+        return;
+      }
 
       let name = localStorage.oocName;
       const target = info.players.find(p => !p.connected && p.name === name);

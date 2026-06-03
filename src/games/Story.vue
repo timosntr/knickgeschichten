@@ -104,14 +104,21 @@
         <sui-button v-if="player.state === 'READING'"
           @click="$socket.emit('game:message', 'story:done', game.icons[player.id] !== 'check')"
           color="blue"
-                   :basic="game.icons[player.id] === 'check'" >
+          :basic="game.icons[player.id] === 'check'">
           {{game.icons[player.id] === 'check' ? 'Still Reading' : 'Done Reading'}}
         </sui-button>
         <sui-button
           @click="copyStories"
-                   color="teal"
+          color="teal"
           size="small">
           {{ copied ? 'Copied!' : 'Copy to Clipboard' }}
+        </sui-button>
+        <sui-button
+          v-if="lobby.isAsync"
+          basic
+          size="small"
+          @click="leaveToArchive">
+          Zurück
         </sui-button>
       </div>
     </div>
@@ -307,6 +314,10 @@ export default {
     skipTurn() {
       this.$socket.emit('game:message', 'story:skip');
       this.$router.push('/');
+    },
+    leaveToArchive() {
+      this.$socket.emit('lobby:leave');
+      this.$router.push('/sessions');
     },
     requestExport() {
       this.$socket.emit('game:message', 'story:export');

@@ -675,6 +675,7 @@ class Lobby {
       config: this.gameConfig,
       admin: this.admin,
       isAsync: this.isAsync,
+      isComplete: !!this.completedStories,
       title: this.title,
       gameState: this.game ? this.game.getState() : {},
       members: this.members.map(m => ({
