@@ -150,7 +150,7 @@ module.exports = class Story extends Game {
   }
 
   // Find a story for a player
-  findChainForPlayer(player) {
+  findChainForPlayer(player, memberId = '') {
     // Find a chain for a player
     const { numLinks } = this.config;
 
@@ -160,6 +160,8 @@ module.exports = class Story extends Game {
         .filter(s => !s.editor &&  // Only find chains that aren't being worked on
           s.chain.length < numLinks && // chain is at capacity
           s.lastEditor != player && // Find chains the player didn't just edit
+          // Also block by memberId so rejoin doesn't bypass the last-editor check
+          !(memberId && s.lastEditorMemberId && s.lastEditorMemberId === memberId) &&
           (s.collaborators[player] || 0) <= s.avgEdits() // with edits less than a
         ),
       s => s.chain.length
@@ -183,7 +185,9 @@ module.exports = class Story extends Game {
     const players = _.shuffle(this.players);
 
     for(const player of players) {
-      const story = this.findChainForPlayer(player);
+      const playerObj = this.lobby.players.find(p => p.playerId === player);
+      const memberId = playerObj ? playerObj.id : '';
+      const story = this.findChainForPlayer(player, memberId);
       if(!story) {
         break;
       }
@@ -201,7 +205,9 @@ module.exports = class Story extends Game {
     const players = _.sortBy(this.players.filter(p => !hasStory[p]), p => this.lastEdit[p]);
 
     for(const player of players) {
-      const story = this.findChainForPlayer(player);
+      const playerObj = this.lobby.players.find(p => p.playerId === player);
+      const memberId = playerObj ? playerObj.id : '';
+      const story = this.findChainForPlayer(player, memberId);
       if(!story)
         continue;
       this.assignChain(player, story);
@@ -280,7 +286,8 @@ module.exports = class Story extends Game {
       }
       const playerObj = this.lobby.players.find(p => p.playerId === pid);
       const authorName = playerObj ? playerObj.name : null;
-      story.addLink(pid, line, authorName);
+      const memberId = playerObj ? playerObj.id : '';
+      story.addLink(pid, line, authorName, memberId);
 
       this.redistribute();
 

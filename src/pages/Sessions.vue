@@ -159,6 +159,7 @@ export default {
     if (this.refreshInterval) clearInterval(this.refreshInterval);
   },
   created() {
+    this.$socket.emit('lobby:leave');
     this.fetchSessions();
     this.refreshInterval = setInterval(this.fetchSessions, 30000);
   },

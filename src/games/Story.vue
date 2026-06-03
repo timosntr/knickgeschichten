@@ -306,6 +306,7 @@ export default {
 
       if (this.lobby.isAsync) {
         this.submitted = true;
+        this.$socket.emit('lobby:leave');
         setTimeout(() => this.$router.push('/sessions'), 2000);
       }
     },
