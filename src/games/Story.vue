@@ -49,22 +49,12 @@
           Abbrechen
         </sui-button>
       </sui-form>
-      <div v-if="lobby.admin === $root.playerId" style="margin-top: 12px">
-        <sui-button size="tiny" @click="requestExport" >
-          Export Stories
-        </sui-button>
-      </div>
     </div>
     <div v-else-if="player.state === 'WAITING'"
       style="margin: 16px">
       <sui-loader active centered inline size="huge" >
         Waiting on Other Authors
       </sui-loader>
-      <div v-if="lobby.admin === $root.playerId" style="margin-top: 24px">
-        <sui-button size="tiny" @click="requestExport" >
-          Export Stories
-        </sui-button>
-      </div>
     </div>
     <div v-else-if="player.state === 'READING' || !player.state && stories.length">
       <sui-divider horizontal >
