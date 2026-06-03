@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <slot></slot>
-    <ooc-settings></ooc-settings>
+    <!-- <ooc-settings></ooc-settings> -->
   </div>
 </template>
 
