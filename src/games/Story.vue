@@ -76,7 +76,7 @@
                 {{game.likes[i]}}
               </div>
             </div>
-            <sui-card-content :style="{marginBottom: story[0].editor ? 0 : '14px'}">
+            <sui-card-content>
               <sui-comment-group>
                 <sui-comment v-for="(entry, j) in story" :key="j">
                   <sui-comment-content>
@@ -85,13 +85,17 @@
                         {{entry.link}}
                       </p>
                     </sui-comment-text>
-                    <sui-comment-author v-if="nameTable[entry.editor]"
+                    <sui-comment-author v-if="entryAuthor(entry)"
                       style="text-align: right;">
-                      &mdash;{{nameTable[entry.editor]}}
+                      &mdash;{{entryAuthor(entry)}}
                     </sui-comment-author>
                   </sui-comment-content>
                 </sui-comment>
               </sui-comment-group>
+            </sui-card-content>
+            <sui-card-content v-if="storyAuthors(story)" extra
+              style="font-size: 0.85em; color: #888; text-align: right;">
+              {{storyAuthors(story)}}
             </sui-card-content>
           </sui-card>
         </div>
@@ -237,6 +241,41 @@ export default {
   },
   methods: {
     update() { this.$forceUpdate(); },
+    // Resolve display name for a single entry: named / "Anonym" / fallback via nameTable
+    entryAuthor(entry) {
+      if (entry.authorName !== null && entry.authorName !== undefined) {
+        return entry.authorName === '' ? 'Anonym' : entry.authorName;
+      }
+      // Fallback for old sessions without authorName
+      const n = this.nameTable[entry.editor];
+      return n || null;
+    },
+    // Build author line for a whole story card, e.g. "Von: Max, Julia, Anonyme"
+    storyAuthors(story) {
+      const named = new Set();
+      let anonCount = 0;
+      const seenAnonEditors = new Set();
+      for (const entry of story) {
+        if (entry.authorName !== null && entry.authorName !== undefined) {
+          if (entry.authorName === '') {
+            if (!seenAnonEditors.has(entry.editor)) {
+              seenAnonEditors.add(entry.editor);
+              anonCount++;
+            }
+          } else {
+            named.add(entry.authorName);
+          }
+        } else {
+          // fallback for old sessions
+          const n = this.nameTable[entry.editor];
+          if (n) named.add(n);
+        }
+      }
+      const parts = [...named];
+      if (anonCount === 1) parts.push('Anonym');
+      else if (anonCount > 1) parts.push('Anonyme');
+      return parts.length ? 'Von: ' + parts.join(', ') : '';
+    },
     writeLine(event) {
       event.preventDefault();
 

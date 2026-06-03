@@ -244,7 +244,9 @@ module.exports = class Story extends Game {
 
       this.clearTimer(pid);
       this.lastEdit[pid] = Date.now();
-      story.addLink(pid, line);
+      const playerObj = this.lobby.players.find(p => p.playerId === pid);
+      const authorName = playerObj ? playerObj.name : null;
+      story.addLink(pid, line, authorName);
 
       this.redistribute();
 
@@ -314,10 +316,11 @@ module.exports = class Story extends Game {
   compileStories() {
     if (!this.compiled)
       this.compiled = this.chains.map(s =>
-        _.zip(s.chain, s.editors)
-        .map(([link, e]) => ({
+        _.zip(s.chain, s.editors, s.authorNames)
+        .map(([link, e, authorName]) => ({
           link,
           editor: this.config.anonymous ? '' : e,
+          authorName: this.config.anonymous ? '' : (authorName !== undefined ? authorName : null),
         }))
       );
     return this.compiled;
@@ -325,10 +328,11 @@ module.exports = class Story extends Game {
 
   compilePartialStories() {
     return this.chains.map(s =>
-      _.zip(s.chain, s.editors)
-      .map(([link, e]) => ({
+      _.zip(s.chain, s.editors, s.authorNames)
+      .map(([link, e, authorName]) => ({
         link,
         editor: this.config.anonymous ? '' : e,
+        authorName: this.config.anonymous ? '' : (authorName !== undefined ? authorName : null),
       }))
     );
   }
