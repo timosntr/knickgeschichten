@@ -65,11 +65,9 @@
         <sui-button color="blue"  type="submit">
           Mitmachen
         </sui-button>
-        <router-link
-          is="sui-button"
-                             to="/">
+        <sui-button basic type="button" @click="leaveLobby">
           Leave
-        </router-link>
+        </sui-button>
       </sui-form>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'LOBBY_WAITING'"
@@ -138,10 +136,16 @@
               <div style="margin: 1em 0; text-align: center">
                 <sui-button
                   type="button"
-                                   :disabled="invalidConfig"
+                  :disabled="invalidConfig"
                   @click="$socket.emit('game:start')"
                   color="blue">
                   Start Game
+                </sui-button>
+                <sui-button
+                  type="button"
+                  basic
+                  @click="leaveLobby">
+                  Leave
                 </sui-button>
               </div>
             </div>
@@ -167,6 +171,9 @@
               </div>
             </div>
           </sui-card>
+          <div style="margin-top: 1em; text-align: center">
+            <sui-button basic @click="leaveLobby">Leave</sui-button>
+          </div>
         </div>
       </div>
       <ooc-player-list
@@ -306,6 +313,10 @@ export default {
   },
   methods: {
     update() { this.$forceUpdate(); },
+    leaveLobby() {
+      this.$socket.emit('lobby:leave');
+      this.$router.push('/');
+    },
     configVal(name) {
       const confVal = this.lobbyInfo.config[name];
       const defVal = gameInfo[this.lobbyInfo.game].config[name].defaults;
