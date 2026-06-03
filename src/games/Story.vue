@@ -106,17 +106,11 @@
         </div>
       </div>
       <div style="margin-top: 16px">
-        <sui-button v-if="player.state === 'READING'"
+        <sui-button v-if="player.state === 'READING' && !lobby.isAsync"
           @click="$socket.emit('game:message', 'story:done', game.icons[player.id] !== 'check')"
           color="blue"
           :basic="game.icons[player.id] === 'check'">
           {{game.icons[player.id] === 'check' ? 'Still Reading' : 'Done Reading'}}
-        </sui-button>
-        <sui-button
-          @click="copyStories"
-          color="teal"
-          size="small">
-          {{ copied ? 'Copied!' : 'Copy to Clipboard' }}
         </sui-button>
         <sui-button
           v-if="lobby.isAsync"
@@ -133,11 +127,11 @@
       </sui-loader>
     </div>
     <sui-progress
-           v-if="game.progress !== 1"
+           v-if="game.progress > 0 && game.progress !== 1"
       state="active"
       progress
       indicating
-      :percent="Math.round((game.progress || 0) * 100)"/>
+      :percent="Math.round(game.progress * 100)"/>
   </div>
 </template>
 

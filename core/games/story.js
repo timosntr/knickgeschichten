@@ -216,9 +216,16 @@ module.exports = class Story extends Game {
     // When all stories are complete, save them to lobby so they survive endGame()
     if (this.getGameProgress() === 1 && !this.lobby.completedStories) {
       this.lobby.completedStories = this.compileStories();
-      this.lobby.completedAuthors = Object.keys(
-        this.chains.reduce((acc, chain) => Object.assign(acc, chain.collaborators), {})
-      ).length;
+      const stories = this.lobby.completedStories;
+      const namedAuthors = new Set();
+      let hasAnonymous = false;
+      for (const story of stories) {
+        for (const entry of story) {
+          if (entry.authorName === '') hasAnonymous = true;
+          else if (entry.authorName) namedAuthors.add(entry.authorName);
+        }
+      }
+      this.lobby.completedAuthors = namedAuthors.size + (hasAnonymous ? 1 : 0);
     }
 
     this.sendGameInfo();

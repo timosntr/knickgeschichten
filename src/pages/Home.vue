@@ -4,6 +4,10 @@
       title="Knickgeschichten"
       subtitle="Collaborative stories, one line at a time">
       <div>
+        <div v-if="quote" class="qotd" @click="$router.push(`/lobby/${quote.code}`)">
+          <div class="qotd-label">Satz des Tages</div>
+          <div class="qotd-text">„{{ quote.text }}"</div>
+        </div>
         <sui-divider horizontal>
           Stories
         </sui-divider>
@@ -52,6 +56,37 @@
   </ooc-page>
 </template>
 
+<style>
+.qotd {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-left: 3px solid #21ba45;
+  background: rgba(33, 186, 69, 0.06);
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+.qotd:hover {
+  background: rgba(33, 186, 69, 0.13);
+}
+.qotd-label {
+  font-size: 0.75em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #21ba45;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.qotd-text {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 0.97em;
+  color: #333;
+  line-height: 1.5;
+}
+</style>
+
 <script>
 export default {
   sockets: {
@@ -67,9 +102,18 @@ export default {
       this.creatingLobby = true;
       this.$socket.emit('lobby:create');
     },
+    async fetchQuote() {
+      try {
+        const res = await fetch('/api/v1/quote');
+        if (res.ok) {
+          this.quote = await res.json();
+        }
+      } catch {}
+    },
   },
   created() {
     this.$socket.emit('lobby:leave');
+    this.fetchQuote();
   },
   data() {
     return {
@@ -77,6 +121,7 @@ export default {
       creatingLobby: false,
       showJoinLobby: false,
       showCreateAsync: false,
+      quote: null,
     };
   },
 };

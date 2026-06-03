@@ -287,6 +287,36 @@ app.get('/api/v1/lobbies', (req, res) => {
   res.json(Lobby.publicList());
 });
 
+// Quote of the day — one random sentence from completed public stories, changes daily
+app.get('/api/v1/quote', (req, res) => {
+  const sentences = [];
+  for (const lobby of Object.values(Lobby.lobbies)) {
+    if (!lobby || !lobby.isAsync || !lobby.completedStories) continue;
+    for (const story of lobby.completedStories) {
+      for (const entry of story) {
+        if (!entry.link) continue;
+        // Split entry into individual sentences
+        const parts = entry.link.replace(/([.!?])\s+/g, '$1\n').split('\n');
+        for (const s of parts) {
+          const trimmed = s.trim();
+          const wordCount = trimmed.split(/\s+/).filter(w => w.length > 0).length;
+          if (trimmed.length >= 20 && wordCount >= 5) {
+            sentences.push({ text: trimmed, code: lobby.code });
+          }
+        }
+      }
+    }
+  }
+
+  if (sentences.length === 0) return res.json(null);
+
+  // Deterministic daily pick: hash today's date string into an index
+  const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  let hash = 0;
+  for (const ch of dateStr) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  res.json(sentences[hash % sentences.length]);
+});
+
 app.get('/api/v1/info', (req, res) => {
   let lobbies = 0, games = 0, players = 0, idleLobbies = 0, idlePlayers = 0, lobbyPlayers = 0, rocketcrabs = 0;
   const gameDistribution = {}, playerDistribution = {};
