@@ -268,14 +268,6 @@ class Lobby {
   startGame() {
     if(!this.selectedGame) return;
 
-    const isPlayer = {};
-    for (const p of this.players) isPlayer[p.id] = true;
-    for(const p of this.members) {
-      if(!isPlayer[p.id]) {
-        this.spectators.push({id: p.id, name: p.name});
-      }
-    }
-
     const numPlayers = this.players.length;
 
     // cap players (async sessions allow unlimited contributors — don't cap)
