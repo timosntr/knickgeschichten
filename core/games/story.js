@@ -21,6 +21,7 @@ module.exports = class Story extends Game {
     this.finishedReading = {};
     this.timers = {};
     this.deadlines = {};
+    this.idleTimers = {};
   }
 
 
@@ -78,6 +79,11 @@ module.exports = class Story extends Game {
   detachPlayer(pid) {
     const idx = this.players.indexOf(pid);
     if (idx >= 0) this.players.splice(idx, 1);
+    // Clear idle timer if running
+    if (this.idleTimers[pid]) {
+      clearTimeout(this.idleTimers[pid]);
+      delete this.idleTimers[pid];
+    }
   }
 
   // Release a disconnected player's chain so other players aren't blocked
@@ -101,6 +107,16 @@ module.exports = class Story extends Game {
     if (this.getGameProgress() === 1) {
       this.emitTo(pid, 'story:result', this.compileStories());
     }
+    // 5-minute idle timer: remove from queue if player never writes anything
+    const IDLE_MS = 5 * 60 * 1000;
+    this.idleTimers[pid] = setTimeout(() => {
+      delete this.idleTimers[pid];
+      if (!this.players.includes(pid)) return; // already gone
+      this.emitTo(pid, 'lobby:idle');
+      this.releasePlayer(pid);  // release chain if they had one
+      this.detachPlayer(pid);   // remove from queue
+      console.log(new Date(), `-- [lobby ${this.lobby.code}] idle player "${pid}" removed after 5min`);
+    }, IDLE_MS);
     this.redistribute();
   }
 
@@ -111,15 +127,24 @@ module.exports = class Story extends Game {
     }
     this.timers = {};
     this.deadlines = {};
+    for (const pid in this.idleTimers) {
+      clearTimeout(this.idleTimers[pid]);
+    }
+    this.idleTimers = {};
   }
 
-  // Called when a player's time runs out — release their chain and redistribute
+  // Called when a player's time runs out — release their chain, remove from queue, notify
   timeoutPlayer(pid) {
     delete this.timers[pid];
     delete this.deadlines[pid];
     const chain = this.chains.find(s => s.editor === pid);
     if (chain) {
       chain.editor = '';
+    }
+    // Notify the player before detaching (emitTo still works while in lobby.players)
+    if (this.lobby.isAsync) {
+      this.emitTo(pid, 'lobby:idle');
+      this.detachPlayer(pid);
     }
     this.redistribute();
   }
@@ -200,6 +225,10 @@ module.exports = class Story extends Game {
     }
     this.timers = {};
     this.deadlines = {};
+    for (const pid in this.idleTimers) {
+      clearTimeout(this.idleTimers[pid]);
+    }
+    this.idleTimers = {};
 
     // Emit partial or complete results to all players before lobby transitions to WAITING
     const stories = this.getGameProgress() === 1
@@ -244,6 +273,11 @@ module.exports = class Story extends Game {
 
       this.clearTimer(pid);
       this.lastEdit[pid] = Date.now();
+      // Clear idle timer — player has written, no need to kick them
+      if (this.idleTimers[pid]) {
+        clearTimeout(this.idleTimers[pid]);
+        delete this.idleTimers[pid];
+      }
       const playerObj = this.lobby.players.find(p => p.playerId === pid);
       const authorName = playerObj ? playerObj.name : null;
       story.addLink(pid, line, authorName);

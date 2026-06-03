@@ -1,6 +1,11 @@
 <template>
   <div>
-    <div v-if="submitted" style="margin: 32px 16px; text-align: center;">
+    <div v-if="idleKicked" style="margin: 32px 16px; text-align: center;">
+      <sui-icon name="clock outline" color="orange" size="huge"/>
+      <p style="margin-top: 12px; font-size: 1.1em;">Platz freigegeben</p>
+      <p style="color: #888; font-size: 0.9em;">Du warst zu lange inaktiv. Du wirst weitergeleitet…</p>
+    </div>
+    <div v-else-if="submitted" style="margin: 32px 16px; text-align: center;">
       <sui-icon name="check circle" color="green" size="huge"/>
       <p style="margin-top: 12px; font-size: 1.1em;">Beitrag gesendet!</p>
       <p style="color: #888; font-size: 0.9em;">Du wirst gleich weitergeleitet…</p>
@@ -175,6 +180,13 @@ export default {
   sockets: {
     'lobby:info': function(info) {
       this.lobby = info;
+    },
+    'lobby:idle': function() {
+      this.idleKicked = true;
+      setTimeout(() => {
+        this.$socket.emit('lobby:leave');
+        this.$router.push('/sessions');
+      }, 3000);
     },
     'game:info': function(info) {
       this.game = info;
@@ -354,6 +366,7 @@ export default {
       secondsLeft: 0,
       countdownInterval: null,
       submitted: false,
+      idleKicked: false,
       copied: false,
     };
   },
