@@ -218,24 +218,6 @@ io.on('connection', socket => {
     }
   });
 
-  // Toggle whether this member is a spectator
-  socket.on('lobby:spectate', () => {
-    if(player.lobby) {
-      player.lobby.toggleSpectate(player);
-    } else {
-      socket.emit('lobby:leave');
-    }
-  });
-
-  // Let admins make players spectators
-  socket.on('lobby:admin:toggle', targetId => {
-    if(player.isAdmin() && targetId !== player.id) {
-      const targetPlayer = player.lobby.players.find(p => p.id === targetId);
-      if(targetPlayer && targetPlayer.member) {
-        player.lobby.toggleSpectate(targetPlayer.member);
-      }
-    }
-  });
 
   // Change the admin
   socket.on('lobby:admin:grant', targetId => {

@@ -102,59 +102,7 @@
         </sui-table-row>
       </sui-table-body>
     </sui-table>
-    <sui-table unstackable basic class="player-table" :inverted="darkMode">
-      <sui-table-header>
-        <sui-table-row>
-          <th>Spectators</th>
-        </sui-table-row>
-      </sui-table-header>
-      <sui-table-body>
-        <sui-table-row v-for="p in spectators"
-          :key="p.id"
-          :positive="$root.playerId === p.id">
-          <td v-if="p.name">
-            {{p.name}}
-            <span class="emote-container" :ref="`emote_${p.id}`"></span>
-            <span class="user-icons">
-              <sui-icon
-                v-if="$root.playerId === p.id"
-                color="grey"
-                name="user"/>
-            </span>
-          </td>
-          <td v-else>
-            <i>Pending</i>
-          </td>
-        </sui-table-row>
-        <sui-table-row v-if="!spectators.length">
-          <td>
-            <i>No Spectators</i>
-          </td>
-        </sui-table-row>
-      </sui-table-body>
-    </sui-table>
     <div>
-      <sui-button v-if="players.find(p => p.id === $root.playerId)"
-        :inverted="darkMode"
-        basic
-        @click="$socket.emit('lobby:spectate')">
-        Spectate
-      </sui-button>
-      <div v-else-if="isSpectator" basic>
-        <sui-button v-if="canJoinPlayers"
-          :inverted="darkMode"
-          basic
-          @click="$socket.emit('lobby:spectate')">
-          Join Players
-        </sui-button>
-        <router-link
-          :inverted="darkMode"
-          basic
-          is="sui-button"
-          to="/">
-          Leave
-        </router-link>
-      </div>
       <sui-button :basic="!confirmEndGame"
         :inverted="darkMode"
         color="red"
@@ -275,8 +223,7 @@ td {
 <script>
 export default {
   props: [
-    'players', 'admin', 'spectators',
-    'isSpectator', 'canJoinPlayers',
+    'players', 'admin',
     'lobbyState', 'gameState',
   ],
   sockets: {

@@ -304,7 +304,6 @@ export default {
         admin: '',
         players: [],
         members: [],
-        spectators: [],
         game: '',
         config: {},
         isAsync: false,

@@ -183,11 +183,8 @@
         v-if="!lobbyInfo.isAsync"
         :admin="lobbyInfo.admin"
         :players="lobbyInfo.players"
-        :spectators="lobbyInfo.spectators"
-        :isSpectator="isSpectator"
         :gameState="gameState"
-        :lobbyState="state"
-        :canJoinPlayers="canJoinPlayers">
+        :lobbyState="state">
       </ooc-player-list>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'PLAYING'"
@@ -199,11 +196,8 @@
         v-if="!lobbyInfo.isAsync"
         :admin="lobbyInfo.admin"
         :players="lobbyInfo.players"
-        :spectators="lobbyInfo.spectators"
-        :isSpectator="isSpectator"
         :lobbyState="state"
-        :gameState="gameState"
-        :canJoinPlayers="canJoinPlayers">
+        :gameState="gameState">
       </ooc-player-list>
     </ooc-menu>
     <sui-dimmer :active="loading || state === 'LOADING'">
@@ -274,7 +268,6 @@ const emptyInfo = () => ({
   admin: '',
   players: [],
   members: [],
-  spectators: [],
   game: '',
   config: {},
   isAsync: false,
@@ -302,9 +295,6 @@ export default {
     phonetic() {
       return converter(this.$route.params.code, alphabet).join(' - ');
     },
-    isSpectator() {
-      return this.lobbyInfo.spectators.find(p => p.id === this.$root.playerId);
-    },
     // Config fields to show in the lobby waiting UI (exclude 'players' and hidden fields)
     configFieldsForDisplay() {
       if (!this.currGame) return {};
@@ -319,26 +309,6 @@ export default {
           return true;
       }
       return false;
-    },
-    canJoinPlayers() {
-      const confPlayers = this.lobbyInfo.config.players;
-      const currGame = gameInfo[this.lobbyInfo.game];
-      const maxPlayers = Math.min(currGame ? currGame.config.players.max : 0, confPlayers);
-      const playerCount = this.lobbyInfo.players.length;
-      const isSpectator = this.lobbyInfo.spectators.find(p => p.id === this.$root.playerId);
-
-      // There is an available place for this player
-      const openSpot = (!maxPlayers || playerCount < maxPlayers);
-
-      const notMaxPlayers = (
-        // The amount of players is flexible
-        !confPlayers || confPlayers === '#numPlayers' ||
-
-        // There are no players
-        playerCount === 0
-      ) && openSpot;
-
-      return notMaxPlayers || !currGame;
     },
     currGame() {
       return gameInfo[this.lobbyInfo.game];
@@ -451,8 +421,6 @@ export default {
       this.gameState = state;
     },
     'lobby:info': function(info) {
-      // TODO implement spectators on server
-
       // Remove gameState if we are not playing
       if(info.state !== 'PLAYING')
         this.gameState = { icons: {} };
