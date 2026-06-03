@@ -1,43 +1,38 @@
 <template>
-  <ooc-page :minimal="lobbyInfo.isAsync">
+  <ooc-page>
     <ooc-menu v-if="state === 'NO_LOBBY'"
       title="Invalid Lobby"
       subtitle="This lobby does not exist">
       <div>
-        <sui-divider horizontal :inverted="darkMode">
+        <sui-divider horizontal >
           Lobby
         </sui-divider>
         <sui-button-group>
           <sui-button
             color="green"
-            :inverted="darkMode"
-            :loading="creatingLobby"
+                       :loading="creatingLobby"
             @click="createLobby">
             Create
           </sui-button>
           <sui-button-or/>
           <sui-button
             color="blue"
-            :inverted="darkMode"
-            :loading="showJoinLobby"
+                       :loading="showJoinLobby"
             @click="showJoinLobby = true">
             Join
           </sui-button>
         </sui-button-group>
-        <sui-divider horizontal :inverted="darkMode">
+        <sui-divider horizontal >
           Redirect
         </sui-divider>
-        <sui-button-group vertical :basic="!darkMode" :inverted="darkMode">
-          <router-link is="sui-button" :basic="darkMode" :inverted="darkMode"
-            to="/">
+        <sui-button-group vertical basic>
+          <router-link is="sui-button"             to="/">
             Home
           </router-link>
           <a is="sui-button"
             href="https://github.com/meshiest/outofcontext/issues"
             target="_blank"
-            :basic="darkMode"
-            :inverted="darkMode"
-            rel="noopener noreferrer">
+                                   rel="noopener noreferrer">
             Bug Report
           </a>
         </sui-button-group>
@@ -47,8 +42,7 @@
       title="Enter a Name"
       subtitle="Try to be creative">
       <sui-form
-        :inverted="darkMode"
-        @submit="e => enterName(e)"
+               @submit="e => enterName(e)"
         :error="!validName"
         :loading="loadingName">
         <sui-form-field :disabled="anonymousJoin">
@@ -68,14 +62,12 @@
             v-model="anonymousJoin"
             label="Anonym bleiben"/>
         </sui-form-field>
-        <sui-button color="blue" :inverted="darkMode" type="submit">
+        <sui-button color="blue"  type="submit">
           Mitmachen
         </sui-button>
         <router-link
           is="sui-button"
-          :basic="darkMode"
-          :inverted="darkMode"
-          to="/">
+                             to="/">
           Leave
         </router-link>
       </sui-form>
@@ -85,10 +77,10 @@
       :subtitle="currGame ? currGame.subtitle : 'Ghost Writers'">
       <div>
         <div v-if="!lobbyInfo.isAsync">
-          <sui-divider horizontal :inverted="darkMode">
+          <sui-divider horizontal >
             Lobby Code
           </sui-divider>
-          <sui-statistic :inverted="darkMode" style="margin-bottom: 14px; margin-top: 0;">
+          <sui-statistic  style="margin-bottom: 14px; margin-top: 0;">
             <sui-statistic-value>
               {{$route.params.code}}
             </sui-statistic-value>
@@ -98,10 +90,10 @@
           </sui-statistic>
         </div>
         <div v-if="lobbyInfo.admin === $root.playerId && !lobbyInfo.isAsync" style="text-align: left">
-          <sui-divider horizontal :inverted="darkMode">
+          <sui-divider horizontal >
             Game Settings
           </sui-divider>
-          <sui-form @submit="event => event.preventDefault()" :inverted="darkMode">
+          <sui-form @submit="event => event.preventDefault()" >
             <div v-if="currGame">
               <sui-form-field v-for="(opt, name) in configFieldsForDisplay" :key="name">
                 <label>{{opt.name}}</label>
@@ -116,8 +108,7 @@
                   <sui-button v-if="opt.defaults === '#numPlayers'"
                     type="button"
                     :color="configVal(name) === '#numPlayers' ? 'blue' : undefined"
-                    :inverted="darkMode"
-                    @click="updateConfig(name, '#numPlayers')"
+                                       @click="updateConfig(name, '#numPlayers')"
                     style="margin-left: 8px"
                     icon="users"/>
                 </div>
@@ -147,8 +138,7 @@
               <div style="margin: 1em 0; text-align: center">
                 <sui-button
                   type="button"
-                  :inverted="darkMode"
-                  :disabled="invalidConfig"
+                                   :disabled="invalidConfig"
                   @click="$socket.emit('game:start')"
                   color="blue">
                   Start Game
@@ -158,7 +148,7 @@
           </sui-form>
         </div>
         <div v-else-if="currGame && !lobbyInfo.isAsync">
-          <sui-divider horizontal :inverted="darkMode">
+          <sui-divider horizontal >
             Game Setup
           </sui-divider>
           <sui-card>
@@ -166,7 +156,7 @@
               <div v-for="(opt, name) in configFieldsForDisplay"
                 :key="name"
                 style="margin: 8px;">
-                <sui-statistic :inverted="darkMode">
+                <sui-statistic >
                   <sui-statistic-value>
                     {{deriveConfigText(name)}}
                   </sui-statistic-value>
@@ -201,7 +191,7 @@
       </ooc-player-list>
     </ooc-menu>
     <sui-dimmer :active="loading || state === 'LOADING'">
-      <sui-loader :inverted="darkMode" />
+      <sui-loader  />
     </sui-dimmer>
     <sui-label
       v-if="validLobby && !rocketcrab && !lobbyInfo.isAsync"
@@ -477,11 +467,9 @@ export default {
     }
   },
   beforeDestroy() {
-    this.bus.$off('toggle-dark-mode', this.update);
     this.bus.$off('toggle-hide-lobby', this.update);
   },
   created() {
-    this.bus.$on('toggle-dark-mode', this.update);
     this.bus.$on('toggle-hide-lobby', this.update);
     const lobbyCode = this.$route.params.code;
     if(!lobbyCode || lobbyCode.length < 4) {

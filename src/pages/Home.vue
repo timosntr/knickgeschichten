@@ -1,16 +1,15 @@
 <template>
-  <ooc-page :minimal="true">
+  <ooc-page>
     <ooc-menu
       title="Knickgeschichten"
       subtitle="Collaborative stories, one line at a time">
       <div>
-        <sui-divider horizontal :inverted="darkMode">
+        <sui-divider horizontal>
           Stories
         </sui-divider>
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <sui-button
             color="green"
-            :inverted="darkMode"
             :loading="!connected"
             @click="showCreateAsync = true"
             fluid>
@@ -18,7 +17,6 @@
           </sui-button>
           <sui-button
             color="teal"
-            :inverted="darkMode"
             :loading="!connected"
             is="router-link"
             to="/sessions"
@@ -26,13 +24,12 @@
             Browse Public Sessions
           </sui-button>
         </div>
-        <sui-divider horizontal :inverted="darkMode">
+        <sui-divider horizontal>
           Private Game
         </sui-divider>
         <sui-button-group>
           <sui-button
             color="blue"
-            :inverted="darkMode"
             :loading="!connected || creatingLobby"
             @click="createLobby">
             Create
@@ -40,7 +37,6 @@
           <sui-button-or/>
           <sui-button
             color="blue"
-            :inverted="darkMode"
             @click="showJoinLobby = true"
             :loading="!connected || showJoinLobby">
             Join by Code
@@ -67,17 +63,12 @@ export default {
     },
   },
   methods: {
-    update() { this.$forceUpdate(); },
     createLobby() {
       this.creatingLobby = true;
       this.$socket.emit('lobby:create');
     },
   },
-  beforeDestroy() {
-    this.bus.$off('toggle-dark-mode', this.update);
-  },
   created() {
-    this.bus.$on('toggle-dark-mode', this.update);
     this.$socket.emit('lobby:leave');
   },
   data() {

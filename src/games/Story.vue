@@ -6,7 +6,7 @@
         {{player.isLastLink ? 'Finish the story! ' : ''}}The story so far ends with...
         <div style="margin-top: 10px">
           <div v-for="(link, i) in player.link" :key="i">
-            <sui-divider horizontal v-if="i !== 0" :inverted="darkMode">Then</sui-divider>
+            <sui-divider horizontal v-if="i !== 0" >Then</sui-divider>
             <sui-header-subheader>
               {{link}}
             </sui-header-subheader>
@@ -19,7 +19,7 @@
       <div v-if="player.deadline" class="countdown" :class="{urgent: secondsLeft <= 10}">
         ⏱ {{ secondsLeft }}s remaining
       </div>
-      <sui-form @submit="writeLine" :inverted="darkMode">
+      <sui-form @submit="writeLine" >
         <sui-form-field>
           <label>The Story Goes...</label>
           <textarea v-model="line" rows="2">
@@ -33,46 +33,44 @@
         </sui-form-field>
         <sui-button type="submit"
           :color="player.isLastLink ? 'green' : 'blue'"
-          :inverted="darkMode"
-          :disabled="line.length < 1 || line.length > 512 || wordCount < game.minWords">
+                   :disabled="line.length < 1 || line.length > 512 || wordCount < game.minWords">
           {{player.isLastLink ? 'Finish' : 'Sign'}}
         </sui-button>
         <sui-button v-if="lobby.isAsync"
           type="button"
-          :inverted="darkMode"
-          basic
+                   basic
           @click="skipTurn"
           style="margin-top: 6px;">
           Abbrechen
         </sui-button>
       </sui-form>
       <div v-if="lobby.admin === $root.playerId" style="margin-top: 12px">
-        <sui-button size="tiny" @click="requestExport" :inverted="darkMode">
+        <sui-button size="tiny" @click="requestExport" >
           Export Stories
         </sui-button>
       </div>
     </div>
     <div v-else-if="player.state === 'WAITING'"
       style="margin: 16px">
-      <sui-loader active centered inline size="huge" :inverted="darkMode">
+      <sui-loader active centered inline size="huge" >
         Waiting on Other Authors
       </sui-loader>
       <div v-if="lobby.admin === $root.playerId" style="margin-top: 24px">
-        <sui-button size="tiny" @click="requestExport" :inverted="darkMode">
+        <sui-button size="tiny" @click="requestExport" >
           Export Stories
         </sui-button>
       </div>
     </div>
     <div v-else-if="player.state === 'READING' || !player.state && stories.length">
-      <sui-divider horizontal :inverted="darkMode">
+      <sui-divider horizontal >
         Stories
       </sui-divider>
-      <sui-loader active centered inline size="huge" :inverted="darkMode" v-if="!stories.length">
+      <sui-loader active centered inline size="huge"  v-if="!stories.length">
         Loading Stories
       </sui-loader>
       <div style="text-align: left">
         <div v-for="(story, i) in stories" :key="i">
-          <sui-divider horizonal v-if="i > 0" :inverted="darkMode"></sui-divider>
+          <sui-divider horizonal v-if="i > 0" ></sui-divider>
           <sui-card >
             <div class="like-bar">
               <div :is="player.state ? 'sui-button' : 'sui-label'"
@@ -107,27 +105,24 @@
         <sui-button v-if="player.state === 'READING'"
           @click="$socket.emit('game:message', 'story:done', game.icons[player.id] !== 'check')"
           color="blue"
-          :inverted="darkMode"
-          :basic="game.icons[player.id] === 'check'" >
+                   :basic="game.icons[player.id] === 'check'" >
           {{game.icons[player.id] === 'check' ? 'Still Reading' : 'Done Reading'}}
         </sui-button>
         <sui-button
           @click="copyStories"
-          :inverted="darkMode"
-          color="teal"
+                   color="teal"
           size="small">
           {{ copied ? 'Copied!' : 'Copy to Clipboard' }}
         </sui-button>
       </div>
     </div>
     <div v-else style="margin: 16px">
-      <sui-loader active centered inline size="huge" :inverted="darkMode">
+      <sui-loader active centered inline size="huge" >
         Stories are Being Written
       </sui-loader>
     </div>
     <sui-progress
-      :inverted="darkMode"
-      v-if="game.progress !== 1"
+           v-if="game.progress !== 1"
       state="active"
       progress
       indicating
@@ -231,11 +226,9 @@ export default {
     }
   },
   beforeDestroy() {
-    this.bus.$off('toggle-dark-mode', this.update);
     this.stopCountdown();
   },
   created() {
-    this.bus.$on('toggle-dark-mode', this.update);
     this.$socket.emit('game:info');
     this.$socket.emit('lobby:info');
   },

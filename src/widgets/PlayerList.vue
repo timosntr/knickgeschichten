@@ -1,9 +1,9 @@
 <template>
   <div class="player-list-widget">
-    <sui-divider horizontal :inverted="darkMode">
+    <sui-divider horizontal >
       Lobby Members
     </sui-divider>
-    <sui-table unstackable basic class="player-table" :inverted="darkMode">
+    <sui-table unstackable basic class="player-table" >
       <sui-table-header>
         <sui-table-row>
           <th style="position: relative;">
@@ -34,9 +34,7 @@
               <div class="emote-list">
                 <sui-button v-for="emote in emotes"
                   circular
-                  :inverted="darkMode"
-                  :basic="darkMode"
-                  :key="emote"
+                                                    :key="emote"
                   @click="sendEmote(emote)"
                   :icon="emote" />
               </div>
@@ -56,22 +54,19 @@
               <sui-button v-if="!p.connected && isSpectator"
                 size="tiny"
                 @click="$socket.emit('lobby:replace', p.playerId)"
-                :inverted="darkMode"
-                basic>
+                               basic>
                 Join
               </sui-button>
               <sui-button v-if="isAdmin && removeMode && p.id !== $root.playerId && p.connected"
                 size="tiny"
                 color="red"
-                :inverted="darkMode"
-                @click="$socket.emit('lobby:admin:toggle', p.id); removeMode = false"
+                               @click="$socket.emit('lobby:admin:toggle', p.id); removeMode = false"
                 basic>
                 Remove
               </sui-button>
               <sui-button v-if="isAdmin && changeMode && p.id !== $root.playerId && p.connected"
                 size="tiny"
-                :inverted="darkMode"
-                color="blue"
+                               color="blue"
                 @click="$socket.emit('lobby:admin:grant', p.id); changeMode = false"
                 basic>
                 Change
@@ -104,8 +99,7 @@
     </sui-table>
     <div>
       <sui-button :basic="!confirmEndGame"
-        :inverted="darkMode"
-        color="red"
+               color="red"
         @click="tryEndGame"
         v-if="$root.playerId === admin && lobbyState === 'PLAYING'">
         {{confirmEndGame ? 'Are You Sure?' : 'End Game'}}
@@ -253,18 +247,11 @@ export default {
         this.confirmTimeout = setTimeout(() => this.confirmEndGame = false, 1000);
       }
     },
-    update() { this.$forceUpdate(); },
   },
   computed: {
     isAdmin() {
       return this.$root.playerId === this.admin;
     },
-  },
-  beforeDestroy() {
-    this.bus.$off('toggle-dark-mode', this.update);
-  },
-  created() {
-    this.bus.$on('toggle-dark-mode', this.update);
   },
   data() {
     return {

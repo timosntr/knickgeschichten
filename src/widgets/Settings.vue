@@ -1,21 +1,11 @@
 <template>
-  <div class="settings" :class="{minimal: minimal}">
-    <div v-if="minimal" class="minimal-dark-mode">
-      <sui-checkbox
-        :label="isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'"
-        @input="handleDarkMode"
-        v-model="isDarkMode"/>
-    </div>
-    <sui-accordion v-else styled :inverted="isDarkMode">
+  <div class="settings">
+    <sui-accordion styled>
       <sui-accordion-title>
         <sui-icon name="dropdown"/>User Preferences
       </sui-accordion-title>
       <sui-accordion-content>
-        <sui-form @submit="event => event.preventDefault()" :inverted="isDarkMode">
-          <sui-form-field>
-            <label>Dark Mode</label>
-            <sui-checkbox label="Enabled" @input="handleDarkMode" v-model="isDarkMode" />
-          </sui-form-field>
+        <sui-form @submit="event => event.preventDefault()">
           <sui-form-field>
             <label>Turn Notification Sound</label>
             <div style="display: flex;">
@@ -32,8 +22,7 @@
                 basic
                 style="margin-right: 0;"
                 :disabled="!turnSound"
-                @click="playTurnSound()"
-                :inverted="isDarkMode">
+                @click="playTurnSound()">
               </sui-button>
             </div>
           </sui-form-field>
@@ -51,32 +40,10 @@
   padding-bottom: 28px;
 }
 
-.settings.minimal {
-  padding-bottom: 16px;
-}
-
-.minimal-dark-mode {
-  text-align: center;
-  opacity: 0.5;
-  font-size: 0.85em;
-}
-
-.minimal-dark-mode:hover {
-  opacity: 1;
-}
-
 </style>
 
 <script>
-import gameInfo from '../../gameInfo';
-
 export default {
-  props: {
-    minimal: {
-      type: Boolean,
-      default: false,
-    },
-  },
   data() {
     return {
       sounds: [
@@ -88,16 +55,9 @@ export default {
         {value: 'retro', text: 'Retro'},
       ],
       turnSound: localStorage.oocTurnSound || '',
-      isDarkMode: this.darkMode,
-      gameInfo: Object.entries(gameInfo)
-        .filter((key, val) => !val.hidden),
-      showMore: {},
     };
   },
   methods: {
-    handleDarkMode(event) {
-      this.setDarkMode(event.target.checked);
-    },
     handleTurnSound(sound) {
       this.setTurnSound(sound);
     },

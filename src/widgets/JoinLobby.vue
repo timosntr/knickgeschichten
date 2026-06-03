@@ -1,8 +1,7 @@
 <template>
-  <sui-dimmer :active="active" :inverted="darkMode">
+  <sui-dimmer :active="active" >
     <sui-form
-      :inverted="darkMode"
-      @submit="testLobby"
+           @submit="testLobby"
       :error="lobbyError"
       :loading="testingLobby">
       <sui-card>
@@ -27,13 +26,11 @@
           </sui-form-field>
           <sui-button
             color="blue"
-            :inverted="darkMode"
-            type="submit">
+                       type="submit">
             Join
           </sui-button>
           <sui-button
-            :inverted="darkMode"
-            type="button"
+                       type="button"
             @click="$emit('close')">
             Cancel
           </sui-button>
@@ -66,7 +63,7 @@ module.exports = {
     }
   },
   methods: {
-    update() { this.$forceUpdate(); },
+    update() { this.$forceUpdate(); },  // still used for toggle-hide-lobby
     testLobby(event) {
       event.preventDefault();
       const form = event.target;
@@ -95,11 +92,9 @@ module.exports = {
     },
   },
   created() {
-    this.bus.$on('toggle-dark-mode', this.update);
     this.bus.$on('toggle-hide-lobby', this.update);
   },
   beforeDestroy() {
-    this.bus.$off('toggle-dark-mode', this.update);
     this.bus.$off('toggle-hide-lobby', this.update);
   }
 };
