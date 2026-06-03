@@ -1,6 +1,11 @@
 <template>
   <div>
-    <div v-if="player.state === 'EDITING'"
+    <div v-if="submitted" style="margin: 32px 16px; text-align: center;">
+      <sui-icon name="check circle" color="green" size="huge"/>
+      <p style="margin-top: 12px; font-size: 1.1em;">Beitrag gesendet!</p>
+      <p style="color: #888; font-size: 0.9em;">Du wirst gleich weitergeleitet…</p>
+    </div>
+    <div v-else-if="player.state === 'EDITING'"
       style="margin: 16px 0">
       <h2 is="sui-header" icon="pencil" v-if="player.link.length !== 0">
         {{player.isLastLink ? 'Finish the story! ' : ''}}The story so far ends with...
@@ -250,6 +255,11 @@ export default {
 
       this.$socket.emit('game:message', 'story:line', this.line);
       this.line = '';
+
+      if (this.lobby.isAsync) {
+        this.submitted = true;
+        setTimeout(() => this.$router.push('/sessions'), 2000);
+      }
     },
     startCountdown(deadline) {
       this.stopCountdown();
@@ -303,6 +313,7 @@ export default {
       }),
       secondsLeft: 0,
       countdownInterval: null,
+      submitted: false,
       copied: false,
     };
   },
