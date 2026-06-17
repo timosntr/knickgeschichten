@@ -3,9 +3,11 @@ const _ = require('lodash');
 const Chain = require('./util/Chain');
 const Sanitize = require('./util/Sanitize');
 
-const MIN_WORDS = 10;
+const MIN_WORDS = 15;
+const MAX_CONTRIBUTION = 250;
+const MAX_STORY_CHARS = 4000;
 const CONTEXT_LEN = 1;
-const CONTEXT_WORDS = 6;
+const CONTEXT_WORDS = 8;
 
 module.exports = class Story extends Game {
   constructor(lobby, config, players) {
@@ -151,20 +153,17 @@ module.exports = class Story extends Game {
 
   // Find a story for a player
   findChainForPlayer(player, memberId = '') {
-    // Find a chain for a player
-    const { numLinks } = this.config;
-
-    // Order chains by length (shortest chains get touched first)
+    // Order chains by total char length (shortest first)
     let available = _.sortBy(
       this.chains
         .filter(s => !s.editor &&  // Only find chains that aren't being worked on
-          s.chain.length < numLinks && // chain is at capacity
+          _.sumBy(s.chain, l => l.length) + MAX_CONTRIBUTION <= MAX_STORY_CHARS && // chain has room
           s.lastEditor != player && // Find chains the player didn't just edit
           // Also block by memberId so rejoin doesn't bypass the last-editor check
           !(memberId && s.lastEditorMemberId && s.lastEditorMemberId === memberId) &&
           (s.collaborators[player] || 0) <= s.avgEdits() // with edits less than a
         ),
-      s => s.chain.length
+      s => _.sumBy(s.chain, l => l.length)
     );
 
     // If there is enough players, try to ensure the chain isn't alternating
@@ -277,7 +276,7 @@ module.exports = class Story extends Game {
 
       const line = Sanitize.str(data);
 
-      if(line.length < 1 || line.length > 512)
+      if(line.length < 1 || line.length > MAX_CONTRIBUTION)
         return;
 
       const wordCount = line.trim().split(/\s+/).filter(w => w.length > 0).length;
@@ -332,10 +331,12 @@ module.exports = class Story extends Game {
   }
 
   getGameProgress() {
-    const { numStories, numLinks } = this.config;
-    const totalLines = numStories * numLinks;
-    const writtenLines = _.sumBy(this.chains, s => s.chain.length);
-    return writtenLines / totalLines;
+    const { numStories } = this.config;
+    const progressSum = _.sumBy(this.chains, s => {
+      const chars = _.sumBy(s.chain, l => l.length);
+      return chars + MAX_CONTRIBUTION > MAX_STORY_CHARS ? 1 : chars / MAX_STORY_CHARS;
+    });
+    return progressSum / numStories;
   }
 
   getPlayerState(pid) {
@@ -345,7 +346,7 @@ module.exports = class Story extends Game {
     return story ? {
       id: pid,
       state: 'EDITING',
-      isLastLink: story.chain.length === this.config.numLinks - 1,
+      isLastLink: _.sumBy(story.chain, l => l.length) + 2 * MAX_CONTRIBUTION > MAX_STORY_CHARS,
       link: story.chain.slice(-CONTEXT_LEN).map((line, i, arr) => {
         if (i < arr.length - 1) return line;
         const words = line.trim().split(/\s+/);

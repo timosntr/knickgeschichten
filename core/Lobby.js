@@ -64,24 +64,47 @@ class Lobby {
 
   // list all public async sessions for the session browser
   static publicList() {
+    const lastNWords = (text, n) => {
+      const words = text.trim().split(/\s+/);
+      return (words.length > n ? '…' + words.slice(-n).join(' ') : text.trim());
+    };
+    const firstNWords = (text, n) => {
+      const words = text.trim().split(/\s+/);
+      return (words.length > n ? words.slice(0, n).join(' ') + '…' : text.trim());
+    };
+
     return Object.values(Lobby.lobbies)
       .filter(l => l && l.isAsync)
       .map(l => {
         const progress = l.game ? l.game.getGameProgress() : (l.completedStories ? 1 : 0);
+        const isComplete = progress === 1;
         const config = l.gameConfig;
         const numAuthors = l.game
           ? Object.keys(l.game.chains.reduce((acc, chain) => Object.assign(acc, chain.collaborators), {})).length
           : (l.completedAuthors || 0);
+
+        // Teaser: last 8 words for active, first 8 words for completed
+        let teaser = '';
+        if (isComplete && l.completedStories && l.completedStories[0] && l.completedStories[0][0]) {
+          teaser = firstNWords(l.completedStories[0][0].link, 8);
+        } else if (l.game && l.game.chains) {
+          const chain = l.game.chains[0];
+          if (chain && chain.chain.length > 0) {
+            teaser = lastNWords(chain.chain[chain.chain.length - 1], 8);
+          }
+        }
+
         return {
           code: l.code,
           title: l.title,
           progress,
-          isComplete: progress === 1,
+          isComplete,
           numStories: typeof config.numStories === 'number' ? config.numStories : l.players.length,
           numLinks: typeof config.numLinks === 'number' ? config.numLinks : 10,
           numAuthors,
           playersOnline: l.members.length,
           createdAt: l.created,
+          teaser,
         };
       })
       .sort((a, b) => Number(a.isComplete) - Number(b.isComplete) || b.createdAt - a.createdAt);
