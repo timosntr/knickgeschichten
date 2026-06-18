@@ -3,7 +3,11 @@
     <div v-if="idleKicked" style="margin: 32px 16px; text-align: center;">
       <sui-icon name="clock outline" color="orange" size="huge"/>
       <p style="margin-top: 12px; font-size: 1.1em;">Platz freigegeben</p>
-      <p style="color: #888; font-size: 0.9em;">Du warst zu lange inaktiv. Du wirst weitergeleitet…</p>
+      <p style="color: #888; font-size: 0.9em;">
+        {{ idleReason === 'timeout'
+          ? 'Deine Schreibzeit ist abgelaufen. Du wirst weitergeleitet…'
+          : 'Du warst zu lange inaktiv. Du wirst weitergeleitet…' }}
+      </p>
     </div>
     <div v-else-if="submitted" style="margin: 32px 16px; text-align: center;">
       <sui-icon name="check circle" color="green" size="huge"/>
@@ -175,8 +179,9 @@ export default {
     'lobby:info': function(info) {
       this.lobby = info;
     },
-    'lobby:idle': function() {
+    'lobby:idle': function(reason) {
       this.idleKicked = true;
+      this.idleReason = reason || 'idle';
       setTimeout(() => {
         this.$socket.emit('lobby:leave');
         this.$router.push('/sessions');
@@ -265,19 +270,16 @@ export default {
     },
     // Build author line for a whole story card, e.g. "Von: Max, Julia, Anonyme"
     storyAuthors(story) {
+      // Collapse all anonymous contributions into a single "Anonym" so this
+      // line agrees with the server's author count (completedAuthors =
+      // named.size + (anyAnonymous ? 1 : 0)). Anonymous rejoins get new
+      // playerIds, so deduping by editor would over-count real people.
       const named = new Set();
-      let anonCount = 0;
-      const seenAnonEditors = new Set();
+      let hasAnon = false;
       for (const entry of story) {
         if (entry.authorName !== null && entry.authorName !== undefined) {
-          if (entry.authorName === '') {
-            if (!seenAnonEditors.has(entry.editor)) {
-              seenAnonEditors.add(entry.editor);
-              anonCount++;
-            }
-          } else {
-            named.add(entry.authorName);
-          }
+          if (entry.authorName === '') hasAnon = true;
+          else named.add(entry.authorName);
         } else {
           // fallback for old sessions
           const n = this.nameTable[entry.editor];
@@ -285,8 +287,7 @@ export default {
         }
       }
       const parts = [...named];
-      if (anonCount === 1) parts.push('Anonym');
-      else if (anonCount > 1) parts.push('Anonyme');
+      if (hasAnon) parts.push('Anonym');
       return parts.length ? 'Von: ' + parts.join(', ') : '';
     },
     writeLine(event) {
@@ -362,6 +363,7 @@ export default {
       countdownInterval: null,
       submitted: false,
       idleKicked: false,
+      idleReason: 'idle',
       copied: false,
     };
   },

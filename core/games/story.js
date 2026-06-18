@@ -118,7 +118,7 @@ module.exports = class Story extends Game {
     this.idleTimers[pid] = setTimeout(() => {
       delete this.idleTimers[pid];
       if (!this.players.includes(pid)) return; // already gone
-      this.emitTo(pid, 'lobby:idle');
+      this.emitTo(pid, 'lobby:idle', 'idle');
       this.releasePlayer(pid);  // release chain if they had one
       this.detachPlayer(pid);   // remove from queue
       console.log(new Date(), `-- [lobby ${this.lobby.code}] idle player "${pid}" removed after 5min`);
@@ -147,9 +147,10 @@ module.exports = class Story extends Game {
     if (chain) {
       chain.editor = '';
     }
-    // Notify the player before detaching (emitTo still works while in lobby.players)
+    // Notify the player before detaching (emitTo still works while in lobby.players).
+    // Distinct reason 'timeout' so the client shows "turn expired", not "you were idle".
     if (this.lobby.isAsync) {
-      this.emitTo(pid, 'lobby:idle');
+      this.emitTo(pid, 'lobby:idle', 'timeout');
       this.detachPlayer(pid);
     }
     this.redistribute();
@@ -309,7 +310,11 @@ module.exports = class Story extends Game {
       const skipChain = this.chains.find(s => s.editor === pid);
       if (!skipChain) return;
       this.clearTimer(pid);
-      skipChain.lastEditor = pid; // prevent immediate re-assignment
+      // Block immediate reassignment by both playerId and memberId, so a
+      // skip-then-rejoin (which yields a new playerId) can't grab it back.
+      skipChain.lastEditor = pid;
+      const skipPlayerObj = this.lobby.players.find(p => p.playerId === pid);
+      skipChain.lastEditorMemberId = skipPlayerObj ? skipPlayerObj.id : '';
       skipChain.editor = '';
       this.redistribute();
       break;
