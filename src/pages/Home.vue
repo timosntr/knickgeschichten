@@ -88,7 +88,7 @@
           class="carousel"
           @touchstart="onTouchStart"
           @touchend="onTouchEnd"
-          @wheel.prevent="onWheel($event, 'sessions')">
+          @wheel="onWheel($event, 'sessions')">
           <div class="carousel-track">
             <transition :name="slideDir">
               <div class="session-card" :key="carouselIndex" @click="$router.push(`/lobby/${recentSessions[carouselIndex].code}`)">
@@ -129,7 +129,7 @@
           class="carousel"
           @touchstart="onTouchStartArchive"
           @touchend="onTouchEndArchive"
-          @wheel.prevent="onWheel($event, 'archive')">
+          @wheel="onWheel($event, 'archive')">
           <div class="carousel-track">
             <transition :name="slideDir">
               <div class="session-card" :key="archiveIndex" @click="$router.push(`/lobby/${recentCompleted[archiveIndex].code}`)">
@@ -391,7 +391,10 @@ export default {
       this.setArchive(this.archiveIndex + (dx < 0 ? 1 : -1));
     },
     onWheel(e, which) {
+      // Vertical gesture: let the page scroll normally (don't trap it).
       if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) return;
+      // Horizontal gesture: consume it for the carousel.
+      e.preventDefault();
       if (this.wheelCooldown) return;
       this.wheelAccum += e.deltaX;
       if (Math.abs(this.wheelAccum) > 60) {
