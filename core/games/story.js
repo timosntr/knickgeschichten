@@ -21,6 +21,7 @@ module.exports = class Story extends Game {
     this.finishedReading = {};
     this.timers = {};
     this.deadlines = {};
+    this.idleTimers = {};
   }
 
 
@@ -78,6 +79,11 @@ module.exports = class Story extends Game {
   detachPlayer(pid) {
     const idx = this.players.indexOf(pid);
     if (idx >= 0) this.players.splice(idx, 1);
+    // Clear idle timer if running
+    if (this.idleTimers[pid]) {
+      clearTimeout(this.idleTimers[pid]);
+      delete this.idleTimers[pid];
+    }
   }
 
   // Release a disconnected player's chain so other players aren't blocked
@@ -99,8 +105,22 @@ module.exports = class Story extends Game {
     this.players.push(pid);
     this.lastEdit[pid] = 0;
     if (this.getGameProgress() === 1) {
+      // Session is already complete — this player is a reader, not a contributor.
+      // Send the finished stories and skip the idle timer / redistribution,
+      // otherwise readers get kicked to /sessions after 5 minutes mid-read.
       this.emitTo(pid, 'story:result', this.compileStories());
+      return;
     }
+    // 5-minute idle timer: remove from queue if player never writes anything
+    const IDLE_MS = 5 * 60 * 1000;
+    this.idleTimers[pid] = setTimeout(() => {
+      delete this.idleTimers[pid];
+      if (!this.players.includes(pid)) return; // already gone
+      this.emitTo(pid, 'lobby:idle');
+      this.releasePlayer(pid);  // release chain if they had one
+      this.detachPlayer(pid);   // remove from queue
+      console.log(new Date(), `-- [lobby ${this.lobby.code}] idle player "${pid}" removed after 5min`);
+    }, IDLE_MS);
     this.redistribute();
   }
 
@@ -111,9 +131,13 @@ module.exports = class Story extends Game {
     }
     this.timers = {};
     this.deadlines = {};
+    for (const pid in this.idleTimers) {
+      clearTimeout(this.idleTimers[pid]);
+    }
+    this.idleTimers = {};
   }
 
-  // Called when a player's time runs out — release their chain and redistribute
+  // Called when a player's time runs out — release their chain, remove from queue, notify
   timeoutPlayer(pid) {
     delete this.timers[pid];
     delete this.deadlines[pid];
@@ -121,11 +145,16 @@ module.exports = class Story extends Game {
     if (chain) {
       chain.editor = '';
     }
+    // Notify the player before detaching (emitTo still works while in lobby.players)
+    if (this.lobby.isAsync) {
+      this.emitTo(pid, 'lobby:idle');
+      this.detachPlayer(pid);
+    }
     this.redistribute();
   }
 
   // Find a story for a player
-  findChainForPlayer(player) {
+  findChainForPlayer(player, memberId = '') {
     // Find a chain for a player
     const { numLinks } = this.config;
 
@@ -135,6 +164,8 @@ module.exports = class Story extends Game {
         .filter(s => !s.editor &&  // Only find chains that aren't being worked on
           s.chain.length < numLinks && // chain is at capacity
           s.lastEditor != player && // Find chains the player didn't just edit
+          // Also block by memberId so rejoin doesn't bypass the last-editor check
+          !(memberId && s.lastEditorMemberId && s.lastEditorMemberId === memberId) &&
           (s.collaborators[player] || 0) <= s.avgEdits() // with edits less than a
         ),
       s => s.chain.length
@@ -158,7 +189,9 @@ module.exports = class Story extends Game {
     const players = _.shuffle(this.players);
 
     for(const player of players) {
-      const story = this.findChainForPlayer(player);
+      const playerObj = this.lobby.players.find(p => p.playerId === player);
+      const memberId = playerObj ? playerObj.id : '';
+      const story = this.findChainForPlayer(player, memberId);
       if(!story) {
         break;
       }
@@ -176,7 +209,9 @@ module.exports = class Story extends Game {
     const players = _.sortBy(this.players.filter(p => !hasStory[p]), p => this.lastEdit[p]);
 
     for(const player of players) {
-      const story = this.findChainForPlayer(player);
+      const playerObj = this.lobby.players.find(p => p.playerId === player);
+      const memberId = playerObj ? playerObj.id : '';
+      const story = this.findChainForPlayer(player, memberId);
       if(!story)
         continue;
       this.assignChain(player, story);
@@ -185,9 +220,16 @@ module.exports = class Story extends Game {
     // When all stories are complete, save them to lobby so they survive endGame()
     if (this.getGameProgress() === 1 && !this.lobby.completedStories) {
       this.lobby.completedStories = this.compileStories();
-      this.lobby.completedAuthors = Object.keys(
-        this.chains.reduce((acc, chain) => Object.assign(acc, chain.collaborators), {})
-      ).length;
+      const stories = this.lobby.completedStories;
+      const namedAuthors = new Set();
+      let hasAnonymous = false;
+      for (const story of stories) {
+        for (const entry of story) {
+          if (entry.authorName === '') hasAnonymous = true;
+          else if (entry.authorName) namedAuthors.add(entry.authorName);
+        }
+      }
+      this.lobby.completedAuthors = namedAuthors.size + (hasAnonymous ? 1 : 0);
     }
 
     this.sendGameInfo();
@@ -200,6 +242,10 @@ module.exports = class Story extends Game {
     }
     this.timers = {};
     this.deadlines = {};
+    for (const pid in this.idleTimers) {
+      clearTimeout(this.idleTimers[pid]);
+    }
+    this.idleTimers = {};
 
     // Emit partial or complete results to all players before lobby transitions to WAITING
     const stories = this.getGameProgress() === 1
@@ -244,7 +290,15 @@ module.exports = class Story extends Game {
 
       this.clearTimer(pid);
       this.lastEdit[pid] = Date.now();
-      story.addLink(pid, line);
+      // Clear idle timer — player has written, no need to kick them
+      if (this.idleTimers[pid]) {
+        clearTimeout(this.idleTimers[pid]);
+        delete this.idleTimers[pid];
+      }
+      const playerObj = this.lobby.players.find(p => p.playerId === pid);
+      const authorName = playerObj ? playerObj.name : null;
+      const memberId = playerObj ? playerObj.id : '';
+      story.addLink(pid, line, authorName, memberId);
 
       this.redistribute();
 
@@ -314,10 +368,11 @@ module.exports = class Story extends Game {
   compileStories() {
     if (!this.compiled)
       this.compiled = this.chains.map(s =>
-        _.zip(s.chain, s.editors)
-        .map(([link, e]) => ({
+        _.zip(s.chain, s.editors, s.authorNames)
+        .map(([link, e, authorName]) => ({
           link,
           editor: this.config.anonymous ? '' : e,
+          authorName: this.config.anonymous ? '' : (authorName !== undefined ? authorName : null),
         }))
       );
     return this.compiled;
@@ -325,10 +380,11 @@ module.exports = class Story extends Game {
 
   compilePartialStories() {
     return this.chains.map(s =>
-      _.zip(s.chain, s.editors)
-      .map(([link, e]) => ({
+      _.zip(s.chain, s.editors, s.authorNames)
+      .map(([link, e, authorName]) => ({
         link,
         editor: this.config.anonymous ? '' : e,
+        authorName: this.config.anonymous ? '' : (authorName !== undefined ? authorName : null),
       }))
     );
   }

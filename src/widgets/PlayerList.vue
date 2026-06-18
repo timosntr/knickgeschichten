@@ -1,9 +1,9 @@
 <template>
   <div class="player-list-widget">
-    <sui-divider horizontal :inverted="darkMode">
+    <sui-divider horizontal >
       Lobby Members
     </sui-divider>
-    <sui-table unstackable basic class="player-table" :inverted="darkMode">
+    <sui-table unstackable basic class="player-table" >
       <sui-table-header>
         <sui-table-row>
           <th style="position: relative;">
@@ -17,16 +17,9 @@
               </sui-button>
               <sui-button :basic="!changeMode"
                 v-if="isAdmin"
-                @click="changeMode = !changeMode; removeMode = false"
+                @click="changeMode = !changeMode"
                 color="blue"
                 icon="shield"
-                size="tiny">
-              </sui-button>
-              <sui-button :basic="!removeMode"
-                v-if="isAdmin"
-                @click="removeMode = !removeMode; changeMode = false"
-                color="red"
-                icon="times"
                 size="tiny">
               </sui-button>
             </span>
@@ -34,9 +27,7 @@
               <div class="emote-list">
                 <sui-button v-for="emote in emotes"
                   circular
-                  :inverted="darkMode"
-                  :basic="darkMode"
-                  :key="emote"
+                                                    :key="emote"
                   @click="sendEmote(emote)"
                   :icon="emote" />
               </div>
@@ -53,25 +44,15 @@
             {{p.name}}
             <span class="emote-container" :ref="`emote_${p.id}`"></span>
             <span class="user-icons">
-              <sui-button v-if="!p.connected && isSpectator"
+              <sui-button v-if="!p.connected"
                 size="tiny"
                 @click="$socket.emit('lobby:replace', p.playerId)"
-                :inverted="darkMode"
-                basic>
+                               basic>
                 Join
-              </sui-button>
-              <sui-button v-if="isAdmin && removeMode && p.id !== $root.playerId && p.connected"
-                size="tiny"
-                color="red"
-                :inverted="darkMode"
-                @click="$socket.emit('lobby:admin:toggle', p.id); removeMode = false"
-                basic>
-                Remove
               </sui-button>
               <sui-button v-if="isAdmin && changeMode && p.id !== $root.playerId && p.connected"
                 size="tiny"
-                :inverted="darkMode"
-                color="blue"
+                               color="blue"
                 @click="$socket.emit('lobby:admin:grant', p.id); changeMode = false"
                 basic>
                 Change
@@ -102,62 +83,9 @@
         </sui-table-row>
       </sui-table-body>
     </sui-table>
-    <sui-table unstackable basic class="player-table" :inverted="darkMode">
-      <sui-table-header>
-        <sui-table-row>
-          <th>Spectators</th>
-        </sui-table-row>
-      </sui-table-header>
-      <sui-table-body>
-        <sui-table-row v-for="p in spectators"
-          :key="p.id"
-          :positive="$root.playerId === p.id">
-          <td v-if="p.name">
-            {{p.name}}
-            <span class="emote-container" :ref="`emote_${p.id}`"></span>
-            <span class="user-icons">
-              <sui-icon
-                v-if="$root.playerId === p.id"
-                color="grey"
-                name="user"/>
-            </span>
-          </td>
-          <td v-else>
-            <i>Pending</i>
-          </td>
-        </sui-table-row>
-        <sui-table-row v-if="!spectators.length">
-          <td>
-            <i>No Spectators</i>
-          </td>
-        </sui-table-row>
-      </sui-table-body>
-    </sui-table>
     <div>
-      <sui-button v-if="players.find(p => p.id === $root.playerId)"
-        :inverted="darkMode"
-        basic
-        @click="$socket.emit('lobby:spectate')">
-        Spectate
-      </sui-button>
-      <div v-else-if="isSpectator" basic>
-        <sui-button v-if="canJoinPlayers"
-          :inverted="darkMode"
-          basic
-          @click="$socket.emit('lobby:spectate')">
-          Join Players
-        </sui-button>
-        <router-link
-          :inverted="darkMode"
-          basic
-          is="sui-button"
-          to="/">
-          Leave
-        </router-link>
-      </div>
       <sui-button :basic="!confirmEndGame"
-        :inverted="darkMode"
-        color="red"
+               color="red"
         @click="tryEndGame"
         v-if="$root.playerId === admin && lobbyState === 'PLAYING'">
         {{confirmEndGame ? 'Are You Sure?' : 'End Game'}}
@@ -275,8 +203,7 @@ td {
 <script>
 export default {
   props: [
-    'players', 'admin', 'spectators',
-    'isSpectator', 'canJoinPlayers',
+    'players', 'admin',
     'lobbyState', 'gameState',
   ],
   sockets: {
@@ -306,24 +233,16 @@ export default {
         this.confirmTimeout = setTimeout(() => this.confirmEndGame = false, 1000);
       }
     },
-    update() { this.$forceUpdate(); },
   },
   computed: {
     isAdmin() {
       return this.$root.playerId === this.admin;
     },
   },
-  beforeDestroy() {
-    this.bus.$off('toggle-dark-mode', this.update);
-  },
-  created() {
-    this.bus.$on('toggle-dark-mode', this.update);
-  },
   data() {
     return {
       confirmTimeout: undefined,
       confirmEndGame: false,
-      removeMode: false,
       changeMode: false,
       showEmotes: false,
       emotes: [

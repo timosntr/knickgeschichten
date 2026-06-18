@@ -28,13 +28,6 @@
   margin: 8px 0;
 }
 
-.dark-theme .menu .title {
-  color: #fff;
-}
-
-.dark-theme .menu .subtitle {
-  color: #ccc;
-}
 
 </style>
 

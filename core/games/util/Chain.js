@@ -7,8 +7,10 @@ class Chain {
     // Track how many time players contribute
     this.collaborators = {};
 
-    // Id of the last editor
+    // Id of the last editor (playerId — resets on rejoin)
     this.lastEditor = '';
+    // Member id of the last editor (persists across rejoins within same socket session)
+    this.lastEditorMemberId = '';
 
     // Id of the current editor
     this.editor = '';
@@ -18,6 +20,9 @@ class Chain {
 
     // List of editors
     this.editors = [];
+
+    // List of author display names (parallel to editors/chain)
+    this.authorNames = [];
 
     // Players that like this story
     this.likes = {};
@@ -29,10 +34,12 @@ class Chain {
       numPlayers: this.numPlayers,
       collaborators: this.collaborators,
       lastEditor: this.lastEditor,
+      lastEditorMemberId: this.lastEditorMemberId,
       editor: this.editor,
       chain: this.chain,
       type: this.type,
       editors: this.editors,
+      authorNames: this.authorNames,
       likes: this.likes,
     };
   }
@@ -43,9 +50,11 @@ class Chain {
 
     this.collaborators = blob.collaborators;
     this.lastEditor = blob.lastEditor;
+    this.lastEditorMemberId = blob.lastEditorMemberId || '';
     this.editor = blob.editor;
     this.chain = blob.chain;
     this.editors = blob.editors;
+    this.authorNames = blob.authorNames || [];
     this.likes = blob.likes;
     this.type = blob.type;
   }
@@ -54,12 +63,14 @@ class Chain {
     return _.sum(_.values(this.collaborators)) / this.numPlayers;
   }
 
-  addLink(pid, link) {
+  addLink(pid, link, authorName = null, memberId = '') {
     this.lastEditor = this.editor;
+    this.lastEditorMemberId = memberId || '';
     if(pid)
       this.collaborators[pid] = (this.collaborators[pid] || 0) + 1;
     this.chain.push(link);
     this.editors.push(pid);
+    this.authorNames.push(authorName);
     this.editor = '';
   }
 };

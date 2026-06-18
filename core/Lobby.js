@@ -168,7 +168,6 @@ class Lobby {
 
     this.members = [];
     this.players = [];
-    this.spectators = [];
     this.selectedGame = '';
     this.gameConfig = {players: '#numPlayers'};
     this.admin = '';
@@ -222,7 +221,6 @@ class Lobby {
       this.players = [];
     }
 
-    this.spectators = [];
     this.selectedGame = lobbyState.selectedGame || '';
     // use the provided game config or defaults
     this.gameConfig = lobbyState.gameConfig ||
@@ -269,14 +267,6 @@ class Lobby {
   // Start the game
   startGame() {
     if(!this.selectedGame) return;
-
-    const isPlayer = {};
-    for (const p of this.players) isPlayer[p.id] = true;
-    for(const p of this.members) {
-      if(!isPlayer[p.id]) {
-        this.spectators.push({id: p.id, name: p.name});
-      }
-    }
 
     const numPlayers = this.players.length;
 
@@ -472,11 +462,6 @@ class Lobby {
       }
     }
 
-    const isSpectator = this.spectators.find(p => p.id === member.id);
-    if(isSpectator) {
-      this.spectators.splice(this.spectators.indexOf(isSpectator), 1);
-    }
-
     this.updateMembers();
     this.sendLobbyInfo();
   }
@@ -544,10 +529,9 @@ class Lobby {
   replacePlayer(member, pid) {
     const id = member.id;
     const isPlayer = this.players.find(p => p.id === id);
-    const isSpectator = this.spectators.find(p => p.id === id);
     const targetPlayer = this.players.find(p => p.playerId === pid && p.id === -1 && !p.connected);
 
-    if((!isPlayer || isSpectator) && targetPlayer && member.name) {
+    if(!isPlayer && targetPlayer && member.name) {
       targetPlayer.id = id;
       targetPlayer.name = member.name;
       targetPlayer.member = member;
@@ -557,11 +541,6 @@ class Lobby {
       if (this.disconnectTimers && this.disconnectTimers[targetPlayer.playerId]) {
         clearTimeout(this.disconnectTimers[targetPlayer.playerId]);
         delete this.disconnectTimers[targetPlayer.playerId];
-      }
-
-      // if the player was a spectator, remove them from the spectators
-      if (isSpectator) {
-        this.spectators.splice(this.spectators.indexOf(isSpectator), 1);
       }
 
       this.updateMembers();
@@ -588,37 +567,6 @@ class Lobby {
     player.member.socket.emit('game:player:info', this.game.getPlayerState(player.playerId));
   }
 
-  // Swap a player into/out of spectators group
-  toggleSpectate(player) {
-    if(!player.name) {
-      return;
-    }
-
-    const isSpectator = this.spectators.find(p => p.id === player.id);
-
-    if(this.admin === player.id && !isSpectator) {
-      this.admin = '';
-    }
-
-    if(isSpectator) {
-      this.spectators.splice(this.spectators.indexOf(isSpectator), 1);
-    } else {
-      // Remove the player from the current players
-      const playerObj = _.find(this.players, {id: player.id});
-      if(playerObj) {
-        playerObj.name = player.name;
-        playerObj.connected = false;
-        playerObj.member = undefined;
-        playerObj.id = -1;
-      }
-
-      this.spectators.push({id: player.id, name: player.name});
-      player.socket.emit('game:player:info', { state: '' });
-    }
-
-    this.updateMembers();
-    this.sendLobbyInfo();
-  }
 
   updateMembers() {
     switch(this.lobbyState) {
@@ -653,7 +601,7 @@ class Lobby {
         for(const m of this.members) {
           // For async: allow empty string names (anonymous); for sync: require non-empty name
           const nameReady = this.isAsync ? m.name !== null : !!m.name;
-          if(nameReady && !this.players.find(p => p.id === m.id) && !this.spectators.find(p => p.id === m.id)) {
+          if(nameReady && !this.players.find(p => p.id === m.id)) {
             this.players.push({
               id: m.id,
               playerId: _.uniqueId('player'),
@@ -692,7 +640,7 @@ class Lobby {
         for (const m of this.members) {
           if (m.name === null) continue;
           const alreadyPlayer = this.players.find(p => p.id === m.id);
-          if (!alreadyPlayer && !this.spectators.find(p => p.id === m.id)) {
+          if (!alreadyPlayer) {
             const pid = _.uniqueId('player');
             this.players.push({
               id: m.id,
@@ -719,6 +667,7 @@ class Lobby {
       config: this.gameConfig,
       admin: this.admin,
       isAsync: this.isAsync,
+      isComplete: !!this.completedStories,
       title: this.title,
       gameState: this.game ? this.game.getState() : {},
       members: this.members.map(m => ({
@@ -730,10 +679,6 @@ class Lobby {
         playerId: p.playerId,
         connected: p.connected && !!p.member,
         name: p.member ? p.member.name : p.name,
-      })),
-      spectators: this.members.filter(m => !isPlayer[m.id]).map(m => ({
-        id: m.id,
-        name: m.name,
       })),
     };
 

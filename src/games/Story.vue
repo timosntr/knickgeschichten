@@ -1,12 +1,22 @@
 <template>
   <div>
-    <div v-if="player.state === 'EDITING'"
+    <div v-if="idleKicked" style="margin: 32px 16px; text-align: center;">
+      <sui-icon name="clock outline" color="orange" size="huge"/>
+      <p style="margin-top: 12px; font-size: 1.1em;">Platz freigegeben</p>
+      <p style="color: #888; font-size: 0.9em;">Du warst zu lange inaktiv. Du wirst weitergeleitet…</p>
+    </div>
+    <div v-else-if="submitted" style="margin: 32px 16px; text-align: center;">
+      <sui-icon name="check circle" color="green" size="huge"/>
+      <p style="margin-top: 12px; font-size: 1.1em;">Beitrag gesendet!</p>
+      <p style="color: #888; font-size: 0.9em;">Du wirst gleich weitergeleitet…</p>
+    </div>
+    <div v-else-if="player.state === 'EDITING'"
       style="margin: 16px 0">
       <h2 is="sui-header" icon="pencil" v-if="player.link.length !== 0">
         {{player.isLastLink ? 'Finish the story! ' : ''}}The story so far ends with...
         <div style="margin-top: 10px">
           <div v-for="(link, i) in player.link" :key="i">
-            <sui-divider horizontal v-if="i !== 0" :inverted="darkMode">Then</sui-divider>
+            <sui-divider horizontal v-if="i !== 0" >Then</sui-divider>
             <sui-header-subheader>
               {{link}}
             </sui-header-subheader>
@@ -19,7 +29,7 @@
       <div v-if="player.deadline" class="countdown" :class="{urgent: secondsLeft <= 10}">
         ⏱ {{ secondsLeft }}s remaining
       </div>
-      <sui-form @submit="writeLine" :inverted="darkMode">
+      <sui-form @submit="writeLine" >
         <sui-form-field>
           <label>The Story Goes...</label>
           <textarea v-model="line" rows="2">
@@ -33,46 +43,34 @@
         </sui-form-field>
         <sui-button type="submit"
           :color="player.isLastLink ? 'green' : 'blue'"
-          :inverted="darkMode"
-          :disabled="line.length < 1 || line.length > 512 || wordCount < game.minWords">
+                   :disabled="line.length < 1 || line.length > 512 || wordCount < game.minWords">
           {{player.isLastLink ? 'Finish' : 'Sign'}}
         </sui-button>
         <sui-button v-if="lobby.isAsync"
           type="button"
-          :inverted="darkMode"
-          basic
+                   basic
           @click="skipTurn"
           style="margin-top: 6px;">
           Abbrechen
         </sui-button>
       </sui-form>
-      <div v-if="lobby.admin === $root.playerId" style="margin-top: 12px">
-        <sui-button size="tiny" @click="requestExport" :inverted="darkMode">
-          Export Stories
-        </sui-button>
-      </div>
     </div>
     <div v-else-if="player.state === 'WAITING'"
       style="margin: 16px">
-      <sui-loader active centered inline size="huge" :inverted="darkMode">
+      <sui-loader active centered inline size="huge" >
         Waiting on Other Authors
       </sui-loader>
-      <div v-if="lobby.admin === $root.playerId" style="margin-top: 24px">
-        <sui-button size="tiny" @click="requestExport" :inverted="darkMode">
-          Export Stories
-        </sui-button>
-      </div>
     </div>
     <div v-else-if="player.state === 'READING' || !player.state && stories.length">
-      <sui-divider horizontal :inverted="darkMode">
+      <sui-divider horizontal >
         Stories
       </sui-divider>
-      <sui-loader active centered inline size="huge" :inverted="darkMode" v-if="!stories.length">
+      <sui-loader active centered inline size="huge"  v-if="!stories.length">
         Loading Stories
       </sui-loader>
       <div style="text-align: left">
         <div v-for="(story, i) in stories" :key="i">
-          <sui-divider horizonal v-if="i > 0" :inverted="darkMode"></sui-divider>
+          <sui-divider horizonal v-if="i > 0" ></sui-divider>
           <sui-card >
             <div class="like-bar">
               <div :is="player.state ? 'sui-button' : 'sui-label'"
@@ -83,7 +81,7 @@
                 {{game.likes[i]}}
               </div>
             </div>
-            <sui-card-content :style="{marginBottom: story[0].editor ? 0 : '14px'}">
+            <sui-card-content>
               <sui-comment-group>
                 <sui-comment v-for="(entry, j) in story" :key="j">
                   <sui-comment-content>
@@ -92,46 +90,48 @@
                         {{entry.link}}
                       </p>
                     </sui-comment-text>
-                    <sui-comment-author v-if="nameTable[entry.editor]"
+                    <sui-comment-author v-if="entryAuthor(entry)"
                       style="text-align: right;">
-                      &mdash;{{nameTable[entry.editor]}}
+                      &mdash;{{entryAuthor(entry)}}
                     </sui-comment-author>
                   </sui-comment-content>
                 </sui-comment>
               </sui-comment-group>
             </sui-card-content>
+            <sui-card-content v-if="storyAuthors(story)" extra
+              style="font-size: 0.85em; color: #888; text-align: right;">
+              {{storyAuthors(story)}}
+            </sui-card-content>
           </sui-card>
         </div>
       </div>
       <div style="margin-top: 16px">
-        <sui-button v-if="player.state === 'READING'"
+        <sui-button v-if="player.state === 'READING' && !lobby.isAsync"
           @click="$socket.emit('game:message', 'story:done', game.icons[player.id] !== 'check')"
           color="blue"
-          :inverted="darkMode"
-          :basic="game.icons[player.id] === 'check'" >
+          :basic="game.icons[player.id] === 'check'">
           {{game.icons[player.id] === 'check' ? 'Still Reading' : 'Done Reading'}}
         </sui-button>
         <sui-button
-          @click="copyStories"
-          :inverted="darkMode"
-          color="teal"
-          size="small">
-          {{ copied ? 'Copied!' : 'Copy to Clipboard' }}
+          v-if="lobby.isAsync"
+          basic
+          size="small"
+          @click="leaveToArchive">
+          Zurück
         </sui-button>
       </div>
     </div>
     <div v-else style="margin: 16px">
-      <sui-loader active centered inline size="huge" :inverted="darkMode">
+      <sui-loader active centered inline size="huge" >
         Stories are Being Written
       </sui-loader>
     </div>
     <sui-progress
-      :inverted="darkMode"
-      v-if="game.progress !== 1"
+           v-if="game.progress > 0 && game.progress !== 1"
       state="active"
       progress
       indicating
-      :percent="Math.round((game.progress || 0) * 100)"/>
+      :percent="Math.round(game.progress * 100)"/>
   </div>
 </template>
 
@@ -174,6 +174,13 @@ export default {
   sockets: {
     'lobby:info': function(info) {
       this.lobby = info;
+    },
+    'lobby:idle': function() {
+      this.idleKicked = true;
+      setTimeout(() => {
+        this.$socket.emit('lobby:leave');
+        this.$router.push('/sessions');
+      }, 3000);
     },
     'game:info': function(info) {
       this.game = info;
@@ -231,11 +238,9 @@ export default {
     }
   },
   beforeDestroy() {
-    this.bus.$off('toggle-dark-mode', this.update);
     this.stopCountdown();
   },
   created() {
-    this.bus.$on('toggle-dark-mode', this.update);
     this.$socket.emit('game:info');
     this.$socket.emit('lobby:info');
   },
@@ -249,6 +254,41 @@ export default {
   },
   methods: {
     update() { this.$forceUpdate(); },
+    // Resolve display name for a single entry: named / "Anonym" / fallback via nameTable
+    entryAuthor(entry) {
+      if (entry.authorName !== null && entry.authorName !== undefined) {
+        return entry.authorName === '' ? 'Anonym' : entry.authorName;
+      }
+      // Fallback for old sessions without authorName
+      const n = this.nameTable[entry.editor];
+      return n || null;
+    },
+    // Build author line for a whole story card, e.g. "Von: Max, Julia, Anonyme"
+    storyAuthors(story) {
+      const named = new Set();
+      let anonCount = 0;
+      const seenAnonEditors = new Set();
+      for (const entry of story) {
+        if (entry.authorName !== null && entry.authorName !== undefined) {
+          if (entry.authorName === '') {
+            if (!seenAnonEditors.has(entry.editor)) {
+              seenAnonEditors.add(entry.editor);
+              anonCount++;
+            }
+          } else {
+            named.add(entry.authorName);
+          }
+        } else {
+          // fallback for old sessions
+          const n = this.nameTable[entry.editor];
+          if (n) named.add(n);
+        }
+      }
+      const parts = [...named];
+      if (anonCount === 1) parts.push('Anonym');
+      else if (anonCount > 1) parts.push('Anonyme');
+      return parts.length ? 'Von: ' + parts.join(', ') : '';
+    },
     writeLine(event) {
       event.preventDefault();
 
@@ -257,6 +297,12 @@ export default {
 
       this.$socket.emit('game:message', 'story:line', this.line);
       this.line = '';
+
+      if (this.lobby.isAsync) {
+        this.submitted = true;
+        this.$socket.emit('lobby:leave');
+        setTimeout(() => this.$router.push('/sessions'), 2000);
+      }
     },
     startCountdown(deadline) {
       this.stopCountdown();
@@ -275,6 +321,10 @@ export default {
     skipTurn() {
       this.$socket.emit('game:message', 'story:skip');
       this.$router.push('/');
+    },
+    leaveToArchive() {
+      this.$socket.emit('lobby:leave');
+      this.$router.push('/sessions');
     },
     requestExport() {
       this.$socket.emit('game:message', 'story:export');
@@ -304,13 +354,14 @@ export default {
         admin: '',
         players: [],
         members: [],
-        spectators: [],
         game: '',
         config: {},
         isAsync: false,
       }),
       secondsLeft: 0,
       countdownInterval: null,
+      submitted: false,
+      idleKicked: false,
       copied: false,
     };
   },

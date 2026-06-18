@@ -18,32 +18,12 @@ window.vibrate = arg =>
   window.navigator.vibrate &&
   window.navigator.vibrate(arg);
 
-// in the future, turn on dark mode when the browser detects a dark theme preference
-// const cssDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-// at the moment dark mode will be determined by user selection
-Vue.prototype.darkMode = localStorage.occDarkMode === 'true';
-if (Vue.prototype.darkMode) {
-  document.body.classList.add('dark-theme');
-}
-
 // streamer mode (prevent lobby codes from being visible)
 Vue.prototype.hideLobbyCode = localStorage.oocHideLobby === 'true';
 Vue.prototype.setLobbyHidden = isHidden => {
   localStorage.oocHideLobby = Vue.prototype.hideLobbyCode = isHidden;
   Vue.prototype.bus.$emit('toggle-hide-lobby');
 };
-
-// setting dark mode will emit a message to vue's event bus and update the body
-// if there was actual theming, it would probably have to modify a style tag
-// and there would need to be a lot of css changes for semantic ui to be happy
-Vue.prototype.setDarkMode = mode => {
-  document.body.classList[mode ? 'add' : 'remove']('dark-theme');
-  localStorage.occDarkMode = mode;
-  Vue.prototype.darkMode = mode;
-  Vue.prototype.bus.$emit('toggle-dark-mode');
-};
-
 
 // turn sound cache
 const turnSounds = {};

@@ -218,24 +218,6 @@ io.on('connection', socket => {
     }
   });
 
-  // Toggle whether this member is a spectator
-  socket.on('lobby:spectate', () => {
-    if(player.lobby) {
-      player.lobby.toggleSpectate(player);
-    } else {
-      socket.emit('lobby:leave');
-    }
-  });
-
-  // Let admins make players spectators
-  socket.on('lobby:admin:toggle', targetId => {
-    if(player.isAdmin() && targetId !== player.id) {
-      const targetPlayer = player.lobby.players.find(p => p.id === targetId);
-      if(targetPlayer && targetPlayer.member) {
-        player.lobby.toggleSpectate(targetPlayer.member);
-      }
-    }
-  });
 
   // Change the admin
   socket.on('lobby:admin:grant', targetId => {
@@ -303,6 +285,36 @@ app.get('/api/v1/lobby/:code', (req, res) => {
 // List all public async sessions
 app.get('/api/v1/lobbies', (req, res) => {
   res.json(Lobby.publicList());
+});
+
+// Quote of the day — one random sentence from completed public stories, changes daily
+app.get('/api/v1/quote', (req, res) => {
+  const sentences = [];
+  for (const lobby of Object.values(Lobby.lobbies)) {
+    if (!lobby || !lobby.isAsync || !lobby.completedStories) continue;
+    for (const story of lobby.completedStories) {
+      for (const entry of story) {
+        if (!entry.link) continue;
+        // Split entry into individual sentences
+        const parts = entry.link.replace(/([.!?])\s+/g, '$1\n').split('\n');
+        for (const s of parts) {
+          const trimmed = s.trim();
+          const wordCount = trimmed.split(/\s+/).filter(w => w.length > 0).length;
+          if (trimmed.length >= 20 && wordCount >= 5) {
+            sentences.push({ text: trimmed, code: lobby.code });
+          }
+        }
+      }
+    }
+  }
+
+  if (sentences.length === 0) return res.json(null);
+
+  // Deterministic daily pick: hash today's date string into an index
+  const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  let hash = 0;
+  for (const ch of dateStr) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  res.json(sentences[hash % sentences.length]);
 });
 
 app.get('/api/v1/info', (req, res) => {

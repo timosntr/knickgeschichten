@@ -1,9 +1,9 @@
 <template>
-  <ooc-page :minimal="true">
+  <ooc-page>
     <ooc-menu title="Public Stories" subtitle="Join a story in progress">
       <div>
         <div v-if="loading" style="text-align: center; padding: 24px">
-          <sui-loader active inline centered :inverted="darkMode">Loading sessions...</sui-loader>
+          <sui-loader active inline centered >Loading sessions...</sui-loader>
         </div>
         <div v-else>
           <div v-if="activeSessions.length === 0 && completedSessions.length === 0"
@@ -14,7 +14,7 @@
           </div>
 
           <template v-if="activeSessions.length > 0">
-            <sui-divider horizontal :inverted="darkMode">Active</sui-divider>
+            <sui-divider horizontal >Active</sui-divider>
             <div v-for="session in activeSessions" :key="session.code" class="session-card">
               <div class="session-title">{{ session.title }}</div>
               <div class="session-meta">
@@ -26,8 +26,7 @@
               </div>
               <sui-progress
                 :percent="Math.round(session.progress * 100)"
-                :inverted="darkMode"
-                indicating
+                                indicating
                 size="small"
                 style="margin: 6px 0"/>
               <div class="session-footer">
@@ -35,8 +34,7 @@
                 <sui-button
                   size="tiny"
                   color="green"
-                  :inverted="darkMode"
-                  @click="joinSession(session.code)">
+                                    @click="joinSession(session.code)">
                   Join &amp; Write
                 </sui-button>
               </div>
@@ -44,7 +42,7 @@
           </template>
 
           <template v-if="completedSessions.length > 0">
-            <sui-divider horizontal :inverted="darkMode">Completed</sui-divider>
+            <sui-divider horizontal >Completed</sui-divider>
             <div v-for="session in completedSessions" :key="session.code" class="session-card session-complete">
               <div class="session-title">
                 <sui-icon name="check circle" color="green"/> {{ session.title }}
@@ -59,8 +57,7 @@
                 <sui-button
                   size="tiny"
                   color="teal"
-                  :inverted="darkMode"
-                  @click="joinSession(session.code)">
+                                    @click="joinSession(session.code)">
                   Read
                 </sui-button>
               </div>
@@ -69,7 +66,7 @@
         </div>
 
         <div style="margin-top: 16px; text-align: center">
-          <router-link is="sui-button" to="/" :inverted="darkMode" size="small" basic>
+          <router-link is="sui-button" to="/"  size="small" basic>
             Back
           </router-link>
         </div>
@@ -86,10 +83,6 @@
   padding: 12px 14px;
   margin-bottom: 10px;
   text-align: left;
-}
-
-.dark-theme .session-card {
-  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .session-title {
@@ -139,7 +132,6 @@ export default {
     },
   },
   methods: {
-    update() { this.$forceUpdate(); },
     async fetchSessions() {
       try {
         const res = await fetch('/api/v1/lobbies');
@@ -164,11 +156,10 @@ export default {
     },
   },
   beforeDestroy() {
-    this.bus.$off('toggle-dark-mode', this.update);
     if (this.refreshInterval) clearInterval(this.refreshInterval);
   },
   created() {
-    this.bus.$on('toggle-dark-mode', this.update);
+    this.$socket.emit('lobby:leave');
     this.fetchSessions();
     this.refreshInterval = setInterval(this.fetchSessions, 30000);
   },

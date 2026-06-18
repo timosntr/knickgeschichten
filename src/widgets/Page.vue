@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <slot></slot>
-    <ooc-settings :minimal="minimal"></ooc-settings>
+    <!-- <ooc-settings></ooc-settings> -->
   </div>
 </template>
 
@@ -15,12 +15,5 @@ body {
 </style>
 
 <script>
-export default {
-  props: {
-    minimal: {
-      type: Boolean,
-      default: false,
-    },
-  },
-};
+export default {};
 </script>
