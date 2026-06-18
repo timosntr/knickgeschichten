@@ -301,7 +301,8 @@ app.get('/api/v1/quote', (req, res) => {
           const trimmed = s.trim();
           const wordCount = trimmed.split(/\s+/).filter(w => w.length > 0).length;
           if (trimmed.length >= 20 && wordCount >= 5) {
-            sentences.push({ text: trimmed, code: lobby.code });
+            // Preserve '' (anonymous sentinel); only undefined/null become null
+            sentences.push({ text: trimmed, code: lobby.code, authorName: entry.authorName ?? null });
           }
         }
       }

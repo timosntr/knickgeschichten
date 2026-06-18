@@ -7,6 +7,7 @@
         <div v-if="quote" class="qotd" @click="$router.push(`/lobby/${quote.code}`)">
           <div class="qotd-label">Satz des Tages</div>
           <div class="qotd-text">„{{ quote.text }}"</div>
+          <div class="qotd-author" v-if="quote.authorName !== null">— {{ quote.authorName === '' ? 'Anonym' : quote.authorName }}</div>
         </div>
         <sui-divider horizontal>
           Stories
@@ -25,7 +26,14 @@
             is="router-link"
             to="/sessions"
             fluid>
-            Browse Public Sessions
+            Offene Storys
+          </sui-button>
+          <sui-button
+            is="router-link"
+            to="/archive"
+            fluid
+            basic>
+            Archiv
           </sui-button>
         </div>
         <sui-divider horizontal>
@@ -84,6 +92,12 @@
   font-size: 0.97em;
   color: #333;
   line-height: 1.5;
+}
+.qotd-author {
+  margin-top: 4px;
+  font-size: 0.8em;
+  color: #888;
+  text-align: right;
 }
 </style>
 

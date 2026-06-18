@@ -35,7 +35,7 @@
           <textarea v-model="line" rows="2">
           </textarea>
           <div class="char-count">
-            {{line.length}}/512
+            {{line.length}}/250
           </div>
           <div v-if="game.minWords > 0" class="word-count" :class="{insufficient: wordCount < game.minWords}">
             {{wordCount}} / {{game.minWords}} Wörter
@@ -43,7 +43,7 @@
         </sui-form-field>
         <sui-button type="submit"
           :color="player.isLastLink ? 'green' : 'blue'"
-                   :disabled="line.length < 1 || line.length > 512 || wordCount < game.minWords">
+                   :disabled="line.length < 1 || line.length > 250 || wordCount < game.minWords">
           {{player.isLastLink ? 'Finish' : 'Sign'}}
         </sui-button>
         <sui-button v-if="lobby.isAsync"
@@ -292,7 +292,7 @@ export default {
     writeLine(event) {
       event.preventDefault();
 
-      if(this.line.length < 1 || this.line.length > 512)
+      if(this.line.length < 1 || this.line.length > 250)
         return;
 
       this.$socket.emit('game:message', 'story:line', this.line);
@@ -324,7 +324,7 @@ export default {
     },
     leaveToArchive() {
       this.$socket.emit('lobby:leave');
-      this.$router.push('/sessions');
+      this.$router.push('/archive');
     },
     requestExport() {
       this.$socket.emit('game:message', 'story:export');

@@ -1,28 +1,28 @@
 <template>
   <ooc-page>
-    <ooc-menu title="Offene Storys" subtitle="Mach mit beim Schreiben">
+    <ooc-menu title="Archiv" subtitle="Fertige Geschichten lesen">
       <div>
         <div v-if="loading" style="text-align: center; padding: 24px">
           <sui-loader active inline centered>Laden...</sui-loader>
         </div>
         <div v-else>
-          <div v-if="activeSessions.length === 0"
+          <div v-if="completedSessions.length === 0"
             style="text-align: center; padding: 24px; color: #888;">
-            Keine offenen Storys vorhanden.
-            <br>
-            <router-link to="/">Neue starten!</router-link>
+            Noch keine fertigen Storys.
           </div>
 
           <div v-for="session in pagedSessions" :key="session.code" class="session-card">
-            <div class="session-title">{{ session.title }}</div>
+            <div class="session-title">
+              <sui-icon name="check circle" color="green"/> {{ session.title }}
+            </div>
             <div v-if="session.teaser" class="session-teaser">„{{ session.teaser }}"</div>
             <div class="session-meta">
-              <span v-if="session.playersOnline > 0">{{ session.playersOnline }} online</span>
+              {{ session.numAuthors }} {{ session.numAuthors === 1 ? 'Autor' : 'Autoren' }}
             </div>
             <div class="session-footer">
               <span class="session-age">{{ timeAgo(session.createdAt) }}</span>
-              <sui-button size="tiny" color="green" @click="joinSession(session.code)">
-                Mitmachen
+              <sui-button size="tiny" color="teal" @click="joinSession(session.code)">
+                Lesen
               </sui-button>
             </div>
           </div>
@@ -50,6 +50,14 @@
 </template>
 
 <style>
+.session-teaser {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 0.92em;
+  color: #444;
+  margin: 4px 0;
+}
+
 .pagination {
   display: flex;
   align-items: center;
@@ -61,50 +69,6 @@
   font-size: 0.9em;
   color: #888;
 }
-
-.session-card {
-  border: 1px solid rgba(34, 36, 38, 0.15);
-  border-radius: 4px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  text-align: left;
-}
-
-.session-title {
-  font-weight: bold;
-  font-size: 1.05em;
-  margin-bottom: 2px;
-}
-
-.session-meta {
-  font-size: 0.88em;
-  color: #888;
-  margin-bottom: 4px;
-}
-
-.session-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 6px;
-}
-
-.session-age {
-  font-size: 0.82em;
-  color: #aaa;
-}
-
-.session-complete {
-  opacity: 0.85;
-}
-
-.session-teaser {
-  font-family: 'Lora', serif;
-  font-style: italic;
-  font-size: 0.92em;
-  color: #444;
-  margin: 4px 0;
-}
 </style>
 
 <script>
@@ -113,26 +77,20 @@ export default {
     return {
       sessions: [],
       loading: true,
-      refreshInterval: null,
       page: 1,
       perPage: 15,
     };
   },
   computed: {
-    activeSessions() {
-      return this.sessions.filter(s => !s.isComplete);
+    completedSessions() {
+      return this.sessions.filter(s => s.isComplete);
     },
     totalPages() {
-      return Math.max(1, Math.ceil(this.activeSessions.length / this.perPage));
+      return Math.max(1, Math.ceil(this.completedSessions.length / this.perPage));
     },
     pagedSessions() {
       const start = (this.page - 1) * this.perPage;
-      return this.activeSessions.slice(start, start + this.perPage);
-    },
-  },
-  watch: {
-    activeSessions() {
-      if (this.page > this.totalPages) this.page = this.totalPages;
+      return this.completedSessions.slice(start, start + this.perPage);
     },
   },
   methods: {
@@ -151,21 +109,17 @@ export default {
     timeAgo(ts) {
       const diff = Date.now() - ts;
       const mins = Math.floor(diff / 60000);
-      if (mins < 1) return 'just now';
-      if (mins < 60) return `${mins}m ago`;
+      if (mins < 1) return 'gerade eben';
+      if (mins < 60) return `vor ${mins} Min.`;
       const hrs = Math.floor(mins / 60);
-      if (hrs < 24) return `${hrs}h ago`;
+      if (hrs < 24) return `vor ${hrs} Std.`;
       const days = Math.floor(hrs / 24);
-      return `${days}d ago`;
+      return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
     },
-  },
-  beforeDestroy() {
-    if (this.refreshInterval) clearInterval(this.refreshInterval);
   },
   created() {
     this.$socket.emit('lobby:leave');
     this.fetchSessions();
-    this.refreshInterval = setInterval(this.fetchSessions, 30000);
   },
 };
 </script>
