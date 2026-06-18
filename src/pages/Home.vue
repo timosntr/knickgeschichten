@@ -57,8 +57,8 @@
         <!-- Öffentliche Story starten -->
         <sui-button
           color="green"
-          :loading="!connected"
-          @click="showCreateAsync = true"
+          :loading="!connected || creatingAsync"
+          @click="createAsync"
           fluid
           style="margin-bottom: 20px">
           Neue öffentliche Story starten
@@ -169,8 +169,6 @@
     </ooc-menu>
     <ooc-join-lobby :active="showJoinLobby" @close="showJoinLobby = false">
     </ooc-join-lobby>
-    <ooc-create-async :active="showCreateAsync" @close="showCreateAsync = false">
-    </ooc-create-async>
     <ooc-util></ooc-util>
   </ooc-page>
 </template>
@@ -330,8 +328,13 @@ export default {
   sockets: {
     connect() { this.connected = true; },
     disconnect() { this.connected = false; },
+    'lobby:join'() { this.creatingAsync = false; },
   },
   methods: {
+    createAsync() {
+      this.creatingAsync = true;
+      this.$socket.emit('lobby:create:async', {});
+    },
     createLobby() {
       this.creatingLobby = true;
       this.$socket.emit('lobby:create');
@@ -416,8 +419,8 @@ export default {
     return {
       connected: this.$root.connected,
       creatingLobby: false,
+      creatingAsync: false,
       showJoinLobby: false,
-      showCreateAsync: false,
       quote: null,
       showInfo: false,
       recentSessions: [],

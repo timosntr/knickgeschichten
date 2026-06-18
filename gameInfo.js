@@ -1,7 +1,7 @@
 module.exports = {
   story: {
     title: 'Raconteur',
-    subtitle: 'Ghost Writers',
+    subtitle: '',
     difficulty: 'Simple',
     description: 'Collaborate in writing stories one line at a time with minimal context.',
     more: 'Raconteur is inspired by improv-type games where players contribute to a story one sentence or one word at a time. ' +

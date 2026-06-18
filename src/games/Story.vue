@@ -32,7 +32,9 @@
       <sui-form @submit="writeLine" >
         <sui-form-field>
           <label>The Story Goes...</label>
-          <textarea v-model="line" rows="2">
+          <textarea v-model="line" rows="2"
+            @keydown.enter.prevent
+            @paste="onPaste">
           </textarea>
           <div class="char-count">
             {{line.length}}/250
@@ -62,13 +64,15 @@
       </sui-loader>
     </div>
     <div v-else-if="player.state === 'READING' || !player.state && stories.length">
-      <sui-divider horizontal >
-        Stories
-      </sui-divider>
       <sui-loader active centered inline size="huge"  v-if="!stories.length">
         Loading Stories
       </sui-loader>
       <div style="text-align: left">
+        <div style="text-align: right; margin-bottom: 8px">
+          <button class="view-toggle" @click="flowView = !flowView">
+            {{ flowView ? 'Beiträge' : 'Fließtext' }}
+          </button>
+        </div>
         <div v-for="(story, i) in stories" :key="i">
           <sui-divider horizonal v-if="i > 0" ></sui-divider>
           <sui-card >
@@ -82,7 +86,15 @@
               </div>
             </div>
             <sui-card-content>
-              <sui-comment-group>
+              <div v-if="storyAuthors(story)" class="story-authors">
+                {{storyAuthors(story)}}
+              </div>
+              <!-- Fließtext-Ansicht -->
+              <p v-if="flowView" class="flow-text">
+                {{ story.map(e => e.link).join(' ') }}
+              </p>
+              <!-- Beitrags-Ansicht -->
+              <sui-comment-group v-else>
                 <sui-comment v-for="(entry, j) in story" :key="j">
                   <sui-comment-content>
                     <sui-comment-text>
@@ -97,10 +109,6 @@
                   </sui-comment-content>
                 </sui-comment>
               </sui-comment-group>
-            </sui-card-content>
-            <sui-card-content v-if="storyAuthors(story)" extra
-              style="font-size: 0.85em; color: #888; text-align: right;">
-              {{storyAuthors(story)}}
             </sui-card-content>
           </sui-card>
         </div>
@@ -165,6 +173,43 @@
 
 .word-count.insufficient {
   color: #db2828;
+}
+
+.like-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px 0;
+}
+
+.view-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.78em;
+  color: #aaa;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0;
+}
+
+.view-toggle:hover {
+  color: #555;
+}
+
+.flow-text {
+  font-family: 'Lora', serif;
+  font-size: 0.97em;
+  line-height: 1.7;
+  color: #333;
+  text-align: left;
+}
+
+.story-authors {
+  font-size: 0.85em;
+  color: #888;
+  text-align: right;
+  margin-bottom: 8px;
 }
 
 </style>
@@ -289,19 +334,30 @@ export default {
       else if (anonCount > 1) parts.push('Anonyme');
       return parts.length ? 'Von: ' + parts.join(', ') : '';
     },
+    onPaste(e) {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text');
+      const clean = text.replace(/[\r\n]+/g, ' ').trim();
+      document.execCommand('insertText', false, clean);
+    },
     writeLine(event) {
       event.preventDefault();
 
       if(this.line.length < 1 || this.line.length > 250)
         return;
 
+      const isLast = this.player.isLastLink;
       this.$socket.emit('game:message', 'story:line', this.line);
       this.line = '';
 
       if (this.lobby.isAsync) {
-        this.submitted = true;
-        this.$socket.emit('lobby:leave');
-        setTimeout(() => this.$router.push('/sessions'), 2000);
+        if (isLast) {
+          // Last contribution: stay in lobby, reading view will appear automatically
+        } else {
+          this.submitted = true;
+          this.$socket.emit('lobby:leave');
+          setTimeout(() => this.$router.push('/sessions'), 2000);
+        }
       }
     },
     startCountdown(deadline) {
@@ -363,6 +419,7 @@ export default {
       submitted: false,
       idleKicked: false,
       copied: false,
+      flowView: false,
     };
   },
 };
