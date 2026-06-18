@@ -105,7 +105,11 @@ module.exports = class Story extends Game {
     this.players.push(pid);
     this.lastEdit[pid] = 0;
     if (this.getGameProgress() === 1) {
+      // Session is already complete — this player is a reader, not a contributor.
+      // Send the finished stories and skip the idle timer / redistribution,
+      // otherwise readers get kicked to /sessions after 5 minutes mid-read.
       this.emitTo(pid, 'story:result', this.compileStories());
+      return;
     }
     // 5-minute idle timer: remove from queue if player never writes anything
     const IDLE_MS = 5 * 60 * 1000;

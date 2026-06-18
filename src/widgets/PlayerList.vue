@@ -17,16 +17,9 @@
               </sui-button>
               <sui-button :basic="!changeMode"
                 v-if="isAdmin"
-                @click="changeMode = !changeMode; removeMode = false"
+                @click="changeMode = !changeMode"
                 color="blue"
                 icon="shield"
-                size="tiny">
-              </sui-button>
-              <sui-button :basic="!removeMode"
-                v-if="isAdmin"
-                @click="removeMode = !removeMode; changeMode = false"
-                color="red"
-                icon="times"
                 size="tiny">
               </sui-button>
             </span>
@@ -51,18 +44,11 @@
             {{p.name}}
             <span class="emote-container" :ref="`emote_${p.id}`"></span>
             <span class="user-icons">
-              <sui-button v-if="!p.connected && isSpectator"
+              <sui-button v-if="!p.connected"
                 size="tiny"
                 @click="$socket.emit('lobby:replace', p.playerId)"
                                basic>
                 Join
-              </sui-button>
-              <sui-button v-if="isAdmin && removeMode && p.id !== $root.playerId && p.connected"
-                size="tiny"
-                color="red"
-                               @click="$socket.emit('lobby:admin:toggle', p.id); removeMode = false"
-                basic>
-                Remove
               </sui-button>
               <sui-button v-if="isAdmin && changeMode && p.id !== $root.playerId && p.connected"
                 size="tiny"
@@ -257,7 +243,6 @@ export default {
     return {
       confirmTimeout: undefined,
       confirmEndGame: false,
-      removeMode: false,
       changeMode: false,
       showEmotes: false,
       emotes: [
