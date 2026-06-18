@@ -170,8 +170,8 @@ module.exports = class Story extends Game {
       s => _.sumBy(s.chain, l => l.length)
     );
 
-    // If there is enough players, try to ensure the chain isn't alternating
-    if(this.players.length !== this.clearance)
+    // If there are enough players, try to ensure the chain isn't alternating
+    if(this.players.length > this.clearance)
       available = available.filter(s => !s.editors.slice(-this.clearance).includes(player));
 
     return available[0];

@@ -122,13 +122,13 @@ class Lobby {
    * Removes player from his/her lobby
    * @param  {Member} player Player potentially in a lobby
    */
-  static removePlayer(player) {
+  static removePlayer(player, voluntary = false) {
     if (!player) return;
     const lobby = player.lobby;
 
     if(!lobby) return;
 
-    lobby.removeMember(player);
+    lobby.removeMember(player, voluntary);
     player.lobby = undefined;
 
     if(lobby.empty()) {
@@ -444,7 +444,7 @@ class Lobby {
     this.sendLobbyInfo();
   }
 
-  removeMember(member) {
+  removeMember(member, voluntary = false) {
     const i = this.members.indexOf(member);
     if(i >= 0) {
       this.members.splice(i, 1);
@@ -468,14 +468,24 @@ class Lobby {
           // Detach from game.players immediately so redistribute() ignores them
           if (this.game) this.game.detachPlayer(pid);
           if (this.disconnectTimers[pid]) clearTimeout(this.disconnectTimers[pid]);
-          this.disconnectTimers[pid] = setTimeout(() => {
-            delete this.disconnectTimers[pid];
+          if (voluntary) {
+            // Voluntary leave: release chain immediately so others aren't kept waiting
             if (this.game) {
               const released = this.game.releasePlayer(pid);
               if (released)
-                console.log(new Date(), `-- [lobby ${this.code}] released chain of absent player "${name}" after 60s`);
+                console.log(new Date(), `-- [lobby ${this.code}] released chain of leaving player "${name}" immediately`);
             }
-          }, 60000);
+          } else {
+            // Disconnect: give 60s grace period in case they reconnect
+            this.disconnectTimers[pid] = setTimeout(() => {
+              delete this.disconnectTimers[pid];
+              if (this.game) {
+                const released = this.game.releasePlayer(pid);
+                if (released)
+                  console.log(new Date(), `-- [lobby ${this.code}] released chain of absent player "${name}" after 60s`);
+              }
+            }, 60000);
+          }
         }
       } else {
         playerObj.name = member.name;
