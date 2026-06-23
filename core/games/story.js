@@ -162,6 +162,7 @@ module.exports = class Story extends Game {
     let available = _.sortBy(
       this.chains
         .filter(s => !s.editor &&  // Only find chains that aren't being worked on
+          !s.closed &&  // never reopen a chain whose last link has been written
           _.sumBy(s.chain, l => l.length) + MAX_CONTRIBUTION <= MAX_STORY_CHARS && // chain has room
           s.lastEditor != player && // Find chains the player didn't just edit
           // Also block by memberId so rejoin doesn't bypass the last-editor check
@@ -298,7 +299,15 @@ module.exports = class Story extends Game {
       const playerObj = this.lobby.players.find(p => p.playerId === pid);
       const authorName = playerObj ? playerObj.name : null;
       const memberId = playerObj ? playerObj.id : '';
+
+      // If this writer was in the "last link" zone (same threshold the client
+      // uses to show "Finish"), their contribution closes the story — otherwise
+      // a short final line would leave the chain assignable between 3500–3750
+      // chars and the "Finish" promise would be a lie.
+      const wasLastLink = _.sumBy(story.chain, l => l.length) + 2 * MAX_CONTRIBUTION > MAX_STORY_CHARS;
       story.addLink(pid, line, authorName, memberId);
+      if (wasLastLink)
+        story.closed = true;
 
       this.redistribute();
 
@@ -343,7 +352,7 @@ module.exports = class Story extends Game {
     const { numStories } = this.config;
     const progressSum = _.sumBy(this.chains, s => {
       const chars = _.sumBy(s.chain, l => l.length);
-      return chars + MAX_CONTRIBUTION > MAX_STORY_CHARS ? 1 : chars / MAX_STORY_CHARS;
+      return (s.closed || chars + MAX_CONTRIBUTION > MAX_STORY_CHARS) ? 1 : chars / MAX_STORY_CHARS;
     });
     return progressSum / numStories;
   }
