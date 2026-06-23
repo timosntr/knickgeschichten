@@ -258,7 +258,7 @@ io.on('connection', socket => {
   // Leave the lobby if a player is in one
   socket.on('lobby:leave', () => {
     player.name = null;
-    Lobby.removePlayer(player);
+    Lobby.removePlayer(player, true);
   });
 
   // Remove the player from a lobby on disconnection
