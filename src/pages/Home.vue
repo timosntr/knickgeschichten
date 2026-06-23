@@ -83,7 +83,7 @@
         </sui-button-group>
 
         <!-- Öffentliche Geschichten Karussell -->
-        <div class="section-label" style="margin-top: 20px">Öffentliche Geschichten</div>
+        <div v-if="recentSessions.length > 0" class="section-label" style="margin-top: 20px">Öffentliche Geschichten</div>
         <div v-if="recentSessions.length > 0"
           class="carousel"
           @touchstart="onTouchStart"
@@ -119,19 +119,19 @@
           </div>
         </div>
 
-        <div style="margin-top: 10px; text-align: center">
+        <div v-if="recentSessions.length > 0" style="margin-top: 10px; text-align: center">
           <router-link to="/sessions" class="browse-link">alle Geschichten durchstöbern →</router-link>
         </div>
 
         <!-- Archiv Karussell -->
-        <div class="section-label" style="margin-top: 20px">Archiv</div>
+        <div v-if="recentCompleted.length > 0" class="section-label" style="margin-top: 20px">Archiv</div>
         <div v-if="recentCompleted.length > 0"
           class="carousel"
           @touchstart="onTouchStartArchive"
           @touchend="onTouchEndArchive"
           @wheel="onWheel($event, 'archive')">
           <div class="carousel-track">
-            <transition :name="slideDir">
+            <transition :name="archiveSlideDir">
               <div class="session-card" :key="archiveIndex" @click="$router.push(`/lobby/${recentCompleted[archiveIndex].code}`)">
                 <div class="session-title">
                   <sui-icon name="check circle" color="green"/>
@@ -281,8 +281,14 @@
 .slide-right-enter-active,
 .slide-right-leave-active {
   transition: transform 0.22s ease, opacity 0.22s ease;
-  position: absolute;
   width: 100%;
+}
+/* Only the leaving card is taken out of flow, so the track sizes to the
+   entering card and tall cards (long teasers) don't overflow it. */
+.slide-left-leave-active,
+.slide-right-leave-active {
+  position: absolute;
+  top: 0;
 }
 .slide-left-enter { transform: translateX(100%); opacity: 0; }
 .slide-left-leave-to { transform: translateX(-100%); opacity: 0; }
@@ -362,16 +368,27 @@ export default {
       const days = Math.floor(hrs / 24);
       return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
     },
+    // Shortest circular direction from cur to next: 'slide-left' = forward.
+    slideDirection(cur, next, len) {
+      let d = next - cur;
+      if (d > len / 2) d -= len;
+      if (d < -len / 2) d += len;
+      return d >= 0 ? 'slide-left' : 'slide-right';
+    },
     setCarousel(i) {
       const len = this.recentSessions.length;
+      if (len <= 1) return;
       const next = ((i % len) + len) % len;
-      this.slideDir = next > this.carouselIndex && !(this.carouselIndex === 0 && next === len - 1) || (this.carouselIndex === len - 1 && next === 0) ? 'slide-left' : 'slide-right';
+      if (next === this.carouselIndex) return;
+      this.slideDir = this.slideDirection(this.carouselIndex, next, len);
       this.carouselIndex = next;
     },
     setArchive(i) {
       const len = this.recentCompleted.length;
+      if (len <= 1) return;
       const next = ((i % len) + len) % len;
-      this.slideDir = next > this.archiveIndex && !(this.archiveIndex === 0 && next === len - 1) || (this.archiveIndex === len - 1 && next === 0) ? 'slide-left' : 'slide-right';
+      if (next === this.archiveIndex) return;
+      this.archiveSlideDir = this.slideDirection(this.archiveIndex, next, len);
       this.archiveIndex = next;
     },
     onTouchStart(e) {
@@ -425,6 +442,7 @@ export default {
       touchStartX: 0,
       recentCompleted: [],
       archiveIndex: 0,
+      archiveSlideDir: 'slide-left',
       touchStartXArchive: 0,
       wheelCooldown: false,
       wheelAccum: 0,
