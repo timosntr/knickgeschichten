@@ -3,7 +3,11 @@
     <div v-if="idleKicked" style="margin: 32px 16px; text-align: center;">
       <sui-icon name="clock outline" color="orange" size="huge"/>
       <p style="margin-top: 12px; font-size: 1.1em;">Platz freigegeben</p>
-      <p style="color: #888; font-size: 0.9em;">Du warst zu lange inaktiv. Du wirst weitergeleitet…</p>
+      <p style="color: #888; font-size: 0.9em;">
+        {{ idleReason === 'timeout'
+          ? 'Deine Schreibzeit ist abgelaufen. Du wirst weitergeleitet…'
+          : 'Du warst zu lange inaktiv. Du wirst weitergeleitet…' }}
+      </p>
     </div>
     <div v-else-if="submitted" style="margin: 32px 16px; text-align: center;">
       <sui-icon name="check circle" color="green" size="huge"/>
@@ -220,8 +224,9 @@ export default {
     'lobby:info': function(info) {
       this.lobby = info;
     },
-    'lobby:idle': function() {
+    'lobby:idle': function(reason) {
       this.idleKicked = true;
+      this.idleReason = reason || 'idle';
       setTimeout(() => {
         this.$socket.emit('lobby:leave');
         this.$router.push('/sessions');
@@ -431,6 +436,7 @@ export default {
       countdownInterval: null,
       submitted: false,
       idleKicked: false,
+      idleReason: 'idle',
       copied: false,
       flowView: false,
     };

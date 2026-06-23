@@ -151,12 +151,12 @@ export default {
     timeAgo(ts) {
       const diff = Date.now() - ts;
       const mins = Math.floor(diff / 60000);
-      if (mins < 1) return 'just now';
-      if (mins < 60) return `${mins}m ago`;
+      if (mins < 1) return 'gerade eben';
+      if (mins < 60) return `vor ${mins} Min.`;
       const hrs = Math.floor(mins / 60);
-      if (hrs < 24) return `${hrs}h ago`;
+      if (hrs < 24) return `vor ${hrs} Std.`;
       const days = Math.floor(hrs / 24);
-      return `${days}d ago`;
+      return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
     },
   },
   beforeDestroy() {
