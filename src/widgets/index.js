@@ -3,7 +3,6 @@ import Vue from 'vue'
 import Util from './Util.vue';
 import Menu from './Menu.vue';
 import JoinLobby from './JoinLobby.vue';
-import CreateAsync from './CreateAsyncModal.vue';
 import PlayerList from './PlayerList.vue';
 import Page from './Page.vue';
 import Settings from './Settings.vue';
@@ -11,7 +10,6 @@ import Settings from './Settings.vue';
 Vue.component('ooc-util', Util);
 Vue.component('ooc-menu', Menu);
 Vue.component('ooc-join-lobby', JoinLobby);
-Vue.component('ooc-create-async', CreateAsync);
 Vue.component('ooc-player-list', PlayerList);
 Vue.component('ooc-page', Page);
 Vue.component('ooc-settings', Settings);

@@ -327,21 +327,18 @@ export default {
       const n = this.nameTable[entry.editor];
       return n || null;
     },
-    // Build author line for a whole story card, e.g. "Von: Max, Julia, Anonyme"
+    // Build author line for a whole story card, e.g. "Von: Max, Julia, Anonym"
     storyAuthors(story) {
+      // Collapse all anonymous contributions into a single "Anonym" so this
+      // line agrees with the server's author count (completedAuthors =
+      // named.size + (anyAnonymous ? 1 : 0)). Anonymous rejoins get new
+      // playerIds, so deduping by editor would over-count real people.
       const named = new Set();
-      let anonCount = 0;
-      const seenAnonEditors = new Set();
+      let hasAnon = false;
       for (const entry of story) {
         if (entry.authorName !== null && entry.authorName !== undefined) {
-          if (entry.authorName === '') {
-            if (!seenAnonEditors.has(entry.editor)) {
-              seenAnonEditors.add(entry.editor);
-              anonCount++;
-            }
-          } else {
-            named.add(entry.authorName);
-          }
+          if (entry.authorName === '') hasAnon = true;
+          else named.add(entry.authorName);
         } else {
           // fallback for old sessions
           const n = this.nameTable[entry.editor];
@@ -349,8 +346,7 @@ export default {
         }
       }
       const parts = [...named];
-      if (anonCount === 1) parts.push('Anonym');
-      else if (anonCount > 1) parts.push('Anonyme');
+      if (hasAnon) parts.push('Anonym');
       return parts.length ? 'Von: ' + parts.join(', ') : '';
     },
     onPaste(e) {
