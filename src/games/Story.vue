@@ -229,6 +229,25 @@ export default {
     },
     'game:info': function(info) {
       this.game = info;
+
+      // First game:info after our async contribution decides stay vs leave.
+      if (this.lobby.isAsync && this.awaitingWriteResult) {
+        this.awaitingWriteResult = false;
+        if (info.isComplete) {
+          // Story finished — stay and show the reading view.
+          if (!this.requestedResults) {
+            this.$socket.emit('game:message', 'story:result');
+            this.requestedResults = true;
+          }
+        } else {
+          // Still room for more lines — release our spot, back to the list.
+          this.submitted = true;
+          this.$socket.emit('lobby:leave');
+          setTimeout(() => this.$router.push('/sessions'), 2000);
+        }
+        return;
+      }
+
       if (this.game.isComplete && !this.requestedResults) {
         this.$socket.emit('game:message', 'story:result');
         this.requestedResults = true;
@@ -346,18 +365,15 @@ export default {
       if(this.line.length < 1 || this.line.length > 250)
         return;
 
-      const isLast = this.player.isLastLink;
       this.$socket.emit('game:message', 'story:line', this.line);
       this.line = '';
 
       if (this.lobby.isAsync) {
-        if (isLast) {
-          // Last contribution: stay in lobby, reading view will appear automatically
-        } else {
-          this.submitted = true;
-          this.$socket.emit('lobby:leave');
-          setTimeout(() => this.$router.push('/sessions'), 2000);
-        }
+        // Defer the stay/leave decision to the next game:info. isLastLink is
+        // only a "might finish" hint and can be true while the story still has
+        // room, so deciding here could strand us in the lobby. Let the server
+        // tell us whether the story actually completed.
+        this.awaitingWriteResult = true;
       }
     },
     startCountdown(deadline) {
@@ -402,6 +418,7 @@ export default {
       line: '',
       stories: [],
       requestedResults: false,
+      awaitingWriteResult: false,
       player: { state: '', id: '', },
       game: { icons: {}, likes: [], },
       timer: Date.now(),
