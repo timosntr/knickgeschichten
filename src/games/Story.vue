@@ -36,7 +36,9 @@
       <sui-form @submit="writeLine" >
         <sui-form-field>
           <label>The Story Goes...</label>
-          <textarea v-model="line" rows="2">
+          <textarea v-model="line" rows="2"
+            @keydown.enter.prevent
+            @paste="onPaste">
           </textarea>
           <div class="char-count">
             {{line.length}}/250
@@ -66,13 +68,15 @@
       </sui-loader>
     </div>
     <div v-else-if="player.state === 'READING' || !player.state && stories.length">
-      <sui-divider horizontal >
-        Stories
-      </sui-divider>
       <sui-loader active centered inline size="huge"  v-if="!stories.length">
         Loading Stories
       </sui-loader>
       <div style="text-align: left">
+        <div style="text-align: right; margin-bottom: 8px">
+          <button class="view-toggle" @click="flowView = !flowView">
+            {{ flowView ? 'Beiträge' : 'Fließtext' }}
+          </button>
+        </div>
         <div v-for="(story, i) in stories" :key="i">
           <sui-divider horizonal v-if="i > 0" ></sui-divider>
           <sui-card >
@@ -86,7 +90,15 @@
               </div>
             </div>
             <sui-card-content>
-              <sui-comment-group>
+              <div v-if="storyAuthors(story)" class="story-authors">
+                {{storyAuthors(story)}}
+              </div>
+              <!-- Fließtext-Ansicht -->
+              <p v-if="flowView" class="flow-text">
+                {{ story.map(e => e.link).join(' ') }}
+              </p>
+              <!-- Beitrags-Ansicht -->
+              <sui-comment-group v-else>
                 <sui-comment v-for="(entry, j) in story" :key="j">
                   <sui-comment-content>
                     <sui-comment-text>
@@ -101,10 +113,6 @@
                   </sui-comment-content>
                 </sui-comment>
               </sui-comment-group>
-            </sui-card-content>
-            <sui-card-content v-if="storyAuthors(story)" extra
-              style="font-size: 0.85em; color: #888; text-align: right;">
-              {{storyAuthors(story)}}
             </sui-card-content>
           </sui-card>
         </div>
@@ -171,6 +179,43 @@
   color: #db2828;
 }
 
+.like-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px 0;
+}
+
+.view-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.78em;
+  color: #aaa;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0;
+}
+
+.view-toggle:hover {
+  color: #555;
+}
+
+.flow-text {
+  font-family: 'Lora', serif;
+  font-size: 0.97em;
+  line-height: 1.7;
+  color: #333;
+  text-align: left;
+}
+
+.story-authors {
+  font-size: 0.85em;
+  color: #888;
+  text-align: right;
+  margin-bottom: 8px;
+}
+
 </style>
 
 <script>
@@ -189,6 +234,25 @@ export default {
     },
     'game:info': function(info) {
       this.game = info;
+
+      // First game:info after our async contribution decides stay vs leave.
+      if (this.lobby.isAsync && this.awaitingWriteResult) {
+        this.awaitingWriteResult = false;
+        if (info.isComplete) {
+          // Story finished — stay and show the reading view.
+          if (!this.requestedResults) {
+            this.$socket.emit('game:message', 'story:result');
+            this.requestedResults = true;
+          }
+        } else {
+          // Still room for more lines — release our spot, back to the list.
+          this.submitted = true;
+          this.$socket.emit('lobby:leave');
+          setTimeout(() => this.$router.push('/sessions'), 2000);
+        }
+        return;
+      }
+
       if (this.game.isComplete && !this.requestedResults) {
         this.$socket.emit('game:message', 'story:result');
         this.requestedResults = true;
@@ -268,7 +332,7 @@ export default {
       const n = this.nameTable[entry.editor];
       return n || null;
     },
-    // Build author line for a whole story card, e.g. "Von: Max, Julia, Anonyme"
+    // Build author line for a whole story card, e.g. "Von: Max, Julia, Anonym"
     storyAuthors(story) {
       // Collapse all anonymous contributions into a single "Anonym" so this
       // line agrees with the server's author count (completedAuthors =
@@ -290,6 +354,12 @@ export default {
       if (hasAnon) parts.push('Anonym');
       return parts.length ? 'Von: ' + parts.join(', ') : '';
     },
+    onPaste(e) {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text');
+      const clean = text.replace(/[\r\n]+/g, ' ').trim();
+      document.execCommand('insertText', false, clean);
+    },
     writeLine(event) {
       event.preventDefault();
 
@@ -300,9 +370,11 @@ export default {
       this.line = '';
 
       if (this.lobby.isAsync) {
-        this.submitted = true;
-        this.$socket.emit('lobby:leave');
-        setTimeout(() => this.$router.push('/sessions'), 2000);
+        // Defer the stay/leave decision to the next game:info. isLastLink is
+        // only a "might finish" hint and can be true while the story still has
+        // room, so deciding here could strand us in the lobby. Let the server
+        // tell us whether the story actually completed.
+        this.awaitingWriteResult = true;
       }
     },
     startCountdown(deadline) {
@@ -347,6 +419,7 @@ export default {
       line: '',
       stories: [],
       requestedResults: false,
+      awaitingWriteResult: false,
       player: { state: '', id: '', },
       game: { icons: {}, likes: [], },
       timer: Date.now(),
@@ -365,6 +438,7 @@ export default {
       idleKicked: false,
       idleReason: 'idle',
       copied: false,
+      flowView: false,
     };
   },
 };
