@@ -1,10 +1,72 @@
-@import url('https://fonts.googleapis.com/css?family=Lora');
+/* ==========================================================================
+   Knickgeschichten — design system
+   Extracted from design/Knickgeschichten_2026062023_lay.xd
+   Fonts self-hosted (OFL), no Google Fonts CDN. See src/fonts/README.md
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Fraunces';
+  src: url('./fonts/fraunces-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('./fonts/hanken-300.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('./fonts/hanken-300-italic.woff2') format('woff2');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('./fonts/hanken-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('./fonts/hanken-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --kg-green: #19421e;        /* primary: text, buttons, headings */
+  --kg-green-hover: #21562a;
+  --kg-cream: #e8e6dc;        /* page background / on-dark text */
+  --kg-card-light: #f4f2ea;   /* light story card surface */
+  --kg-muted: #707070;        /* subtle strokes / secondary */
+  --kg-line: rgba(25, 66, 30, 0.18);
+
+  --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --kg-radius-card: 23px;
+  --kg-radius-pill: 999px;
+}
 
 body {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  background: var(--kg-cream);
+  color: var(--kg-green);
+  font-family: var(--font-sans);
 }
+
+/* ==========================================================================
+   In-game / shared (Semantic UI) styles
+   ========================================================================== */
 
 .char-count {
   color: #999;
@@ -32,10 +94,8 @@ body {
   margin-left: 0px !important;
 }
 
-
 .draw-chain-ending {
-  font-family: 'Lora', serif;
+  font-family: var(--font-serif);
   padding: 0 14px;
   word-break: break-word;
 }
-

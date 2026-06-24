@@ -7,25 +7,31 @@
   margin: 0 auto;
   margin-bottom: 32px;
   padding: 4px;
-  max-width: 300px;
+  max-width: 360px;
   width: 100%;
   text-align: center;
 }
 
 .menu header {
-  padding: 32px 16px 16px 16px;
+  padding: 28px 16px 12px 16px;
 }
 
 .menu .subtitle {
-  color: #666;
-  font-family: Lato, sans-serif;
-  font-style: italic;
+  color: var(--kg-green);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.5;
+  opacity: 0.92;
 }
 
 .menu .title {
-  font-family: 'Lora', serif;
-  font-size: 30px;
-  margin: 8px 0;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--kg-green);
+  font-size: 32px;
+  letter-spacing: 0.3px;
+  margin: 8px 0 12px;
 }
 
 

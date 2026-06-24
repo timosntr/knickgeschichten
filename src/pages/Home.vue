@@ -9,7 +9,7 @@
         <div class="accordion">
           <button class="accordion-toggle" @click="showInfo = !showInfo">
             <span>So funktioniert's</span>
-            <span class="accordion-icon">{{ showInfo ? '▲' : '▼' }}</span>
+            <span class="accordion-icon">{{ showInfo ? '⌃' : '⌄' }}</span>
           </button>
           <div v-if="showInfo" class="accordion-body">
             <ul class="info-list">
@@ -49,124 +49,134 @@
 
         <!-- Satz des Tages -->
         <div v-if="quote" class="qotd" @click="$router.push(`/lobby/${quote.code}`)">
-          <div class="qotd-label">Satz des Tages</div>
-          <div class="qotd-text">„{{ quote.text }}"</div>
-          <div class="qotd-author" v-if="quote.authorName !== null">— {{ quote.authorName === '' ? 'Anonym' : quote.authorName }}</div>
+          <div class="qotd-card">
+            <div class="qotd-label">Satz des Tages</div>
+            <div class="qotd-text">„{{ quote.text }}"</div>
+            <div class="qotd-author" v-if="quote.authorName !== null">
+              – {{ quote.authorName === '' ? 'Anonym' : quote.authorName }}
+            </div>
+          </div>
         </div>
 
         <!-- Öffentliche Story starten -->
-        <sui-button
-          color="green"
-          :loading="!connected || creatingAsync"
-          @click="createAsync"
-          fluid
-          style="margin-bottom: 20px">
+        <button
+          class="kg-btn kg-btn--solid"
+          :disabled="!connected || creatingAsync"
+          @click="createAsync">
           Neue öffentliche Story starten
-        </sui-button>
+        </button>
 
         <!-- Private Geschichten -->
-        <div class="section-label">Private Geschichten</div>
-        <sui-button-group style="width: 100%">
-          <sui-button
-            color="blue"
-            :loading="!connected || creatingLobby"
-            @click="createLobby">
-            Lobby erstellen
-          </sui-button>
-          <sui-button-or/>
-          <sui-button
-            color="blue"
-            @click="showJoinLobby = true"
-            :loading="!connected || showJoinLobby">
-            Lobby beitreten
-          </sui-button>
-        </sui-button-group>
+        <div class="kg-divider"><span>Private Geschichten</span></div>
+        <button
+          class="kg-btn kg-btn--outline"
+          :disabled="!connected || creatingLobby"
+          @click="createLobby">
+          Lobby erstellen
+        </button>
+        <button
+          class="kg-btn kg-btn--outline"
+          :disabled="!connected || showJoinLobby"
+          @click="showJoinLobby = true">
+          Lobby beitreten
+        </button>
 
         <!-- Öffentliche Geschichten Karussell -->
-        <div v-if="recentSessions.length > 0" class="section-label" style="margin-top: 20px">Öffentliche Geschichten</div>
-        <div v-if="recentSessions.length > 0"
-          class="carousel"
-          @touchstart="onTouchStart"
-          @touchend="onTouchEnd"
-          @wheel="onWheel($event, 'sessions')">
-          <div class="carousel-track">
-            <transition :name="slideDir">
-              <div class="session-card" :key="carouselIndex" @click="$router.push(`/lobby/${recentSessions[carouselIndex].code}`)">
-                <div class="session-title">{{ recentSessions[carouselIndex].title }}</div>
-                <div v-if="recentSessions[carouselIndex].teaser" class="session-teaser">
-                  „{{ recentSessions[carouselIndex].teaser }}"
+        <section v-if="recentSessions.length > 0" class="kg-sheet">
+          <h2 class="kg-sheet__title">Öffentliche Geschichten</h2>
+          <div class="carousel"
+            @touchstart="onTouchStart"
+            @touchend="onTouchEnd"
+            @wheel="onWheel($event, 'sessions')">
+            <button
+              v-if="recentSessions.length > 1"
+              class="kg-arrow kg-arrow--prev"
+              @click.stop="setCarousel(carouselIndex - 1)">‹</button>
+            <div class="carousel-track">
+              <transition :name="slideDir">
+                <div class="kg-card kg-card--outline" :key="carouselIndex" @click="$router.push(`/lobby/${recentSessions[carouselIndex].code}`)">
+                  <div class="kg-card__top">
+                    <h3 class="kg-card__title">{{ recentSessions[carouselIndex].title }}</h3>
+                    <span class="kg-card__id">#{{ recentSessions[carouselIndex].code }}</span>
+                  </div>
+                  <p v-if="recentSessions[carouselIndex].teaser" class="kg-card__body">
+                    „{{ recentSessions[carouselIndex].teaser }}"
+                  </p>
+                  <div class="kg-progress">
+                    <div class="kg-progress__fill"
+                      :style="{ width: Math.round((recentSessions[carouselIndex].progress || 0) * 100) + '%' }"></div>
+                  </div>
+                  <div class="kg-card__foot">
+                    <span class="kg-card__time">
+                      {{ timeAgo(recentSessions[carouselIndex].createdAt) }}
+                      <template v-if="recentSessions[carouselIndex].playersOnline > 0">
+                        · {{ recentSessions[carouselIndex].playersOnline }} online
+                      </template>
+                    </span>
+                    <span class="kg-pill kg-pill--solid">Beitreten</span>
+                  </div>
                 </div>
-                <div class="session-meta">
-                  <span v-if="recentSessions[carouselIndex].playersOnline > 0">
-                    {{ recentSessions[carouselIndex].playersOnline }} online
-                  </span>
-                </div>
-                <div class="session-footer">
-                  <span class="session-age">{{ timeAgo(recentSessions[carouselIndex].createdAt) }}</span>
-                  <sui-button size="tiny" color="green">Mitmachen</sui-button>
-                </div>
-              </div>
-            </transition>
+              </transition>
+            </div>
+            <button
+              v-if="recentSessions.length > 1"
+              class="kg-arrow kg-arrow--next"
+              @click.stop="setCarousel(carouselIndex + 1)">›</button>
           </div>
-          <div class="carousel-dots">
-            <span
-              v-for="(s, i) in recentSessions"
-              :key="i"
-              class="carousel-dot"
-              :class="{ active: i === carouselIndex }"
-              @click="setCarousel(i)">
-            </span>
-          </div>
-        </div>
+          <router-link to="/sessions" class="kg-link">alle Geschichten durchstöbern</router-link>
+        </section>
 
-        <div v-if="recentSessions.length > 0" style="margin-top: 10px; text-align: center">
-          <router-link to="/sessions" class="browse-link">alle Geschichten durchstöbern →</router-link>
-        </div>
-
-        <!-- Archiv Karussell -->
-        <div v-if="recentCompleted.length > 0" class="section-label" style="margin-top: 20px">Archiv</div>
-        <div v-if="recentCompleted.length > 0"
-          class="carousel"
-          @touchstart="onTouchStartArchive"
-          @touchend="onTouchEndArchive"
-          @wheel="onWheel($event, 'archive')">
-          <div class="carousel-track">
-            <transition :name="archiveSlideDir">
-              <div class="session-card" :key="archiveIndex" @click="$router.push(`/lobby/${recentCompleted[archiveIndex].code}`)">
-                <div class="session-title">
-                  <sui-icon name="check circle" color="green"/>
-                  {{ recentCompleted[archiveIndex].title }}
+        <!-- Archiv Karussell (kein Hintergrundbild) -->
+        <section v-if="recentCompleted.length > 0" class="kg-section-plain">
+          <h2 class="kg-sheet__title">Archiv</h2>
+          <div class="carousel"
+            @touchstart="onTouchStartArchive"
+            @touchend="onTouchEndArchive"
+            @wheel="onWheel($event, 'archive')">
+            <button
+              v-if="recentCompleted.length > 1"
+              class="kg-arrow kg-arrow--prev"
+              @click.stop="setArchive(archiveIndex - 1)">‹</button>
+            <div class="carousel-track">
+              <transition :name="archiveSlideDir">
+                <div class="kg-card kg-card--dark" :key="archiveIndex" @click="$router.push(`/lobby/${recentCompleted[archiveIndex].code}`)">
+                  <div class="kg-card__top">
+                    <h3 class="kg-card__title">{{ recentCompleted[archiveIndex].title }}</h3>
+                    <span class="kg-card__id">#{{ recentCompleted[archiveIndex].code }}</span>
+                  </div>
+                  <p v-if="recentCompleted[archiveIndex].teaser" class="kg-card__body">
+                    „{{ recentCompleted[archiveIndex].teaser }}"
+                  </p>
+                  <div class="kg-card__foot">
+                    <span class="kg-card__time">
+                      {{ timeAgo(recentCompleted[archiveIndex].createdAt) }}
+                      · {{ recentCompleted[archiveIndex].numAuthors }} {{ recentCompleted[archiveIndex].numAuthors === 1 ? 'Autor' : 'Autoren' }}
+                    </span>
+                    <span class="kg-pill kg-pill--cream">Lesen</span>
+                  </div>
                 </div>
-                <div v-if="recentCompleted[archiveIndex].teaser" class="session-teaser">
-                  „{{ recentCompleted[archiveIndex].teaser }}"
-                </div>
-                <div class="session-meta">
-                  {{ recentCompleted[archiveIndex].numAuthors }} {{ recentCompleted[archiveIndex].numAuthors === 1 ? 'Autor' : 'Autoren' }}
-                </div>
-                <div class="session-footer">
-                  <span class="session-age">{{ timeAgo(recentCompleted[archiveIndex].createdAt) }}</span>
-                  <sui-button size="tiny" color="teal">Lesen</sui-button>
-                </div>
-              </div>
-            </transition>
+              </transition>
+            </div>
+            <button
+              v-if="recentCompleted.length > 1"
+              class="kg-arrow kg-arrow--next"
+              @click.stop="setArchive(archiveIndex + 1)">›</button>
           </div>
-          <div class="carousel-dots">
-            <span
-              v-for="(s, i) in recentCompleted"
-              :key="i"
-              class="carousel-dot"
-              :class="{ active: i === archiveIndex }"
-              @click="setArchive(i)">
-            </span>
-          </div>
-        </div>
-
-        <div style="margin-top: 10px; text-align: center">
-          <router-link to="/archive" class="browse-link">alle Geschichten durchstöbern →</router-link>
-        </div>
+          <router-link to="/archive" class="kg-link">alle Geschichten durchstöbern</router-link>
+        </section>
 
       </div>
     </ooc-menu>
+
+    <!-- Footer (nur Startseite) -->
+    <footer class="site-footer">
+      <p class="site-footer__note">
+        Dieses Projekt wurde im Rahmen des Seminars „Schreibszenen“ von Stefan Rieger
+        an der Ruhr-Universität Bochum von Jingtian Dong, Luisa, Marlen, Paulus Gkegkas
+        und Timo Santehanser entwickelt.
+      </p>
+    </footer>
+
     <ooc-join-lobby :active="showJoinLobby" @close="showJoinLobby = false">
     </ooc-join-lobby>
     <ooc-util></ooc-util>
@@ -174,106 +184,285 @@
 </template>
 
 <style>
-.qotd {
-  margin-bottom: 16px;
-  padding: 12px 14px;
-  border-left: 3px solid #21ba45;
-  background: rgba(33, 186, 69, 0.06);
-  border-radius: 0 4px 4px 0;
+/* Footer (home only) ----------------------------------------------------- */
+.site-footer {
+  /* torn-paper sheet with the ragged edge along the top (IMG_4565.6) */
+  background: url('../assets/band-footer.webp') no-repeat top center;
+  background-size: 140% 140%;
+  margin-top: 24px;
+  padding: 78px 24px 44px;
+  text-align: center;
+}
+.site-footer__note {
+  max-width: 320px;
+  margin: 0 auto;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--kg-green);
+}
+
+/* Action buttons --------------------------------------------------------- */
+.kg-btn {
+  appearance: none;
+  width: 100%;
+  border: 1.5px solid var(--kg-green);
+  border-radius: var(--kg-radius-pill);
   cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 14px 20px;
+  margin-bottom: 12px;
+  text-align: center;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.kg-btn--solid { background: var(--kg-green); color: var(--kg-cream); }
+.kg-btn--outline { background: transparent; color: var(--kg-green); }
+.kg-btn:hover { opacity: 0.88; }
+.kg-btn[disabled] { cursor: default; opacity: 0.45; }
+
+/* Labelled divider ------------------------------------------------------- */
+.kg-divider {
+  align-items: center;
+  color: var(--kg-green);
+  display: flex;
+  font-size: 11px;
+  font-weight: 500;
+  gap: 12px;
+  margin: 6px 0 12px;
+}
+.kg-divider::before,
+.kg-divider::after {
+  background: var(--kg-line);
+  content: '';
+  flex: 1;
+  height: 1px;
+}
+
+/* "So funktioniert's" accordion ----------------------------------------- */
+.accordion { margin-bottom: 18px; text-align: center; }
+.accordion-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--kg-green);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+}
+.accordion-toggle:hover { opacity: 0.8; }
+.accordion-icon { font-size: 0.9em; }
+.accordion-body {
+  padding: 10px 4px 4px;
   text-align: left;
-  transition: background 0.15s;
 }
-.qotd:hover {
-  background: rgba(33, 186, 69, 0.13);
+.info-section-title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--kg-green);
+  margin: 14px 0 4px;
 }
+.info-list { margin: 0; padding-left: 18px; }
+.info-list li {
+  font-size: 13px;
+  color: var(--kg-green);
+  line-height: 1.55;
+  margin-bottom: 5px;
+}
+.info-list a { color: var(--kg-green); }
+
+/* Satz des Tages (torn-paper card) -------------------------------------- */
+.qotd { margin: 8px 0 22px; cursor: pointer; padding-bottom: 10%;}
+.qotd-card {
+  aspect-ratio: 700 / 470;
+  background-image: url('../assets/quote-card.webp');
+  background-size: 200% 170%;
+  background-position-x: 50%;
+  background-position-y: 50%;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  max-width: 320px;
+  padding: 17% 15% 15%;
+  text-align: center;
+  transition: transform 0.15s ease;
+}
+.qotd:hover .qotd-card { transform: translateY(-2px); }
 .qotd-label {
-  font-size: 0.75em;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #21ba45;
-  margin-bottom: 4px;
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 24px;
+  margin-bottom: 12px;
 }
 .qotd-text {
-  font-family: 'Lora', serif;
-  font-style: italic;
-  font-size: 0.97em;
-  color: #333;
+  font-size: 14px;
   line-height: 1.5;
 }
 .qotd-author {
-  margin-top: 4px;
-  font-size: 0.8em;
-  color: #888;
-  text-align: right;
+  margin-top: 8px;
+  font-size: 13px;
+  font-style: italic;
 }
 
-.accordion {
-  margin-bottom: 16px;
+/* Section sheet (whole section on one torn-paper sheet) ------------------ */
+.kg-sheet {
+  /* full-bleed: break out of the max-width menu container, edge to edge */
+  position: relative;
+  left: 50%;
+  right: 50%;
+  width: 100vw;
+  margin: 26px -50vw;
+  padding: 42px 20px 34px;
 }
-.accordion-toggle {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 0 6px;
-  background: none;
-  border: none;
-  border-bottom: 1px solid rgba(34, 36, 38, 0.12);
-  cursor: pointer;
-  font-size: 0.8em;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: #999;
-  text-align: left;
-  text-transform: uppercase;
+.kg-sheet::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('../assets/band-section.webp') no-repeat;
+  background-size: 140% 100%;
+  /* drop-shadow follows the torn alpha edge (box-shadow would be a rectangle) */
+  filter: drop-shadow(-3px 4px 6px rgba(25, 66, 30, 0.22));
+  z-index: 0;
+  background-position-x: -40px;
 }
-.accordion-toggle:hover { color: #666; }
-.accordion-icon { font-size: 0.75em; color: #ccc; }
-.accordion-body { padding: 10px 0 4px; text-align: left; }
-.info-section-title {
+/* keep the inner content readable + centered while the sheet spans full width */
+.kg-sheet > * {
+  position: relative;
+  z-index: 1;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Plain section (no torn-paper background) — used by Archiv */
+.kg-section-plain {
+  margin: 26px 0;
+}
+.kg-sheet__title {
+  font-family: var(--font-serif);
   font-weight: 700;
-  font-size: 0.75em;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #bbb;
-  margin: 12px 0 3px;
-}
-.info-list { margin: 0; padding-left: 14px; }
-.info-list li {
-  font-size: 0.82em;
-  color: #666;
-  line-height: 1.55;
-  margin-bottom: 4px;
+  font-size: 27px;
+  color: var(--kg-green);
+  letter-spacing: 0.3px;
+  margin: 0 auto 16px;
+  text-align: center;
 }
 
-.section-label {
-  font-size: 0.78em;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #aaa;
-  margin-bottom: 8px;
-  text-align: left;
-}
-
+/* Carousel --------------------------------------------------------------- */
 .carousel {
   user-select: none;
   overflow: hidden;
   position: relative;
 }
-.carousel .session-card {
-  cursor: pointer;
-  border: 1px solid rgba(34, 36, 38, 0.15);
-  border-radius: 4px;
-  padding: 12px 14px;
-  text-align: left;
-}
-.carousel .session-card:hover {
-  background: rgba(0,0,0,0.02);
+.carousel-track {
+  position: relative;
+  min-height: 120px;
+  margin: 0 24px;
 }
 
+.kg-arrow {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: var(--kg-green);
+  cursor: pointer;
+  font-size: 26px;
+  line-height: 1;
+  padding: 4px 6px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+}
+.kg-arrow:hover { opacity: 0.6; }
+.kg-arrow--prev { left: 0; }
+.kg-arrow--next { right: 0; }
+
+/* Story cards ------------------------------------------------------------ */
+.kg-card {
+  cursor: pointer;
+  border-radius: var(--kg-radius-card);
+  padding: 16px 18px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+.kg-card--outline {
+  background: transparent;
+  border: 1.5px solid var(--kg-green);
+  color: var(--kg-green);
+}
+.kg-card--dark {
+  background: var(--kg-green);
+  box-shadow: 0 4px 14px rgba(25, 66, 30, 0.28);
+  color: var(--kg-cream);
+}
+.kg-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.kg-card__title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+}
+.kg-card__id {
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+.kg-card__body {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.4;
+  margin: 8px 0 0;
+}
+.kg-progress {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(25, 66, 30, 0.18);
+  margin: 14px 0 0;
+  overflow: hidden;
+}
+.kg-progress__fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--kg-green);
+}
+.kg-card__foot {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+}
+.kg-card__time { font-size: 11px; font-style: italic; opacity: 0.85; }
+
+.kg-pill {
+  border-radius: var(--kg-radius-pill);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 18px;
+  white-space: nowrap;
+}
+.kg-pill--solid { background: var(--kg-green); color: var(--kg-cream); }
+.kg-pill--cream { background: var(--kg-cream); color: var(--kg-green); }
+
+/* Carousel slide transitions -------------------------------------------- */
 .slide-left-enter-active,
 .slide-left-leave-active,
 .slide-right-enter-active,
@@ -281,8 +470,6 @@
   transition: transform 0.22s ease, opacity 0.22s ease;
   width: 100%;
 }
-/* Only the leaving card is taken out of flow, so the track sizes to the
-   entering card and tall cards (long teasers) don't overflow it. */
 .slide-left-leave-active,
 .slide-right-leave-active {
   position: absolute;
@@ -293,40 +480,16 @@
 .slide-right-enter { transform: translateX(-100%); opacity: 0; }
 .slide-right-leave-to { transform: translateX(100%); opacity: 0; }
 
-.carousel-track {
-  position: relative;
-  min-height: 90px;
+/* Browse link ------------------------------------------------------------ */
+.kg-link {
+  display: block;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--kg-green);
+  text-align: center;
+  text-decoration: underline;
 }
-.carousel-dots {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 8px;
-}
-.carousel-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #ddd;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.carousel-dot.active { background: #21ba45; }
-
-.browse-link {
-  font-size: 0.82em;
-  color: #aaa;
-  text-decoration: none;
-}
-.browse-link:hover { color: #666; }
-
-.session-teaser {
-  font-family: 'Lora', serif;
-  font-style: italic;
-  font-size: 0.92em;
-  color: #444;
-  margin: 4px 0;
-}
+.kg-link:hover { opacity: 0.75; }
 </style>
 
 <script>

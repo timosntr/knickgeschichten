@@ -39,10 +39,14 @@ module.exports = {
         },
       },
       {
-        test: /\.(png|woff|woff2|eot|ttf|svg)$/,
-        loader: 'asset/inline',
-        options: {
-          limit: 10000,
+        test: /\.(woff|woff2|eot|ttf|svg)$/,
+        type: 'asset/inline',
+      },
+      {
+        test: /\.(png|jpe?g|gif|webp)$/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/[name].[hash:7][ext]',
         },
       },
       {

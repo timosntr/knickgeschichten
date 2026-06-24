@@ -1,8 +1,10 @@
 <template>
   <div class="page">
     <header class="top-bar">
-      <div class="top-bar-inner">
-        <router-link to="/" class="top-bar-logo">KG</router-link>
+      <div class="top-bar-band">
+        <div class="top-bar-inner">
+          <router-link to="/" class="top-bar-logo">KG</router-link>
+        </div>
       </div>
     </header>
     <div class="page-content">
@@ -24,36 +26,45 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  /* full-bleed sheets use 100vw; clip the resulting horizontal overflow */
+  overflow-x: hidden;
 }
 
 .top-bar {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: #fff;
-  border-bottom: 1px solid rgba(34, 36, 38, 0.1);
+}
+
+.top-bar-band {
+  /* torn-paper strip with the ragged edge along the bottom */
+  background: url('../assets/band-header.webp') no-repeat;
+  background-size: 180% 140%;
+  background-position-y: -20px;
+  background-position-x: -50px;
 }
 
 .top-bar-inner {
   display: flex;
-  align-items: center;
-  max-width: 300px;
+  align-items: flex-start;
+  max-width: 360px;
   width: 100%;
   margin: 0 auto;
-  padding: 10px 4px;
+  padding: 14px 22px 30px;
 }
 
 .top-bar-logo {
-  font-size: 1.2em;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: #21ba45;
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -3px;
+  color: var(--kg-green);
   text-decoration: none;
   line-height: 1;
 }
 
 .top-bar-logo:hover {
-  color: #16a534;
+  color: var(--kg-green-hover);
 }
 
 .page-content {
