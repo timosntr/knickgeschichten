@@ -19,6 +19,18 @@
           {{ filteredSessions.length }} {{ filteredSessions.length === 1 ? 'Ergebnis' : 'Ergebnisse' }} für „{{ lastQuery }}"
         </div>
 
+        <div class="sort-bar">
+          <span class="sort-label">Sortieren:</span>
+          <button
+            v-for="opt in sortOptions" :key="opt.value"
+            class="sort-btn"
+            :class="{ active: sortBy === opt.value }"
+            @click="setSort(opt.value)">
+            {{ opt.label }}
+            <span v-if="sortBy === opt.value">{{ sortDesc ? '↓' : '↑' }}</span>
+          </button>
+        </div>
+
         <div v-if="loading" style="text-align: center; padding: 24px">
           <sui-loader active inline centered>Laden...</sui-loader>
         </div>
@@ -130,6 +142,33 @@
   color: #888;
   margin-bottom: 8px;
 }
+
+.sort-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.sort-label {
+  font-size: 0.82em;
+  color: #aaa;
+  margin-right: 2px;
+}
+.sort-btn {
+  padding: 3px 8px;
+  font-size: 0.82em;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: none;
+  cursor: pointer;
+  color: #666;
+}
+.sort-btn.active {
+  border-color: #21ba45;
+  color: #21ba45;
+  background: rgba(33,186,69,0.06);
+}
 </style>
 
 <script>
@@ -145,6 +184,15 @@ export default {
       fulltextSearched: false,
       lastQuery: '',
       searching: false,
+      sortBy: 'completedAt',
+      sortDesc: true,
+      sortOptions: [
+        { value: 'completedAt', label: 'Beendet' },
+        { value: 'createdAt',   label: 'Erstellt' },
+        { value: 'number',      label: 'Nummer' },
+        { value: 'title',       label: 'Titel' },
+        { value: 'totalLikes',  label: 'Likes' },
+      ],
     };
   },
   computed: {
@@ -168,6 +216,22 @@ export default {
         );
       }
 
+      // Sorting
+      const dir = this.sortDesc ? -1 : 1;
+      result = [...result].sort((a, b) => {
+        let av, bv;
+        if (this.sortBy === 'number') {
+          const num = t => { const m = /(\d+)\s*$/.exec(t || ''); return m ? Number(m[1]) : 0; };
+          av = num(a.title); bv = num(b.title);
+        } else if (this.sortBy === 'title') {
+          av = (a.title || '').toLowerCase(); bv = (b.title || '').toLowerCase();
+          return dir * av.localeCompare(bv, 'de');
+        } else {
+          av = a[this.sortBy] || 0; bv = b[this.sortBy] || 0;
+        }
+        return dir * (av < bv ? -1 : av > bv ? 1 : 0);
+      });
+
       return result;
     },
     totalPages() {
@@ -179,6 +243,15 @@ export default {
     },
   },
   methods: {
+    setSort(value) {
+      if (this.sortBy === value) {
+        this.sortDesc = !this.sortDesc;
+      } else {
+        this.sortBy = value;
+        this.sortDesc = value !== 'title';
+      }
+      this.page = 1;
+    },
     onSearchInput() {
       this.fulltextCodes = null;
       this.fulltextSearched = false;

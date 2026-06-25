@@ -98,6 +98,10 @@ class Lobby {
           ? [...new Set(l.completedStories.flat().map(e => e.authorName).filter(n => n && n !== ''))]
           : [];
 
+        const totalLikes = l.game
+          ? _.sumBy(l.game.chains, c => _.size(_.filter(c.likes, v => v)))
+          : (l.completedLikes || 0);
+
         return {
           code: l.code,
           title: l.title,
@@ -107,8 +111,10 @@ class Lobby {
           numLinks: typeof config.numLinks === 'number' ? config.numLinks : 10,
           numAuthors,
           authorNames,
+          totalLikes,
           playersOnline: l.members.length,
           createdAt: l.created,
+          completedAt: l.completedAt || null,
           teaser,
         };
       })

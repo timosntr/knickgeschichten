@@ -231,6 +231,8 @@ module.exports = class Story extends Game {
         }
       }
       this.lobby.completedAuthors = namedAuthors.size + (hasAnonymous ? 1 : 0);
+      this.lobby.completedAt = Date.now();
+      this.lobby.completedLikes = _.sumBy(this.chains, c => _.size(_.filter(c.likes, v => v)));
     }
 
     this.sendGameInfo();
