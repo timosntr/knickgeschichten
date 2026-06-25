@@ -102,6 +102,10 @@ class Lobby {
           ? _.sumBy(l.game.chains, c => _.size(_.filter(c.likes, v => v)))
           : (l.completedLikes || 0);
 
+        const lastActivity = l.game && l.game.lastEdit
+          ? Math.max(l.created, ...Object.values(l.game.lastEdit))
+          : l.created;
+
         return {
           code: l.code,
           title: l.title,
@@ -114,6 +118,7 @@ class Lobby {
           totalLikes,
           playersOnline: l.members.length,
           createdAt: l.created,
+          lastActivity,
           completedAt: l.completedAt || null,
           teaser,
         };
