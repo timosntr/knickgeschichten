@@ -19,16 +19,21 @@
           {{ filteredSessions.length }} {{ filteredSessions.length === 1 ? 'Ergebnis' : 'Ergebnisse' }} für „{{ lastQuery }}"
         </div>
 
-        <div class="sort-bar">
-          <span class="sort-label">Sortieren:</span>
-          <button
-            v-for="opt in sortOptions" :key="opt.value"
-            class="sort-btn"
-            :class="{ active: sortBy === opt.value }"
-            @click="setSort(opt.value)">
-            {{ opt.label }}
-            <span v-if="sortBy === opt.value">{{ sortDesc ? '↓' : '↑' }}</span>
+        <div class="accordion">
+          <button class="accordion-toggle" @click="showSort = !showSort">
+            <span>Sortieren nach <span class="sort-active-label">· {{ currentSortLabel }}</span></span>
+            <span class="accordion-icon">{{ showSort ? '▲' : '▼' }}</span>
           </button>
+          <div v-if="showSort" class="accordion-body sort-options">
+            <button
+              v-for="opt in sortOptions" :key="opt.value"
+              class="sort-btn"
+              :class="{ active: sortBy === opt.value }"
+              @click="setSort(opt.value)">
+              {{ opt.label }}
+              <span v-if="sortBy === opt.value">{{ sortDesc ? '↓' : '↑' }}</span>
+            </button>
+          </div>
         </div>
 
         <div v-if="loading" style="text-align: center; padding: 24px">
@@ -143,20 +148,40 @@
   margin-bottom: 8px;
 }
 
-.sort-bar {
+.accordion {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.accordion-toggle {
+  width: 100%;
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.88em;
+  color: #555;
+  text-align: left;
+}
+.accordion-toggle:hover { background: #fafafa; }
+.accordion-icon { font-size: 0.75em; color: #aaa; }
+.accordion-body.sort-options {
+  display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 12px;
+  padding: 8px 12px 10px;
+  border-top: 1px solid #f0f0f0;
 }
-.sort-label {
-  font-size: 0.82em;
-  color: #aaa;
-  margin-right: 2px;
+.sort-active-label {
+  color: #21ba45;
+  font-size: 0.92em;
 }
 .sort-btn {
-  padding: 3px 8px;
+  padding: 3px 10px;
   font-size: 0.82em;
   border: 1px solid #ddd;
   border-radius: 12px;
@@ -184,6 +209,7 @@ export default {
       fulltextSearched: false,
       lastQuery: '',
       searching: false,
+      showSort: false,
       sortBy: 'completedAt',
       sortDesc: true,
       sortOptions: [
@@ -233,6 +259,10 @@ export default {
       });
 
       return result;
+    },
+    currentSortLabel() {
+      const opt = this.sortOptions.find(o => o.value === this.sortBy);
+      return opt ? opt.label : '';
     },
     totalPages() {
       return Math.max(1, Math.ceil(this.filteredSessions.length / this.perPage));
