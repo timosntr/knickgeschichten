@@ -2,13 +2,30 @@
   <ooc-page>
     <ooc-menu title="Archiv" subtitle="Fertige Geschichten lesen">
       <div>
+        <form class="search-form" @submit.prevent="submitSearch">
+          <input
+            v-model="searchQuery"
+            class="search-input"
+            type="text"
+            placeholder="Titel, Autor …"
+            @input="onSearchInput"
+          />
+          <button type="submit" class="search-btn" :disabled="searching">
+            {{ searching ? '…' : 'Suchen' }}
+          </button>
+          <button v-if="hasSearch" type="button" class="search-clear" @click="clearSearch">✕</button>
+        </form>
+        <div v-if="fulltextSearched && !searching" class="search-hint">
+          {{ filteredSessions.length }} {{ filteredSessions.length === 1 ? 'Ergebnis' : 'Ergebnisse' }} für „{{ lastQuery }}"
+        </div>
+
         <div v-if="loading" style="text-align: center; padding: 24px">
           <sui-loader active inline centered>Laden...</sui-loader>
         </div>
         <div v-else>
-          <div v-if="completedSessions.length === 0"
+          <div v-if="filteredSessions.length === 0"
             style="text-align: center; padding: 24px; color: #888;">
-            Noch keine fertigen Storys.
+            {{ hasSearch ? 'Keine Ergebnisse gefunden.' : 'Noch keine fertigen Storys.' }}
           </div>
 
           <div v-for="session in pagedSessions" :key="session.code" class="session-card">
@@ -69,6 +86,50 @@
   font-size: 0.9em;
   color: #888;
 }
+
+.search-form {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.search-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95em;
+  outline: none;
+}
+.search-input:focus {
+  border-color: #21ba45;
+}
+.search-btn {
+  padding: 6px 12px;
+  background: #21ba45;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+.search-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.search-clear {
+  padding: 6px 10px;
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #888;
+  font-size: 0.9em;
+}
+.search-hint {
+  font-size: 0.82em;
+  color: #888;
+  margin-bottom: 8px;
+}
 </style>
 
 <script>
@@ -79,21 +140,80 @@ export default {
       loading: true,
       page: 1,
       perPage: 15,
+      searchQuery: '',
+      fulltextCodes: null,
+      fulltextSearched: false,
+      lastQuery: '',
+      searching: false,
     };
   },
   computed: {
     completedSessions() {
       return this.sessions.filter(s => s.isComplete);
     },
+    hasSearch() {
+      return this.searchQuery.trim() !== '' || this.fulltextSearched;
+    },
+    filteredSessions() {
+      const q = this.searchQuery.toLowerCase().trim();
+      let result = this.completedSessions;
+
+      if (this.fulltextCodes !== null) {
+        const codeSet = new Set(this.fulltextCodes);
+        result = result.filter(s => codeSet.has(s.code));
+      } else if (q) {
+        result = result.filter(s =>
+          s.title.toLowerCase().includes(q) ||
+          (s.authorNames || []).some(a => a.toLowerCase().includes(q))
+        );
+      }
+
+      return result;
+    },
     totalPages() {
-      return Math.max(1, Math.ceil(this.completedSessions.length / this.perPage));
+      return Math.max(1, Math.ceil(this.filteredSessions.length / this.perPage));
     },
     pagedSessions() {
       const start = (this.page - 1) * this.perPage;
-      return this.completedSessions.slice(start, start + this.perPage);
+      return this.filteredSessions.slice(start, start + this.perPage);
     },
   },
   methods: {
+    onSearchInput() {
+      this.fulltextCodes = null;
+      this.fulltextSearched = false;
+      this.page = 1;
+    },
+    async submitSearch() {
+      const q = this.searchQuery.trim();
+      if (!q) { this.clearSearch(); return; }
+      this.searching = true;
+      this.lastQuery = q;
+      try {
+        const res = await fetch(`/api/v1/lobbies/search?q=${encodeURIComponent(q)}`);
+        if (res.ok) {
+          const codes = await res.json();
+          // union: fulltext matches + title/author matches
+          const titleMatches = this.completedSessions
+            .filter(s =>
+              s.title.toLowerCase().includes(q.toLowerCase()) ||
+              (s.authorNames || []).some(a => a.toLowerCase().includes(q.toLowerCase()))
+            )
+            .map(s => s.code);
+          this.fulltextCodes = [...new Set([...codes, ...titleMatches])];
+        }
+      } catch {}
+      this.fulltextSearched = true;
+      this.searching = false;
+      this.page = 1;
+    },
+    clearSearch() {
+      this.searchQuery = '';
+      this.fulltextCodes = null;
+      this.fulltextSearched = false;
+      this.lastQuery = '';
+      this.page = 1;
+    },
     async fetchSessions() {
       try {
         const res = await fetch('/api/v1/lobbies');

@@ -94,6 +94,10 @@ class Lobby {
           }
         }
 
+        const authorNames = isComplete && l.completedStories
+          ? [...new Set(l.completedStories.flat().map(e => e.authorName).filter(n => n && n !== ''))]
+          : [];
+
         return {
           code: l.code,
           title: l.title,
@@ -102,6 +106,7 @@ class Lobby {
           numStories: typeof config.numStories === 'number' ? config.numStories : l.players.length,
           numLinks: typeof config.numLinks === 'number' ? config.numLinks : 10,
           numAuthors,
+          authorNames,
           playersOnline: l.members.length,
           createdAt: l.created,
           teaser,
