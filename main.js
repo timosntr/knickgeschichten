@@ -282,6 +282,33 @@ app.get('/api/v1/lobby/:code', (req, res) => {
   }
 });
 
+// Preview info for the invite landing page
+app.get('/api/v1/lobby/:code/preview', (req, res) => {
+  const code = req.params.code.toLowerCase();
+  if (!Lobby.lobbyExists(code)) return res.status(404).json({ message: 'Not found' });
+
+  if (!Lobby.lobbies[code]) {
+    const saveData = Persistence.restoreLobbyState(code);
+    const lobby = new Lobby(saveData);
+    Lobby.lobbies[code] = lobby;
+  }
+
+  const l = Lobby.lobbies[code];
+  const progress = l.game ? l.game.getGameProgress() : (l.completedStories ? 1 : 0);
+  const isComplete = progress === 1;
+
+  let teaser = '';
+  if (!isComplete && l.game && l.game.chains) {
+    const chain = l.game.chains[0];
+    if (chain && chain.chain.length > 0) {
+      const words = chain.chain[chain.chain.length - 1].trim().split(/\s+/);
+      teaser = words.length > 8 ? '…' + words.slice(-8).join(' ') : words.join(' ');
+    }
+  }
+
+  res.json({ title: l.title, teaser, isComplete, progress });
+});
+
 // List all public async sessions
 app.get('/api/v1/lobbies', (req, res) => {
   res.json(Lobby.publicList());

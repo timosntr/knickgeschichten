@@ -9,10 +9,24 @@
           : 'Du warst zu lange inaktiv. Du wirst weitergeleitet…' }}
       </p>
     </div>
-    <div v-else-if="submitted" style="margin: 32px 16px; text-align: center;">
-      <sui-icon name="check circle" color="green" size="huge"/>
-      <p style="margin-top: 12px; font-size: 1.1em;">Beitrag gesendet!</p>
-      <p style="color: #888; font-size: 0.9em;">Du wirst gleich weitergeleitet…</p>
+    <div v-else-if="submitted" style="margin: 16px 0">
+      <sui-icon name="check circle" color="green" size="large"/>
+      <p style="margin-top: 8px; font-size: 1.05em; font-weight: bold;">Beitrag gesendet!</p>
+
+      <div class="share-contribution">
+        <div class="share-contribution-label">Dein Beitrag:</div>
+        <p class="share-contribution-text">{{ submittedLine }}</p>
+      </div>
+
+      <p style="font-size: 0.9em; color: #555; margin-bottom: 10px">
+        Lad andere ein, die Geschichte weiterzuschreiben:
+      </p>
+      <sui-button color="green" fluid @click="shareLink">
+        <sui-icon name="share alternate"/> Einladungslink teilen
+      </sui-button>
+      <div v-if="linkCopied" style="font-size:0.82em; color:#21ba45; margin-top:6px">
+        Link kopiert!
+      </div>
     </div>
     <div v-else-if="player.state === 'EDITING'"
       style="margin: 16px 0">
@@ -216,6 +230,29 @@
   margin-bottom: 8px;
 }
 
+.share-contribution {
+  border-left: 3px solid #21ba45;
+  background: rgba(33,186,69,0.05);
+  border-radius: 0 4px 4px 0;
+  padding: 10px 14px;
+  margin: 14px 0;
+  text-align: left;
+}
+.share-contribution-label {
+  font-size: 0.78em;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.share-contribution-text {
+  font-family: 'Lora', serif;
+  font-style: italic;
+  font-size: 0.97em;
+  color: #333;
+  margin: 0;
+}
+
 </style>
 
 <script>
@@ -245,10 +282,9 @@ export default {
             this.requestedResults = true;
           }
         } else {
-          // Still room for more lines — release our spot, back to the list.
-          this.submitted = true;
+          // Still room for more lines — release our spot, show share screen.
           this.$socket.emit('lobby:leave');
-          setTimeout(() => this.$router.push('/sessions'), 2000);
+          this.submitted = true;
         }
         return;
       }
@@ -354,6 +390,21 @@ export default {
       if (hasAnon) parts.push('Anonym');
       return parts.length ? 'Von: ' + parts.join(', ') : '';
     },
+    shareLink() {
+      const url = `${location.origin}/einladen/${this.$route.params.code}`;
+      if (navigator.share) {
+        navigator.share({
+          title: this.lobby.title || 'Knickgeschichte',
+          text: 'Schreib weiter an unserer Geschichte!',
+          url,
+        }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(url).then(() => {
+          this.linkCopied = true;
+          setTimeout(() => { this.linkCopied = false; }, 2500);
+        }).catch(() => {});
+      }
+    },
     onPaste(e) {
       e.preventDefault();
       const text = (e.clipboardData || window.clipboardData).getData('text');
@@ -366,6 +417,7 @@ export default {
       if(this.line.length < 1 || this.line.length > 250)
         return;
 
+      this.submittedLine = this.line;
       this.$socket.emit('game:message', 'story:line', this.line);
       this.line = '';
 
@@ -435,6 +487,8 @@ export default {
       secondsLeft: 0,
       countdownInterval: null,
       submitted: false,
+      submittedLine: '',
+      linkCopied: false,
       idleKicked: false,
       idleReason: 'idle',
       copied: false,

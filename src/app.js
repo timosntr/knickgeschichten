@@ -76,6 +76,7 @@ const router = new VueRouter({
     { name: 'lobby', path: '/lobby/:code?' },
     { name: 'sessions', path: '/sessions' },
     { name: 'archive', path: '/archive' },
+    { name: 'einladen', path: '/einladen/:code' },
     { name: 'home', path: '/' },
   ]
 });
@@ -86,6 +87,7 @@ import Home from './pages/Home.vue';
 import Lobby from './pages/Lobby.vue';
 import Sessions from './pages/Sessions.vue';
 import Archive from './pages/Archive.vue';
+import Einladen from './pages/Einladen.vue';
 import NotFound from './pages/NotFound.vue';
 
 import GameRenderer from './games/GameRenderer.vue';
@@ -148,6 +150,7 @@ new Vue({
       lobby: Lobby,
       sessions: Sessions,
       archive: Archive,
+      einladen: Einladen,
     }[this.$route.name] || NotFound);
   }
 });
