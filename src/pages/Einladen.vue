@@ -8,13 +8,6 @@
         Diese Geschichte existiert nicht mehr.
         <br><router-link to="/">Zurück zur Startseite</router-link>
       </div>
-      <div v-else-if="info.isComplete" style="text-align:center; padding: 24px; color: #888">
-        Diese Geschichte ist bereits fertig.
-        <br>
-        <sui-button color="teal" style="margin-top:12px" @click="$router.push(`/lobby/${code}`)">
-          Geschichte lesen
-        </sui-button>
-      </div>
       <div v-else>
 
         <!-- So funktioniert's -->
@@ -124,6 +117,10 @@ export default {
       const res = await fetch(`/api/v1/lobby/${this.code}/preview`);
       if (res.ok) {
         this.info = await res.json();
+        if (this.info.isComplete) {
+          this.$router.replace(`/lobby/${this.code}`);
+          return;
+        }
       } else {
         this.notFound = true;
       }
