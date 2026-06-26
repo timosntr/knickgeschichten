@@ -31,7 +31,10 @@
           </div>
 
           <div v-for="session in pagedSessions" :key="session.code" class="session-card">
-            <div class="session-title">{{ session.title }}</div>
+            <div class="session-title">
+              {{ session.title }}
+              <span v-if="storyNumber(session.title)" class="session-number">#{{ storyNumber(session.title) }}</span>
+            </div>
             <div v-if="session.teaser" class="session-teaser">„{{ session.teaser }}"</div>
             <div class="session-meta">
               <span v-if="session.playersOnline > 0">{{ session.playersOnline }} online</span>
@@ -91,6 +94,12 @@
   font-weight: bold;
   font-size: 1.05em;
   margin-bottom: 2px;
+}
+.session-number {
+  font-weight: normal;
+  font-size: 0.78em;
+  color: #aaa;
+  margin-left: 5px;
 }
 
 .session-meta {
@@ -218,6 +227,10 @@ export default {
     },
   },
   methods: {
+    storyNumber(title) {
+      const m = /(\d+)\s*$/.exec(title || '');
+      return m ? m[1] : null;
+    },
     setSort(value) {
       if (this.sortBy === value) {
         this.sortDesc = !this.sortDesc;

@@ -49,8 +49,8 @@
       <h2 is="sui-header" icon="pencil" v-else-if="player.link.length === 0">
         Write the first line
       </h2>
-      <div v-if="player.deadline" class="countdown" :class="{urgent: secondsLeft <= 10}">
-        ⏱ {{ secondsLeft }}s remaining
+      <div v-if="player.deadline" class="countdown" :class="{urgent: secondsLeft <= 30}">
+        ⏱ {{ formattedTime }} verbleibend
       </div>
       <sui-form @submit="writeLine" >
         <sui-form-field>
@@ -64,6 +64,9 @@
           </div>
           <div v-if="game.minWords > 0" class="word-count" :class="{insufficient: wordCount < game.minWords}">
             {{wordCount}} / {{game.minWords}} Wörter
+          </div>
+          <div v-if="wordCount >= game.minWords && lastContextWords" class="context-preview">
+            <span class="context-preview-label">Kontext →</span> „…{{ lastContextWords }}"
           </div>
         </sui-form-field>
         <sui-button type="submit"
@@ -196,6 +199,23 @@
 
 .word-count.insufficient {
   color: #db2828;
+}
+
+.context-preview {
+  margin-top: 4px;
+  font-size: 0.78em;
+  color: #888;
+  font-family: 'Lora', serif;
+  font-style: italic;
+  line-height: 1.3;
+  border-left: 2px solid #21ba45;
+  padding-left: 6px;
+}
+.context-preview-label {
+  font-style: normal;
+  font-family: sans-serif;
+  color: #21ba45;
+  font-size: 0.9em;
 }
 
 .like-bar {
@@ -336,7 +356,7 @@ export default {
         case 'EDITING':
           vibrate(40);
           logWait('wait_event', 'wait_duration', true);
-          this.playTurnSound();
+
           break;
         case 'READING':
           vibrate(40, 100, 40);
@@ -368,6 +388,16 @@ export default {
     },
     wordCount() {
       return this.line.trim().split(/\s+/).filter(w => w.length > 0).length;
+    },
+    lastContextWords() {
+      const words = this.line.trim().split(/\s+/).filter(w => w.length > 0);
+      if (!words.length) return '';
+      return words.slice(-8).join(' ');
+    },
+    formattedTime() {
+      const m = Math.floor(this.secondsLeft / 60);
+      const s = this.secondsLeft % 60;
+      return m > 0 ? `${m}:${String(s).padStart(2, '0')} Min` : `${s}s`;
     },
   },
   methods: {
