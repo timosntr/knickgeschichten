@@ -6,6 +6,13 @@ import PortalVue from 'portal-vue';
 
 import './style.css';
 import '../res/favicon.ico';
+import appleTouchIcon from '../res/apple-touch-icon.png';
+
+// iOS home-screen icon (KG logo)
+const appleIconLink = document.createElement('link');
+appleIconLink.rel = 'apple-touch-icon';
+appleIconLink.href = appleTouchIcon;
+document.head.appendChild(appleIconLink);
 
 const VERSION = require('../package.json').version;
 const config = page_path => gtag('config', 'UA-58828021-7', {page_path});
