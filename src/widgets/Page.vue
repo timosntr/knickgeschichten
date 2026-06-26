@@ -26,13 +26,16 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  /* full-bleed sheets use 100vw; clip the resulting horizontal overflow */
-  overflow-x: hidden;
+  /* full-bleed sheets use 100vw; clip the horizontal overflow.
+     Use `clip` (not `hidden`): `hidden` would make .page a scroll container,
+     which captures the sticky top-bar and prevents it from sticking to the
+     body scroller. `clip` clips without establishing a scroll container. */
+  overflow-x: clip;
 }
 
 .top-bar {
-  /* scrolls away with the page rather than sticking to the top */
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 100;
 }
 
