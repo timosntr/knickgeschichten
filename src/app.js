@@ -32,35 +32,6 @@ Vue.prototype.setLobbyHidden = isHidden => {
   Vue.prototype.bus.$emit('toggle-hide-lobby');
 };
 
-// turn sound cache
-const turnSounds = {};
-// convert sound names to webpack generated paths
-const soundMap = {
-  bit: require('../res/audio/bit.wav'),
-  chime: require('../res/audio/chime.wav'),
-  chord: require('../res/audio/chord.wav'),
-  ding: require('../res/audio/ding.wav'),
-  retro: require('../res/audio/retro.wav'),
-}
-const loadTurnSound = name => {
-  if (!name || turnSounds[name]) return;
-  turnSounds[name] = new Audio(soundMap[name]);
-};
-loadTurnSound(localStorage.oocTurnSound);
-
-// play a turn sound
-Vue.prototype.playTurnSound = () => {
-  if (!localStorage.oocTurnSound) return;
-  const sound = turnSounds[localStorage.oocTurnSound];
-  if (!sound) return;
-
-  sound.currentTime = 0;
-  sound.play();
-};
-Vue.prototype.setTurnSound = sound => {
-  loadTurnSound(sound);
-  localStorage.oocTurnSound = sound;
-};
 
 Vue.use(VueRouter);
 Vue.use(PortalVue);
