@@ -287,6 +287,26 @@ app.get('/api/v1/lobbies', (req, res) => {
   res.json(Lobby.publicList());
 });
 
+// Fulltext search within completed story content
+app.get('/api/v1/lobbies/search', (req, res) => {
+  const q = (req.query.q || '').toLowerCase().trim();
+  if (!q) return res.json([]);
+
+  const codes = [];
+  for (const lobby of Object.values(Lobby.lobbies)) {
+    if (!lobby || !lobby.isAsync || !lobby.completedStories) continue;
+    outer: for (const story of lobby.completedStories) {
+      for (const entry of story) {
+        if ((entry.link || '').toLowerCase().includes(q)) {
+          codes.push(lobby.code);
+          break outer;
+        }
+      }
+    }
+  }
+  res.json(codes);
+});
+
 // Quote of the day — one random sentence from completed public stories, changes daily
 app.get('/api/v1/quote', (req, res) => {
   const sentences = [];

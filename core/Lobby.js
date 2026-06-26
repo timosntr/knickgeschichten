@@ -94,6 +94,14 @@ class Lobby {
           }
         }
 
+        const authorNames = isComplete && l.completedStories
+          ? [...new Set(l.completedStories.flat().map(e => e.authorName).filter(n => n && n !== ''))]
+          : [];
+
+        const totalLikes = l.game
+          ? _.sumBy(l.game.chains, c => _.size(_.filter(c.likes, v => v)))
+          : (l.completedLikes || 0);
+
         return {
           code: l.code,
           title: l.title,
@@ -102,8 +110,11 @@ class Lobby {
           numStories: typeof config.numStories === 'number' ? config.numStories : l.players.length,
           numLinks: typeof config.numLinks === 'number' ? config.numLinks : 10,
           numAuthors,
+          authorNames,
+          totalLikes,
           playersOnline: l.members.length,
           createdAt: l.created,
+          completedAt: l.completedAt || null,
           teaser,
         };
       })
@@ -201,6 +212,8 @@ class Lobby {
     this.disconnectTimers = {};
     this.completedStories = null;
     this.completedAuthors = 0;
+    this.completedAt = null;
+    this.completedLikes = 0;
   }
 
     // get the lobby's current save state
@@ -224,6 +237,8 @@ class Lobby {
       title: this.title,
       completedStories: this.completedStories || null,
       completedAuthors: this.completedAuthors || 0,
+      completedAt: this.completedAt || null,
+      completedLikes: this.completedLikes || 0,
     }
   }
 
@@ -258,6 +273,8 @@ class Lobby {
     this.disconnectTimers = {};
     this.completedStories = lobbyState.completedStories || null;
     this.completedAuthors = lobbyState.completedAuthors || 0;
+    this.completedAt = lobbyState.completedAt || null;
+    this.completedLikes = lobbyState.completedLikes || 0;
 
     if (lobbyState.game && this.players.length > 0) {
       const { config, state } = lobbyState.game;
