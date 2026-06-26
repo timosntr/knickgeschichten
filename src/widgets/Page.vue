@@ -31,8 +31,8 @@ body {
 }
 
 .top-bar {
-  position: sticky;
-  top: 0;
+  /* scrolls away with the page rather than sticking to the top */
+  position: relative;
   z-index: 100;
 }
 

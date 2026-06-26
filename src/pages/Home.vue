@@ -171,9 +171,9 @@
     <!-- Footer (nur Startseite) -->
     <footer class="site-footer">
       <p class="site-footer__note">
-        Dieses Projekt wurde im Rahmen des Seminars „Schreibszenen“ von Stefan Rieger
-        an der Ruhr-Universität Bochum von Jingtian Dong, Luisa, Marlen, Paulus Gkegkas
-        und Timo Santehanser entwickelt.
+        Diese Website wurde im Rahmen des Projektmoduls „Schreibszenen“ im
+        akademischen Jahr 2025/26 an der Ruhr-Universität Bochum von Luisa Bytom,
+        Jingtian Dong, Pavlos Gkegkas, Timo Santehanser und Marlen Stuka entwickelt.
       </p>
     </footer>
 
