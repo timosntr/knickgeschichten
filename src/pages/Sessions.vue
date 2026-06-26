@@ -2,6 +2,23 @@
   <ooc-page>
     <ooc-menu title="Offene Storys" subtitle="Mach mit beim Schreiben">
       <div>
+        <div class="accordion">
+          <button class="accordion-toggle" @click="showSort = !showSort">
+            <span>Sortieren nach <span class="sort-active-label">· {{ currentSortLabel }}</span></span>
+            <span class="accordion-icon">{{ showSort ? '▲' : '▼' }}</span>
+          </button>
+          <div v-if="showSort" class="accordion-body sort-options">
+            <button
+              v-for="opt in sortOptions" :key="opt.value"
+              class="sort-btn"
+              :class="{ active: sortBy === opt.value }"
+              @click="setSort(opt.value)">
+              {{ opt.label }}
+              <span v-if="sortBy === opt.value">{{ sortDesc ? '↓' : '↑' }}</span>
+            </button>
+          </div>
+        </div>
+
         <div v-if="loading" style="text-align: center; padding: 24px">
           <sui-loader active inline centered>Laden...</sui-loader>
         </div>
@@ -105,6 +122,50 @@
   color: #444;
   margin: 4px 0;
 }
+
+.accordion {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.accordion-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.88em;
+  color: #555;
+  text-align: left;
+}
+.accordion-toggle:hover { background: #fafafa; }
+.accordion-icon { font-size: 0.75em; color: #aaa; }
+.accordion-body.sort-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px 10px;
+  border-top: 1px solid #f0f0f0;
+}
+.sort-active-label { color: #21ba45; font-size: 0.92em; }
+.sort-btn {
+  padding: 3px 10px;
+  font-size: 0.82em;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: none;
+  cursor: pointer;
+  color: #666;
+}
+.sort-btn.active {
+  border-color: #21ba45;
+  color: #21ba45;
+  background: rgba(33,186,69,0.06);
+}
 </style>
 
 <script>
@@ -116,26 +177,56 @@ export default {
       refreshInterval: null,
       page: 1,
       perPage: 15,
+      showSort: false,
+      sortBy: 'lastActivity',
+      sortDesc: true,
+      sortOptions: [
+        { value: 'lastActivity', label: 'Zuletzt bearbeitet' },
+        { value: 'number',       label: 'Nummer' },
+      ],
     };
   },
   computed: {
     activeSessions() {
       return this.sessions.filter(s => !s.isComplete);
     },
+    currentSortLabel() {
+      const opt = this.sortOptions.find(o => o.value === this.sortBy);
+      return opt ? opt.label : '';
+    },
+    sortedSessions() {
+      const dir = this.sortDesc ? -1 : 1;
+      return [...this.activeSessions].sort((a, b) => {
+        if (this.sortBy === 'number') {
+          const num = t => { const m = /(\d+)\s*$/.exec(t || ''); return m ? Number(m[1]) : 0; };
+          return dir * (num(a.title) - num(b.title));
+        }
+        return dir * ((a.lastActivity || 0) - (b.lastActivity || 0));
+      });
+    },
     totalPages() {
-      return Math.max(1, Math.ceil(this.activeSessions.length / this.perPage));
+      return Math.max(1, Math.ceil(this.sortedSessions.length / this.perPage));
     },
     pagedSessions() {
       const start = (this.page - 1) * this.perPage;
-      return this.activeSessions.slice(start, start + this.perPage);
+      return this.sortedSessions.slice(start, start + this.perPage);
     },
   },
   watch: {
-    activeSessions() {
+    sortedSessions() {
       if (this.page > this.totalPages) this.page = this.totalPages;
     },
   },
   methods: {
+    setSort(value) {
+      if (this.sortBy === value) {
+        this.sortDesc = !this.sortDesc;
+      } else {
+        this.sortBy = value;
+        this.sortDesc = value !== 'number';
+      }
+      this.page = 1;
+    },
     async fetchSessions() {
       try {
         const res = await fetch('/api/v1/lobbies');
