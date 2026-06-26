@@ -97,7 +97,7 @@
                 <div class="kg-card kg-card--outline" :key="carouselIndex" @click="$router.push(`/lobby/${recentSessions[carouselIndex].code}`)">
                   <div class="kg-card__top">
                     <h3 class="kg-card__title">{{ recentSessions[carouselIndex].title }}</h3>
-                    <span class="kg-card__id">#{{ recentSessions[carouselIndex].code }}</span>
+                    <span class="kg-card__id">#{{ storyNumber(recentSessions[carouselIndex].title) }}</span>
                   </div>
                   <p v-if="recentSessions[carouselIndex].teaser" class="kg-card__body">
                     „{{ recentSessions[carouselIndex].teaser }}"
@@ -142,7 +142,7 @@
                 <div class="kg-card kg-card--dark" :key="archiveIndex" @click="$router.push(`/lobby/${recentCompleted[archiveIndex].code}`)">
                   <div class="kg-card__top">
                     <h3 class="kg-card__title">{{ recentCompleted[archiveIndex].title }}</h3>
-                    <span class="kg-card__id">#{{ recentCompleted[archiveIndex].code }}</span>
+                    <span class="kg-card__id">#{{ storyNumber(recentCompleted[archiveIndex].title) }}</span>
                   </div>
                   <p v-if="recentCompleted[archiveIndex].teaser" class="kg-card__body">
                     „{{ recentCompleted[archiveIndex].teaser }}"
@@ -500,6 +500,10 @@ export default {
     'lobby:join'() { this.creatingAsync = false; },
   },
   methods: {
+    storyNumber(title) {
+      const m = /(\d+)\s*$/.exec(title || '');
+      return m ? m[1] : '';
+    },
     createAsync() {
       this.creatingAsync = true;
       this.$socket.emit('lobby:create:async', {});
