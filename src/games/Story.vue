@@ -49,8 +49,8 @@
       <h2 is="sui-header" icon="pencil" v-else-if="player.link.length === 0">
         Write the first line
       </h2>
-      <div v-if="player.deadline" class="countdown" :class="{urgent: secondsLeft <= 10}">
-        ⏱ {{ secondsLeft }}s remaining
+      <div v-if="player.deadline" class="countdown" :class="{urgent: secondsLeft <= 30}">
+        ⏱ {{ formattedTime }} verbleibend
       </div>
       <sui-form @submit="writeLine" >
         <sui-form-field>
@@ -368,6 +368,11 @@ export default {
     },
     wordCount() {
       return this.line.trim().split(/\s+/).filter(w => w.length > 0).length;
+    },
+    formattedTime() {
+      const m = Math.floor(this.secondsLeft / 60);
+      const s = this.secondsLeft % 60;
+      return m > 0 ? `${m}:${String(s).padStart(2, '0')} Min` : `${s}s`;
     },
   },
   methods: {

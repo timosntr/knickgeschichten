@@ -83,6 +83,10 @@ module.exports = {
           name: 'min5',
           text: '5 min',
           value: 300,
+        }, {
+          name: 'min10',
+          text: '10 min',
+          value: 600,
         }],
       },
     },
