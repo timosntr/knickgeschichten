@@ -212,6 +212,8 @@ class Lobby {
     this.disconnectTimers = {};
     this.completedStories = null;
     this.completedAuthors = 0;
+    this.completedAt = null;
+    this.completedLikes = 0;
   }
 
     // get the lobby's current save state
@@ -235,6 +237,8 @@ class Lobby {
       title: this.title,
       completedStories: this.completedStories || null,
       completedAuthors: this.completedAuthors || 0,
+      completedAt: this.completedAt || null,
+      completedLikes: this.completedLikes || 0,
     }
   }
 
@@ -269,6 +273,8 @@ class Lobby {
     this.disconnectTimers = {};
     this.completedStories = lobbyState.completedStories || null;
     this.completedAuthors = lobbyState.completedAuthors || 0;
+    this.completedAt = lobbyState.completedAt || null;
+    this.completedLikes = lobbyState.completedLikes || 0;
 
     if (lobbyState.game && this.players.length > 0) {
       const { config, state } = lobbyState.game;
