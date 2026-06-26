@@ -21,9 +21,14 @@
       <p style="font-size: 0.9em; color: #555; margin-bottom: 10px">
         Lad andere ein, die Geschichte weiterzuschreiben:
       </p>
-      <sui-button color="green" fluid @click="shareLink">
-        <sui-icon name="share alternate"/> Einladungslink teilen
-      </sui-button>
+      <div class="share-buttons">
+        <sui-button color="green" @click="shareLink">
+          <sui-icon name="share alternate"/> Teilen
+        </sui-button>
+        <sui-button basic icon @click="copyLink" :title="linkCopied ? 'Kopiert!' : 'Link kopieren'">
+          <sui-icon :name="linkCopied ? 'check' : 'copy outline'"/>
+        </sui-button>
+      </div>
       <div v-if="linkCopied" style="font-size:0.82em; color:#21ba45; margin-top:6px">
         Link kopiert!
       </div>
@@ -245,6 +250,14 @@
   letter-spacing: 0.04em;
   margin-bottom: 4px;
 }
+.share-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.share-buttons .button:first-child {
+  flex: 1;
+}
 .share-contribution-text {
   font-family: 'Lora', serif;
   font-style: italic;
@@ -390,20 +403,25 @@ export default {
       if (hasAnon) parts.push('Anonym');
       return parts.length ? 'Von: ' + parts.join(', ') : '';
     },
+    inviteUrl() {
+      return `${location.origin}/einladen/${this.$route.params.code}`;
+    },
     shareLink() {
-      const url = `${location.origin}/einladen/${this.$route.params.code}`;
       if (navigator.share) {
         navigator.share({
           title: this.lobby.title || 'Knickgeschichte',
           text: 'Schreib weiter an unserer Geschichte!',
-          url,
+          url: this.inviteUrl(),
         }).catch(() => {});
       } else {
-        navigator.clipboard.writeText(url).then(() => {
-          this.linkCopied = true;
-          setTimeout(() => { this.linkCopied = false; }, 2500);
-        }).catch(() => {});
+        this.copyLink();
       }
+    },
+    copyLink() {
+      navigator.clipboard.writeText(this.inviteUrl()).then(() => {
+        this.linkCopied = true;
+        setTimeout(() => { this.linkCopied = false; }, 2500);
+      }).catch(() => {});
     },
     onPaste(e) {
       e.preventDefault();
