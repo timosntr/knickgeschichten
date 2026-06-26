@@ -65,6 +65,9 @@
           <div v-if="game.minWords > 0" class="word-count" :class="{insufficient: wordCount < game.minWords}">
             {{wordCount}} / {{game.minWords}} Wörter
           </div>
+          <div v-if="wordCount >= game.minWords && lastContextWords" class="context-preview">
+            <span class="context-preview-label">Kontext →</span> „…{{ lastContextWords }}"
+          </div>
         </sui-form-field>
         <sui-button type="submit"
           :color="player.isLastLink ? 'green' : 'blue'"
@@ -196,6 +199,23 @@
 
 .word-count.insufficient {
   color: #db2828;
+}
+
+.context-preview {
+  margin-top: 4px;
+  font-size: 0.78em;
+  color: #888;
+  font-family: 'Lora', serif;
+  font-style: italic;
+  line-height: 1.3;
+  border-left: 2px solid #21ba45;
+  padding-left: 6px;
+}
+.context-preview-label {
+  font-style: normal;
+  font-family: sans-serif;
+  color: #21ba45;
+  font-size: 0.9em;
 }
 
 .like-bar {
@@ -368,6 +388,11 @@ export default {
     },
     wordCount() {
       return this.line.trim().split(/\s+/).filter(w => w.length > 0).length;
+    },
+    lastContextWords() {
+      const words = this.line.trim().split(/\s+/).filter(w => w.length > 0);
+      if (!words.length) return '';
+      return words.slice(-8).join(' ');
     },
     formattedTime() {
       const m = Math.floor(this.secondsLeft / 60);
