@@ -35,8 +35,11 @@ class Lobby {
         continue;
       }
 
-      // delete empty, non-persist, non-async lobbies that are older than 60 seconds
-      if (lobby.empty() && !lobby.persist && !lobby.isAsync && now - lobby.created > 60000) {
+      // delete empty, non-persist, non-async lobbies after a 2-minute grace period
+      // (grace period starts when it emptied, so players can rejoin)
+      const emptyAge = now - (lobby.emptiedAt || lobby.created);
+      if (lobby.empty() && !lobby.persist && !lobby.isAsync && emptyAge > 120000) {
+        if (lobby.game) { lobby.game.stop(); lobby.game.cleanup(); lobby.game = undefined; }
         Lobby.cull(code);
         ++count;
       }
@@ -165,20 +168,9 @@ class Lobby {
         return;
       }
 
-      try {
-        // kill and cleanup the game
-        if(lobby.game) {
-          lobby.game.stop();
-          lobby.game.cleanup();
-          lobby.game = undefined;
-        }
-
-        console.log(new Date(), `-- [lobby ${lobby.code}] removed`);
-
-        Lobby.cull(lobby.code);
-      } catch (err) {
-        //
-      }
+      // Mark when the lobby emptied — cullEmpty will clean it up after a grace period
+      lobby.emptiedAt = Date.now();
+      console.log(new Date(), `-- [lobby ${lobby.code}] emptied, will be culled after grace period`);
     }
   }
 
