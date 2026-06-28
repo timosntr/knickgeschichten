@@ -163,16 +163,20 @@ module.exports = class Story extends Game {
 
   // Find a story for a player
   findChainForPlayer(player, memberId = '') {
-    // Order chains by total char length (shortest first)
+    // Hard constraints: a chain must be free, still open, and have room.
+    const writable = s => !s.editor &&  // not being worked on
+      !s.closed &&  // never reopen a chain whose last link has been written
+      _.sumBy(s.chain, l => l.length) + MAX_CONTRIBUTION <= MAX_STORY_CHARS; // has room
+
+    // Preferred: also apply the soft balancing constraints (don't immediately
+    // re-edit your own last line, keep contributions balanced, avoid alternating).
     let available = _.sortBy(
       this.chains
-        .filter(s => !s.editor &&  // Only find chains that aren't being worked on
-          !s.closed &&  // never reopen a chain whose last link has been written
-          _.sumBy(s.chain, l => l.length) + MAX_CONTRIBUTION <= MAX_STORY_CHARS && // chain has room
-          s.lastEditor != player && // Find chains the player didn't just edit
+        .filter(s => writable(s) &&
+          s.lastEditor != player && // chains the player didn't just edit
           // Also block by memberId so rejoin doesn't bypass the last-editor check
           !(memberId && s.lastEditorMemberId && s.lastEditorMemberId === memberId) &&
-          (s.collaborators[player] || 0) <= s.avgEdits() // with edits less than a
+          (s.collaborators[player] || 0) <= s.avgEdits() // balanced contribution
         ),
       s => _.sumBy(s.chain, l => l.length)
     );
@@ -181,7 +185,16 @@ module.exports = class Story extends Game {
     if(this.players.length > this.clearance)
       available = available.filter(s => !s.editors.slice(-this.clearance).includes(player));
 
-    return available[0];
+    if (available.length)
+      return available[0];
+
+    // Fallback: with few players left the soft constraints can deadlock the
+    // game — every open chain ends up last-edited by this player or filtered out
+    // by the balance check, so no one can continue and progress stalls. Relax the
+    // soft constraints and hand over any writable chain (preferring one the player
+    // didn't just write) so remaining authors can finish the stories.
+    const open = _.sortBy(this.chains.filter(writable), s => _.sumBy(s.chain, l => l.length));
+    return open.find(s => s.lastEditor != player) || open[0];
   }
 
   start() {
