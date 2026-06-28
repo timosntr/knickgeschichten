@@ -501,6 +501,30 @@ class Lobby {
             }, 60000);
           }
         }
+      } else if (!this.isAsync && this.lobbyState === 'PLAYING') {
+        // Sync PLAYING: keep the player slot so they can rejoin via lobby:replace,
+        // detach from game queue, and release their chain after a 60s grace period.
+        const pid = playerObj.playerId;
+        const name = playerObj.name || pid;
+        playerObj.connected = false;
+        playerObj.member = null;
+        playerObj.id = -1;
+        if (pid && this.game) {
+          this.game.detachPlayer(pid);
+          if (this.disconnectTimers[pid]) clearTimeout(this.disconnectTimers[pid]);
+          this.disconnectTimers[pid] = setTimeout(() => {
+            delete this.disconnectTimers[pid];
+            if (!this.game || this.lobbyState !== 'PLAYING') return;
+            this.game.releasePlayer(pid);
+            console.log(new Date(), `-- [lobby ${this.code}] released chain of absent sync player "${name}" after 60s`);
+            // End the game if fewer than 2 players are still connected
+            const connected = this.players.filter(p => p.connected).length;
+            if (connected < 2) {
+              console.log(new Date(), `-- [lobby ${this.code}] only ${connected} player(s) left, ending game`);
+              this.endGame();
+            }
+          }, 60000);
+        }
       } else {
         playerObj.name = member.name;
         playerObj.connected = false;
@@ -594,6 +618,11 @@ class Lobby {
       this.sendLobbyInfo();
 
       if(this.game && this.lobbyState === 'PLAYING') {
+        // For sync games: re-add player to the game queue and give them a chain
+        if (!this.isAsync && !this.game.players.includes(targetPlayer.playerId)) {
+          this.game.players.push(targetPlayer.playerId);
+          this.game.redistribute();
+        }
         member.socket.emit('game:info', this.game.getState());
         this.getPlayerState(id);
       }
