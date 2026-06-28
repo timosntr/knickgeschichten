@@ -334,6 +334,11 @@ class Lobby {
     if(!this.selectedGame) return;
     if(this.lobbyState !== 'PLAYING') return;
 
+    for (const pid in this.disconnectTimers) {
+      clearTimeout(this.disconnectTimers[pid]);
+      delete this.disconnectTimers[pid];
+    }
+
     if(this.game) {
       this.game.stop();
       this.game.cleanup();
@@ -512,9 +517,10 @@ class Lobby {
         if (pid && this.game) {
           this.game.detachPlayer(pid);
           if (this.disconnectTimers[pid]) clearTimeout(this.disconnectTimers[pid]);
+          const gameAtDisconnect = this.game;
           this.disconnectTimers[pid] = setTimeout(() => {
             delete this.disconnectTimers[pid];
-            if (!this.game || this.lobbyState !== 'PLAYING') return;
+            if (!this.game || this.game !== gameAtDisconnect || this.lobbyState !== 'PLAYING') return;
             this.game.releasePlayer(pid);
             console.log(new Date(), `-- [lobby ${this.code}] released chain of absent sync player "${name}" after 60s`);
             // If fewer than 2 players remain, abort: show partial stories to whoever is left
