@@ -87,7 +87,7 @@
       <sui-button :basic="!confirmEndGame"
                color="red"
         @click="tryEndGame"
-        v-if="$root.playerId === admin && lobbyState === 'PLAYING'">
+        v-if="$root.playerId === admin && lobbyState === 'PLAYING' && !gameState.reading">
         {{confirmEndGame ? 'Are You Sure?' : 'End Game'}}
       </sui-button>
     </div>

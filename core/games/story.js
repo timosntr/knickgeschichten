@@ -24,6 +24,9 @@ module.exports = class Story extends Game {
     this.timers = {};
     this.deadlines = {};
     this.idleTimers = {};
+    // Set once the game is aborted mid-way: players read the partial stories
+    // instead of writing, and the game waits for them to finish reading.
+    this.aborted = false;
   }
 
 
@@ -33,6 +36,7 @@ module.exports = class Story extends Game {
 
     this.chains = blob.chains.map(Chain.restore);
     this.finishedReading = blob.finishedReading;
+    this.aborted = blob.aborted || false;
 
     // Restore timers from saved deadlines
     if (blob.deadlines && this.config.timeLimit > 0) {
@@ -53,6 +57,7 @@ module.exports = class Story extends Game {
       chains: this.chains.map(s => s.save()),
       finishedReading: this.finishedReading,
       deadlines: this.deadlines,
+      aborted: this.aborted,
     }
   }
 
@@ -266,22 +271,22 @@ module.exports = class Story extends Game {
     for (const pid in this.idleTimers) clearTimeout(this.idleTimers[pid]);
     this.idleTimers = {};
 
+    this.aborted = true;
+    // Release every chain so no one is left assigned as an editor — otherwise
+    // getPlayerState would send them back to EDITING on the next sendGameInfo().
+    for (const c of this.chains)
+      c.editor = '';
+
     // No players left to read — end immediately rather than leaving lobby stuck in PLAYING
     if (this.players.length === 0) {
       this.lobby.endGame();
       return;
     }
 
+    // Send the partial stories, then broadcast state so every remaining player
+    // enters READING (getPlayerState now resolves to READING while aborted).
     this.lobby.emitAll('story:result', this.compilePartialStories());
-
-    // Put remaining players in READING state so they see the stories
-    for (const pid of this.players) {
-      this.emitTo(pid, 'game:player:info', {
-        id: pid,
-        liked: this.chains.map(s => s.likes[pid]),
-        state: 'READING',
-      });
-    }
+    this.sendGameInfo();
   }
 
   cleanup() {}
@@ -290,7 +295,9 @@ module.exports = class Story extends Game {
     switch(type) {
 
     case 'story:result':
-      if (this.getGameProgress() === 1) {
+      if (this.aborted) {
+        this.emitTo(pid, 'story:result', this.compilePartialStories());
+      } else if (this.getGameProgress() === 1) {
         this.emitTo(pid, 'story:result', this.compileStories());
       }
       break;
@@ -368,8 +375,8 @@ module.exports = class Story extends Game {
       break;
 
     case 'chain:like':
-      const progress = this.getGameProgress();
-      if(typeof data === 'number' && data >= 0 && data <= this.chains.length && progress === 1) {
+      const reading = this.aborted || this.getGameProgress() === 1;
+      if(typeof data === 'number' && data >= 0 && data <= this.chains.length && reading) {
         this.chains[data].likes[pid] = !this.chains[data].likes[pid];
         this.sendGameInfo();
       }
@@ -387,8 +394,8 @@ module.exports = class Story extends Game {
   }
 
   getPlayerState(pid) {
-    const story = this.chains.find(s => s.editor === pid);
-    const done = this.getGameProgress() === 1;
+    const story = this.aborted ? null : this.chains.find(s => s.editor === pid);
+    const done = this.aborted || this.getGameProgress() === 1;
 
     return story ? {
       id: pid,
@@ -438,11 +445,14 @@ module.exports = class Story extends Game {
     for (const c of this.chains.filter(s => s.editor))
       hasStory[c.editor] = true;
     const progress = this.getGameProgress();
+    // "reading" covers both a naturally finished game and an aborted one — in
+    // both cases players are reading partial/complete stories, not writing.
+    const reading = this.aborted || progress === 1;
     return {
-      // players who are writing have pencil icons, players who are not have a clock icon
+      // players who are reading have check/clock icons, writers have a pencil
       icons: Object.fromEntries(this.players.map(p => ([
         p,
-        progress === 1
+        reading
           ? this.finishedReading[p] ? 'check' : 'clock'
           : hasStory[p] ? 'pencil' : 'clock',
       ]))),
@@ -450,6 +460,7 @@ module.exports = class Story extends Game {
       minWords: MIN_WORDS,
       likes: this.chains.map(s => _.size(_.filter(s.likes, l => l))),
       isComplete: progress === 1,
+      reading,
     };
   }
 };
