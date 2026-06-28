@@ -44,7 +44,7 @@
             {{p.name}}
             <span class="emote-container" :ref="`emote_${p.id}`"></span>
             <span class="user-icons">
-              <sui-button v-if="!p.connected"
+              <sui-button v-if="!p.connected && !isActivePlayer"
                 size="tiny"
                 @click="$socket.emit('lobby:replace', p.playerId)"
                                basic>
@@ -237,6 +237,11 @@ export default {
   computed: {
     isAdmin() {
       return this.$root.playerId === this.admin;
+    },
+    // True when the viewer already holds a connected player slot — they should
+    // never see the "Join" button on someone else's disconnected slot.
+    isActivePlayer() {
+      return this.players.some(p => p.id === this.$root.playerId && p.connected);
     },
   },
   data() {
