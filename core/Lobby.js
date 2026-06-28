@@ -322,6 +322,14 @@ class Lobby {
     const Constructor = GAMES[this.selectedGame];
 
     if(Constructor) {
+      // Clear the previous round's stories so a new round can record its own
+      // (redistribute only saves completedStories when none are set yet).
+      if (!this.isAsync) {
+        this.completedStories = null;
+        this.completedAuthors = 0;
+        this.completedAt = null;
+        this.completedLikes = 0;
+      }
       this.game = new Constructor(...args);
       this.lobbyState = 'PLAYING';
       this.updateMembers();
@@ -750,6 +758,9 @@ class Lobby {
       admin: this.admin,
       isAsync: this.isAsync,
       isComplete: !!this.completedStories,
+      // Stories from the last finished round, so a private lobby can show them
+      // (as an accordion) before the next round starts.
+      completedStories: !this.isAsync ? (this.completedStories || null) : null,
       title: this.title,
       gameState: this.game ? this.game.getState() : {},
       members: this.members.map(m => ({

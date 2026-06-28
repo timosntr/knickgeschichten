@@ -358,6 +358,13 @@ module.exports = class Story extends Game {
     for (const c of this.chains)
       c.editor = '';
 
+    // Save the partial stories (the ones that actually got written) so the
+    // lobby can show them in its accordion after the round, just like a
+    // completed round.
+    const partial = this.compilePartialStories().filter(s => s.length > 0);
+    this.lobby.completedStories = partial.length ? partial : null;
+    this.lobby.completedAt = partial.length ? Date.now() : null;
+
     // No players left to read — end immediately rather than leaving lobby stuck in PLAYING
     if (this.players.length === 0) {
       this.lobby.endGame();

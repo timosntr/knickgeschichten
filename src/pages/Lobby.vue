@@ -175,6 +175,25 @@
             <sui-button basic @click="leaveLobby">Leave</sui-button>
           </div>
         </div>
+
+        <div v-if="!lobbyInfo.isAsync && lobbyInfo.completedStories && lobbyInfo.completedStories.length"
+          style="margin-top: 8px;">
+          <sui-divider horizontal >
+            Letzte Runde
+          </sui-divider>
+          <div class="story-accordion">
+            <div v-for="(story, i) in lobbyInfo.completedStories" :key="i" class="story-acc-item">
+              <button type="button" class="story-acc-toggle" @click="toggleStory(i)">
+                <span class="story-acc-title">Geschichte {{ i + 1 }}</span>
+                <span class="story-acc-preview" v-if="!openStories[i]">{{ storyPreview(story) }}</span>
+                <span class="story-acc-icon">{{ openStories[i] ? '▲' : '▼' }}</span>
+              </button>
+              <div v-if="openStories[i]" class="story-acc-body">
+                <p>{{ story.map(e => e.link).join(' ') }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <ooc-player-list
         v-if="!lobbyInfo.isAsync"
@@ -225,6 +244,65 @@
 
 .player-table td {
   font-weight: normal !important;
+}
+
+.story-accordion {
+  text-align: left;
+}
+
+.story-acc-item {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.story-acc-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.95em;
+}
+
+.story-acc-toggle:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.story-acc-title {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.story-acc-preview {
+  flex: 1;
+  color: #999;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.story-acc-icon {
+  margin-left: auto;
+  font-size: 0.7em;
+  color: #aaa;
+}
+
+.story-acc-body {
+  padding: 4px 14px 14px;
+}
+
+.story-acc-body p {
+  font-family: 'Lora', serif;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  margin: 0;
 }
 
 .lobby-code {
@@ -287,6 +365,7 @@ export default {
       lobbyInfo: emptyInfo(),
       state: 'LOADING',
       gameInfo,
+      openStories: {},
     };
   },
   computed:  {
@@ -314,6 +393,14 @@ export default {
   },
   methods: {
     update() { this.$forceUpdate(); },
+    toggleStory(i) {
+      this.$set(this.openStories, i, !this.openStories[i]);
+    },
+    storyPreview(story) {
+      const text = story.map(e => e.link).join(' ');
+      const words = text.trim().split(/\s+/);
+      return words.length > 6 ? words.slice(0, 6).join(' ') + '…' : text;
+    },
     leaveLobby() {
       this.$socket.emit('lobby:leave');
       this.$router.push('/');
@@ -430,6 +517,7 @@ export default {
       // Start playing if the lobby is playing
       if(info.state === 'PLAYING' && this.state === 'LOBBY_WAITING') {
         this.state = 'PLAYING';
+        this.openStories = {};
         gtag('event', 'playing_game', {
           game_name: info.game,
           player_count: info.players.length,
