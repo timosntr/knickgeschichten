@@ -153,6 +153,14 @@ io.on('connection', socket => {
   socket.on('lobby:join', code => {
     code = code.toLowerCase();
 
+    // Auto-leave any current WAITING lobby before joining.
+    // Handles race where lobby:join arrives before the client's lobby:leave event —
+    // e.g. when the HTTP lobby-exists check resolves faster than the WS leave frame.
+    if (player.lobby && player.lobby.lobbyState === 'WAITING') {
+      Lobby.removePlayer(player, true);
+      player.autoLeftAt = Date.now();
+    }
+
     if(!player.lobby && Lobby.lobbyExists(code)) {
       player.interact();
 
@@ -165,6 +173,7 @@ io.on('connection', socket => {
       }
 
       player.lobby = Lobby.lobbies[code];
+      player.autoLeftAt = null;
       socket.emit('lobby:join', code);
       Lobby.lobbies[code].addMember(player);
     }
@@ -257,6 +266,13 @@ io.on('connection', socket => {
 
   // Leave the lobby if a player is in one
   socket.on('lobby:leave', () => {
+    // Ignore stale leave events that arrive after the player already auto-rejoined
+    // (race condition: lobby:join processed first, delayed lobby:leave would otherwise
+    // remove the player from the lobby they just re-entered)
+    if (player.autoLeftAt && Date.now() - player.autoLeftAt < 500) {
+      player.autoLeftAt = null;
+      return;
+    }
     player.name = null;
     Lobby.removePlayer(player, true);
   });
