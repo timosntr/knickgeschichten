@@ -15,6 +15,9 @@ class Chain {
     // Id of the current editor
     this.editor = '';
 
+    // Player who should write this chain next (fixed-ring rotation, private games)
+    this.nextEditor = '';
+
     // Marks the chain as finished once a "last link" contribution is written,
     // so completion no longer depends on the variable length of that final line.
     this.closed = false;
@@ -40,6 +43,7 @@ class Chain {
       lastEditor: this.lastEditor,
       lastEditorMemberId: this.lastEditorMemberId,
       editor: this.editor,
+      nextEditor: this.nextEditor,
       closed: this.closed,
       chain: this.chain,
       type: this.type,
@@ -57,6 +61,7 @@ class Chain {
     this.lastEditor = blob.lastEditor;
     this.lastEditorMemberId = blob.lastEditorMemberId || '';
     this.editor = blob.editor;
+    this.nextEditor = blob.nextEditor || '';
     this.closed = blob.closed || false;
     this.chain = blob.chain;
     this.editors = blob.editors;

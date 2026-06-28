@@ -27,6 +27,9 @@ module.exports = class Story extends Game {
     // Set once the game is aborted mid-way: players read the partial stories
     // instead of writing, and the game waits for them to finish reading.
     this.aborted = false;
+    // Fixed rotation ring for private games (built in start()/restore()).
+    this.ring = null;
+    this.succ = {};
   }
 
 
@@ -37,6 +40,8 @@ module.exports = class Story extends Game {
     this.chains = blob.chains.map(Chain.restore);
     this.finishedReading = blob.finishedReading;
     this.aborted = blob.aborted || false;
+    this.ring = blob.ring || null;
+    this.succ = blob.succ || {};
 
     // Restore timers from saved deadlines
     if (blob.deadlines && this.config.timeLimit > 0) {
@@ -58,6 +63,8 @@ module.exports = class Story extends Game {
       finishedReading: this.finishedReading,
       deadlines: this.deadlines,
       aborted: this.aborted,
+      ring: this.ring,
+      succ: this.succ,
     }
   }
 
@@ -161,22 +168,19 @@ module.exports = class Story extends Game {
     this.redistribute();
   }
 
-  // Find a story for a player
+  // Find a story for a player (async balancing model — public sessions).
+  // Private sync games use the fixed ring rotation instead (see assignRing).
   findChainForPlayer(player, memberId = '') {
-    // Hard constraints: a chain must be free, still open, and have room.
-    const writable = s => !s.editor &&  // not being worked on
-      !s.closed &&  // never reopen a chain whose last link has been written
-      _.sumBy(s.chain, l => l.length) + MAX_CONTRIBUTION <= MAX_STORY_CHARS; // has room
-
-    // Preferred: also apply the soft balancing constraints (don't immediately
-    // re-edit your own last line, keep contributions balanced, avoid alternating).
+    // Order chains by total char length (shortest first)
     let available = _.sortBy(
       this.chains
-        .filter(s => writable(s) &&
-          s.lastEditor != player && // chains the player didn't just edit
+        .filter(s => !s.editor &&  // Only find chains that aren't being worked on
+          !s.closed &&  // never reopen a chain whose last link has been written
+          _.sumBy(s.chain, l => l.length) + MAX_CONTRIBUTION <= MAX_STORY_CHARS && // chain has room
+          s.lastEditor != player && // Find chains the player didn't just edit
           // Also block by memberId so rejoin doesn't bypass the last-editor check
           !(memberId && s.lastEditorMemberId && s.lastEditorMemberId === memberId) &&
-          (s.collaborators[player] || 0) <= s.avgEdits() // balanced contribution
+          (s.collaborators[player] || 0) <= s.avgEdits() // with edits less than a
         ),
       s => _.sumBy(s.chain, l => l.length)
     );
@@ -185,16 +189,64 @@ module.exports = class Story extends Game {
     if(this.players.length > this.clearance)
       available = available.filter(s => !s.editors.slice(-this.clearance).includes(player));
 
-    if (available.length)
-      return available[0];
+    return available[0];
+  }
 
-    // Fallback: with few players left the soft constraints can deadlock the
-    // game — every open chain ends up last-edited by this player or filtered out
-    // by the balance check, so no one can continue and progress stalls. Relax the
-    // soft constraints and hand over any writable chain (preferring one the player
-    // didn't just write) so remaining authors can finish the stories.
-    const open = _.sortBy(this.chains.filter(writable), s => _.sumBy(s.chain, l => l.length));
-    return open.find(s => s.lastEditor != player) || open[0];
+  // --- Fixed rotation ring (private sync games) ---------------------------
+  // Stories are passed in a fixed cyclic order chosen randomly at start:
+  // ring[i] always passes the story they finish to ring[i+1]. Absent players
+  // are skipped so the remaining authors can still finish every story, but the
+  // relative order between the present players never changes.
+
+  // Build the ring + successor map from a (shuffled) player order.
+  initRing(order) {
+    this.ring = order.slice();
+    this.succ = {};
+    const n = this.ring.length;
+    for (let i = 0; i < n; i++)
+      this.succ[this.ring[i]] = this.ring[(i + 1) % n];
+  }
+
+  // The next still-present player after `pid` in the ring (skips players who
+  // left). Returns `pid` itself if they are the only one left, or '' if none.
+  nextInRing(pid) {
+    if (!this.succ || !this.succ[pid]) return '';
+    let cur = this.succ[pid];
+    for (let i = 0; i < this.ring.length; i++) {
+      if (this.players.includes(cur)) return cur;
+      cur = this.succ[cur];
+    }
+    return '';
+  }
+
+  // Resolve a chain's designated next author to a present player (advancing
+  // past anyone who has left the game).
+  ringTarget(pid) {
+    if (pid && this.players.includes(pid)) return pid;
+    return pid ? this.nextInRing(pid) : '';
+  }
+
+  // Assign every free, writable chain to its designated next author in the
+  // ring, when that author isn't already busy with another chain.
+  assignRing() {
+    const busy = {};
+    for (const c of this.chains)
+      if (c.editor) busy[c.editor] = true;
+
+    const free = _.sortBy(
+      this.chains.filter(c => !c.editor && !c.closed &&
+        _.sumBy(c.chain, l => l.length) + MAX_CONTRIBUTION <= MAX_STORY_CHARS),
+      c => _.sumBy(c.chain, l => l.length)
+    );
+
+    for (const c of free) {
+      const target = this.ringTarget(c.nextEditor);
+      if (target && !busy[target]) {
+        c.nextEditor = target; // collapse past any players who left
+        this.assignChain(target, c);
+        busy[target] = true;
+      }
+    }
   }
 
   start() {
@@ -204,9 +256,20 @@ module.exports = class Story extends Game {
     this.chains = _.range(numStories)
       .map(() => new Chain(numPlayers, numLinks));
 
-    // Every player has an equal chance of getting a story
+    // Random starting order — fixed for the rest of the game.
     const players = _.shuffle(this.players);
 
+    if (!this.lobby.isAsync) {
+      // Private game: fixed rotation. Give each player one starting story and
+      // let redistribute() hand them out via the ring.
+      this.initRing(players);
+      for (let i = 0; i < this.chains.length; i++)
+        this.chains[i].nextEditor = players[i % players.length];
+      this.redistribute();
+      return;
+    }
+
+    // Public async game: balancing assignment.
     for(const player of players) {
       const playerObj = this.lobby.players.find(p => p.playerId === player);
       const memberId = playerObj ? playerObj.id : '';
@@ -222,18 +285,23 @@ module.exports = class Story extends Game {
 
   // Find stories for those who are not working on one
   redistribute() {
-    const hasStory = this.chains.filter(s => s.editor).reduce((obj, i) => ({...obj, [i.editor]: true}), {});
+    if (!this.lobby.isAsync && this.ring) {
+      // Private game: assign strictly by the fixed ring rotation.
+      this.assignRing();
+    } else {
+      const hasStory = this.chains.filter(s => s.editor).reduce((obj, i) => ({...obj, [i.editor]: true}), {});
 
-    // find players not editing stories
-    const players = _.sortBy(this.players.filter(p => !hasStory[p]), p => this.lastEdit[p]);
+      // find players not editing stories
+      const players = _.sortBy(this.players.filter(p => !hasStory[p]), p => this.lastEdit[p]);
 
-    for(const player of players) {
-      const playerObj = this.lobby.players.find(p => p.playerId === player);
-      const memberId = playerObj ? playerObj.id : '';
-      const story = this.findChainForPlayer(player, memberId);
-      if(!story)
-        continue;
-      this.assignChain(player, story);
+      for(const player of players) {
+        const playerObj = this.lobby.players.find(p => p.playerId === player);
+        const memberId = playerObj ? playerObj.id : '';
+        const story = this.findChainForPlayer(player, memberId);
+        if(!story)
+          continue;
+        this.assignChain(player, story);
+      }
     }
 
     // When all stories are complete, save them to lobby so they survive endGame()
@@ -357,6 +425,10 @@ module.exports = class Story extends Game {
       story.addLink(pid, line, authorName, memberId);
       if (wasLastLink)
         story.closed = true;
+
+      // Private game: pass the story to the next present author in the ring.
+      if (!this.lobby.isAsync && this.ring)
+        story.nextEditor = this.nextInRing(pid);
 
       this.redistribute();
 
