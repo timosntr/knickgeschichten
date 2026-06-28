@@ -257,6 +257,27 @@ module.exports = class Story extends Game {
     this.lobby.emitAll('story:result', stories);
   }
 
+  // Abort mid-game: show partial stories to remaining players and wait for them
+  // to click Done before ending the game (so they can read what was written).
+  abort() {
+    for (const pid in this.timers) clearTimeout(this.timers[pid]);
+    this.timers = {};
+    this.deadlines = {};
+    for (const pid in this.idleTimers) clearTimeout(this.idleTimers[pid]);
+    this.idleTimers = {};
+
+    this.lobby.emitAll('story:result', this.compilePartialStories());
+
+    // Put remaining players in READING state so they see the stories
+    for (const pid of this.players) {
+      this.emitTo(pid, 'game:player:info', {
+        id: pid,
+        liked: this.chains.map(s => s.likes[pid]),
+        state: 'READING',
+      });
+    }
+  }
+
   cleanup() {}
 
   handleMessage(pid, type, data) {

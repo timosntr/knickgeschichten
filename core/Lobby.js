@@ -517,11 +517,11 @@ class Lobby {
             if (!this.game || this.lobbyState !== 'PLAYING') return;
             this.game.releasePlayer(pid);
             console.log(new Date(), `-- [lobby ${this.code}] released chain of absent sync player "${name}" after 60s`);
-            // End the game if fewer than 2 players are still connected
+            // If fewer than 2 players remain, abort: show partial stories to whoever is left
             const connected = this.players.filter(p => p.connected).length;
             if (connected < 2) {
-              console.log(new Date(), `-- [lobby ${this.code}] only ${connected} player(s) left, ending game`);
-              this.endGame();
+              console.log(new Date(), `-- [lobby ${this.code}] only ${connected} player(s) left, aborting game`);
+              this.game.abort();
             }
           }, 60000);
         }

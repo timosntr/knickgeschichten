@@ -222,8 +222,15 @@ io.on('connection', socket => {
   socket.on('game:end', game => {
     if(player.isAdmin()) {
       player.interact();
-      player.lobby.endGame();
-      console.log(new Date(), `-- [lobby ${player.lobby.code}] ended game ${player.lobby.selectedGame}`);
+      const lobby = player.lobby;
+      // For incomplete games, abort gracefully so players can read what was written
+      if (lobby.game && lobby.game.getGameProgress() < 1) {
+        lobby.game.abort();
+        console.log(new Date(), `-- [lobby ${lobby.code}] game aborted by admin, showing partial results`);
+      } else {
+        lobby.endGame();
+        console.log(new Date(), `-- [lobby ${lobby.code}] ended game ${lobby.selectedGame}`);
+      }
     }
   });
 
