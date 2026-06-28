@@ -266,6 +266,12 @@ module.exports = class Story extends Game {
     for (const pid in this.idleTimers) clearTimeout(this.idleTimers[pid]);
     this.idleTimers = {};
 
+    // No players left to read — end immediately rather than leaving lobby stuck in PLAYING
+    if (this.players.length === 0) {
+      this.lobby.endGame();
+      return;
+    }
+
     this.lobby.emitAll('story:result', this.compilePartialStories());
 
     // Put remaining players in READING state so they see the stories
