@@ -1,7 +1,9 @@
 <template>
   <div class="player-list-widget">
     <sui-divider horizontal >
-      Lobby Members
+      Lobby Members<span
+        v-if="lobbyState === 'PLAYING' && $route.params.code"
+        class="lobby-code-inline">{{ $route.params.code.toUpperCase() }}</span>
     </sui-divider>
     <sui-table unstackable basic class="player-table" >
       <sui-table-header>
@@ -95,6 +97,15 @@
 </template>
 
 <style>
+
+.lobby-code-inline {
+  margin-left: 8px;
+  font-family: monospace;
+  font-size: 0.85em;
+  font-weight: normal;
+  letter-spacing: 1px;
+  opacity: 0.55;
+}
 
 td {
   position: relative;
