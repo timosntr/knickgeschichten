@@ -2,6 +2,7 @@ const Game = require('./game');
 const _ = require('lodash');
 const Chain = require('./util/Chain');
 const Sanitize = require('./util/Sanitize');
+const WordFilter = require('./util/WordFilter');
 
 const MIN_WORDS = 15;
 const MAX_CONTRIBUTION = 250;
@@ -404,7 +405,9 @@ module.exports = class Story extends Game {
       if(typeof data !== 'string')
         return;
 
-      const line = Sanitize.str(data);
+      // Sanitize, then censor disallowed words (replaced with ***) so the
+      // stored line — and everything downstream (context, results) — is clean.
+      const line = WordFilter.censor(Sanitize.str(data));
 
       if(line.length < 1 || line.length > MAX_CONTRIBUTION)
         return;
