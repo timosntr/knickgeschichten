@@ -1,32 +1,46 @@
 // Built-in word filter.
 //
 // Disallowed terms (German + English insults / slurs) are matched
-// case-insensitively as whole words and replaced with "***". The match is
-// bounded by Unicode letter/number lookarounds, so innocent words that merely
-// contain a term as a substring are left alone (e.g. "Klasse" is not censored
-// because of "ass", "passt" is not censored because of "ass").
+// case-insensitively as whole words and replaced with one "*" per letter
+// (so "arschloch" becomes "*********"). The match is bounded by Unicode
+// letter/number lookarounds, so innocent words that merely contain a term as a
+// substring are left alone (e.g. "Klasse" is not censored because of "ass",
+// "passt" is not censored because of "ass", "spicy" is not censored because of
+// "spic").
 //
-// This is a deliberately compact starting list — extend the arrays below as
-// needed. Keep entries lowercase; matching is case-insensitive.
+// Keep entries lowercase; matching is case-insensitive. Extend the arrays as
+// needed.
 
 const BANNED = [
-  // --- German: strong profanity / insults ---
-  'arschloch', 'arschlöcher', 'wichser', 'wichs',
-  'hurensohn', 'hurensöhne', 'hure', 'huren', 'nutte', 'nutten',
-  'fotze', 'fotzen', 'schlampe', 'schlampen',
-  'fick', 'ficker', 'ficken', 'fickt', 'fickst', 'gefickt', 'verfickt',
-  'scheisse', 'scheiße', 'kackbratze', 'vollpfosten',
-  'missgeburt', 'hurenkind',
+  // --- German: profanity / insults ---
+  'arsch', 'arschloch', 'arschlöcher', 'arschgeige', 'arschficker', 'arschkriecher',
+  'wichser', 'wichs', 'wichsen', 'wichst', 'wichste', 'abwichsen',
+  'hurensohn', 'hurensöhne', 'hurenkind', 'hure', 'huren', 'nutte', 'nutten',
+  'fotze', 'fotzen', 'muschi', 'schwanzlutscher', 'sackgesicht', 'hodensack',
+  'schlampe', 'schlampen',
+  'fick', 'ficker', 'ficken', 'fickt', 'fickst', 'fickte', 'gefickt', 'verfickt', 'fickfehler',
+  'scheisse', 'scheiße', 'scheiss', 'scheis', 'kacke', 'kackbratze',
+  'vollpfosten', 'vollidiot', 'vollhonk', 'volltrottel', 'schwachkopf', 'dummkopf',
+  'missgeburt', 'drecksau', 'dreckskerl', 'dreckschwein', 'pisser', 'pissnelke',
   // --- German: slurs (discriminatory) ---
-  'neger', 'negger', 'kanake', 'kanacke', 'schwuchtel', 'schwuchteln',
-  'spasti', 'spast', 'mongo', 'mongoloid', 'zigeuner', 'krüppel',
-  // --- English: strong profanity / insults ---
-  'fuck', 'fucker', 'fucking', 'fucked', 'motherfucker',
-  'shit', 'bullshit', 'asshole', 'assholes', 'bitch', 'bitches',
-  'cunt', 'slut', 'whore', 'bastard', 'dickhead',
+  'neger', 'negger', 'kanake', 'kanacke', 'kanaken',
+  'schwuchtel', 'schwuchteln', 'tunte', 'tunten',
+  'spasti', 'spast', 'behindi', 'mongo', 'mongoloid',
+  'zigeuner', 'krüppel', 'schlitzauge', 'schlitzaugen', 'fidschi', 'bimbo',
+  // --- English: profanity / insults ---
+  'ass', 'asshole', 'assholes', 'arse', 'arsehole', 'jackass', 'dumbass',
+  'fuck', 'fucker', 'fuckers', 'fucking', 'fucked', 'fucks', 'fuckface', 'fuckwit',
+  'motherfucker', 'motherfucking', 'clusterfuck',
+  'shit', 'shitty', 'shithead', 'bullshit', 'dipshit',
+  'bitch', 'bitches', 'bitching', 'cunt', 'cunts',
+  'slut', 'sluts', 'whore', 'whores', 'bastard', 'bastards',
+  'dickhead', 'prick', 'twat', 'wanker', 'bollocks', 'douche', 'douchebag',
   // --- English: slurs (discriminatory) ---
-  'nigger', 'nigga', 'faggot', 'fag', 'retard', 'retarded',
-  'spic', 'chink', 'tranny',
+  'nigger', 'niggers', 'nigga', 'niggas',
+  'faggot', 'faggots', 'fag', 'fags', 'dyke',
+  'retard', 'retards', 'retarded',
+  'spic', 'chink', 'chinks', 'gook', 'wetback', 'paki', 'coon', 'kike', 'beaner',
+  'tranny', 'trannies',
 ];
 
 const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -40,7 +54,8 @@ const pattern = new RegExp(
 
 module.exports = {
   banned: BANNED,
-  // Replace every disallowed word with "***", leaving the rest of the text
-  // (including punctuation and spacing) intact. Returns '' for non-strings.
-  censor: text => (typeof text === 'string' ? text : '').replace(pattern, '***'),
+  // Replace every disallowed word with one "*" per character, leaving the rest
+  // of the text (punctuation, spacing) intact. Returns '' for non-strings.
+  censor: text => (typeof text === 'string' ? text : '')
+    .replace(pattern, m => '*'.repeat([...m].length)),
 };
