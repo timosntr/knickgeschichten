@@ -194,6 +194,9 @@
     <sui-dimmer :active="loading || state === 'LOADING'">
       <sui-loader  />
     </sui-dimmer>
+    <sui-dimmer :active="reconnecting">
+      <sui-loader>Verbindung verloren – verbinde neu …</sui-loader>
+    </sui-dimmer>
     <sui-label
       v-if="validLobby && !rocketcrab && !lobbyInfo.isAsync"
       class="lobby-code left"
@@ -281,6 +284,8 @@ export default {
       lobbyInfo: emptyInfo(),
       state: 'LOADING',
       gameInfo,
+      reconnecting: false,
+      reconnectTimer: null,
     };
   },
   computed:  {
@@ -463,10 +468,28 @@ export default {
       this.lobbyInfo = info;
     },
     disconnect(code) {
+      // Brief drops are common (network blips, device sleep) and socket.io
+      // auto-reconnects. Don't tear down an active game over a momentary loss —
+      // keep the view mounted, show a reconnecting overlay, and only give up
+      // after a grace period. This keeps the player in their seat and preserves
+      // whatever they were typing.
+      if (this.state === 'PLAYING' || this.state === 'LOBBY_WAITING') {
+        this.reconnecting = true;
+        clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = setTimeout(() => {
+          this.reconnecting = false;
+          this.validLobby = false;
+          this.state = 'NO_LOBBY';
+        }, 20000);
+        return;
+      }
       this.validLobby = false;
       this.state = 'NO_LOBBY';
     },
     connect() {
+      // Recovered — cancel any pending give-up and rejoin seamlessly.
+      this.reconnecting = false;
+      clearTimeout(this.reconnectTimer);
       const lobbyCode = this.$route.params.code;
       if(this.loading) {
         return;
@@ -481,6 +504,7 @@ export default {
   },
   beforeDestroy() {
     this.bus.$off('toggle-hide-lobby', this.update);
+    clearTimeout(this.reconnectTimer);
   },
   created() {
     this.bus.$on('toggle-hide-lobby', this.update);

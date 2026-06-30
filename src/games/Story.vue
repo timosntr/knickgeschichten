@@ -379,10 +379,29 @@ export default {
     this.stopCountdown();
   },
   created() {
+    // Restore an unsent draft for this story (survives reconnects, remounts and
+    // full page reloads) so a dropped connection never loses what you typed.
+    try {
+      const draft = localStorage.getItem(this.draftKey);
+      if (draft) this.line = draft;
+    } catch (e) {}
     this.$socket.emit('game:info');
     this.$socket.emit('lobby:info');
   },
+  watch: {
+    // Persist the in-progress line as it's typed, clear it once it's gone
+    // (submitted, skipped, or turn ended).
+    line(val) {
+      try {
+        if (val) localStorage.setItem(this.draftKey, val);
+        else localStorage.removeItem(this.draftKey);
+      } catch (e) {}
+    },
+  },
   computed: {
+    draftKey() {
+      return `oocDraft:${this.$route.params.code || ''}`;
+    },
     nameTable() {
       return this.lobby.players.reduce((obj, p) => ({...obj, [p.playerId]: p.name}), {});
     },
@@ -492,6 +511,7 @@ export default {
       }
     },
     skipTurn() {
+      this.line = '';  // abandon the turn — drop any saved draft (via watcher)
       this.$socket.emit('game:message', 'story:skip');
       this.$router.push('/');
     },
