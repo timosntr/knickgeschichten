@@ -34,17 +34,15 @@ module.exports = class Story extends Game {
     this.chains = blob.chains.map(Chain.restore);
     this.finishedReading = blob.finishedReading;
 
-    // Restore timers from saved deadlines
-    if (blob.deadlines && this.config.timeLimit > 0) {
-      for (const pid in blob.deadlines) {
-        const deadline = blob.deadlines[pid];
-        const remaining = deadline - Date.now();
-        if (remaining > 0) {
-          this.deadlines[pid] = deadline;
-          this.timers[pid] = setTimeout(() => this.timeoutPlayer(pid), remaining);
-        }
-      }
-    }
+    // A restored game has no live connections — nobody is actually mid-turn.
+    // Release every held chain so it can be reassigned when players (re)join.
+    // Otherwise a chain saved with an editor that never returns (disconnect,
+    // closed tab, or an AI player that isn't running on this server) stays
+    // assigned forever: redistribute() skips it and everyone else is stuck
+    // on "Waiting on Other Authors". The previous session's turn timers are
+    // intentionally dropped here — a fresh timer starts on reassignment.
+    for (const chain of this.chains)
+      chain.editor = '';
   }
 
   save() {
