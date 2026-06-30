@@ -29,12 +29,6 @@
           <router-link is="sui-button"             to="/">
             Home
           </router-link>
-          <a is="sui-button"
-            href="https://github.com/meshiest/outofcontext/issues"
-            target="_blank"
-                                   rel="noopener noreferrer">
-            Bug Report
-          </a>
         </sui-button-group>
       </div>
     </ooc-menu>
