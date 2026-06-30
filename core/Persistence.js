@@ -46,6 +46,14 @@ function cullSaves() {
 
 // save a lobby state to gzip-compressed file (atomic: write to .tmp then rename)
 function saveLobbyState(lobby) {
+  // Safety net: never overwrite an existing async save with a null-game state.
+  // If an async lobby has no game in memory but a save already exists on disk,
+  // that on-disk file holds the real (in-progress) story — clobbering it with
+  // null would destroy it. Preserve the file instead.
+  if (lobby.isAsync && !lobby.game && saveExists(lobby.code)) {
+    console.log(new Date(), `-- [lobby ${lobby.code}] save skipped (no game in memory; preserving on-disk story)`);
+    return;
+  }
   console.log(new Date(), `-- [lobby ${lobby.code}] saved`);
   const state = lobby.saveState();
   const data = pako.gzip(JSON.stringify(state));

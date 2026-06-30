@@ -281,18 +281,23 @@ class Lobby {
     this.completedAt = lobbyState.completedAt || null;
     this.completedLikes = lobbyState.completedLikes || 0;
 
-    if (lobbyState.game && this.players.length > 0) {
+    // Restore the game when there's saved game state. Async sessions are saved
+    // while empty (nobody online between visits), so their players list is []
+    // — they MUST still restore their game, otherwise the story content never
+    // loads and every joiner is stuck on "Stories are Being Written" with the
+    // chains effectively lost. Sync games keep the old "players present" guard.
+    if (lobbyState.game && (this.players.length > 0 || this.isAsync)) {
       const { config, state } = lobbyState.game;
 
       const Constructor = GAMES[this.selectedGame];
       if (Constructor) {
         this.game = new Constructor(this, config, this.players.map(p => p.playerId));
         this.game.restore(state);
-        const numPlayers = this.players.length;
 
-        // cap players
-        this.gameConfig.players = numPlayers;
-
+        // Cap players to those present (sync only). Async sessions grow
+        // dynamically and keep their saved cap, so don't collapse it to 0.
+        if (this.players.length > 0)
+          this.gameConfig.players = this.players.length;
       }
     } else {
       this.game = null;
