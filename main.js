@@ -5,6 +5,7 @@ const path = require('path');
 const cron = require('node-cron');
 const glob = require('glob');
 const Sanitize = require('./core/games/util/Sanitize');
+const WordFilter = require('./core/games/util/WordFilter');
 
 const app = express();
 const server = require('http').Server(app);
@@ -57,6 +58,12 @@ io.on('connection', socket => {
 
     // remove zero width no break spaces, trim spaces
     name = name.replace(/[\u200B-\u200D\uFEFF\n\t]/g, '').trim()
+
+    // Reject names containing a slur (crude/profane names are still allowed).
+    if (WordFilter.hasSlur(name)) {
+      socket.emit('member:nameOk', false);
+      return;
+    }
 
     const isAsync = player.lobby && player.lobby.isAsync;
     if((isAsync ? name.length < 16 : name.length > 0 && name.length < 16)) {

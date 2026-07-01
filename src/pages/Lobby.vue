@@ -57,6 +57,9 @@
             autocomplete="on"
             placeholder="Ethan">
         </sui-form-field>
+        <div v-if="!validName" style="color:#db2828; font-size:0.85em; margin:-6px 0 10px; text-align:left;">
+          Dieser Name ist nicht erlaubt. Bitte wähle einen anderen.
+        </div>
         <sui-form-field v-if="lobbyInfo.isAsync">
           <sui-checkbox
             v-model="anonymousJoin"

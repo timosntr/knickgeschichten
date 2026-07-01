@@ -1,18 +1,23 @@
 // Built-in word filter.
 //
-// Disallowed terms (German + English insults / slurs) are matched
-// case-insensitively as whole words and replaced with one "*" per letter
-// (so "arschloch" becomes "*********"). The match is bounded by Unicode
-// letter/number lookarounds, so innocent words that merely contain a term as a
-// substring are left alone (e.g. "Klasse" is not censored because of "ass",
-// "passt" is not censored because of "ass", "spicy" is not censored because of
-// "spic").
+// Two categories:
+//   PROFANITY — general insults / swear words
+//   SLURS     — discriminatory / racist / hateful terms
 //
-// Keep entries lowercase; matching is case-insensitive. Extend the arrays as
-// needed.
+// Story contributions are censored against BOTH lists: each match is replaced
+// with one "*" per letter (so "arschloch" -> "*********"), matched as whole
+// words with Unicode letter/number lookarounds so innocent substrings
+// ("Klasse", "passt", "spicy") are kept.
+//
+// Player names are only checked against SLURS (via hasSlur): a name containing
+// a slur is rejected, but ordinary crude names are allowed. Names are matched
+// as substrings (names are often written without spaces, e.g. "NegerKing"), so
+// SLURS should stay reasonably specific.
+//
+// Keep entries lowercase; matching is case-insensitive. Extend as needed.
 
-const BANNED = [
-  // --- German: profanity / insults ---
+const PROFANITY = [
+  // --- German ---
   'arsch', 'arschloch', 'arschlöcher', 'arschgeige', 'arschficker', 'arschkriecher',
   'wichser', 'wichs', 'wichsen', 'wichst', 'wichste', 'abwichsen',
   'hurensohn', 'hurensöhne', 'hurenkind', 'hure', 'huren', 'nutte', 'nutten',
@@ -22,12 +27,7 @@ const BANNED = [
   'scheisse', 'scheiße', 'scheiss', 'scheis', 'kacke', 'kackbratze',
   'vollpfosten', 'vollidiot', 'vollhonk', 'volltrottel', 'schwachkopf', 'dummkopf',
   'missgeburt', 'drecksau', 'dreckskerl', 'dreckschwein', 'pisser', 'pissnelke',
-  // --- German: slurs (discriminatory) ---
-  'neger', 'negger', 'kanake', 'kanacke', 'kanaken',
-  'schwuchtel', 'schwuchteln', 'tunte', 'tunten',
-  'spasti', 'spast', 'behindi', 'mongo', 'mongoloid',
-  'zigeuner', 'krüppel', 'schlitzauge', 'schlitzaugen', 'fidschi', 'bimbo',
-  // --- English: profanity / insults ---
+  // --- English ---
   'ass', 'asshole', 'assholes', 'arse', 'arsehole', 'jackass', 'dumbass',
   'fuck', 'fucker', 'fuckers', 'fucking', 'fucked', 'fucks', 'fuckface', 'fuckwit',
   'motherfucker', 'motherfucking', 'clusterfuck',
@@ -35,7 +35,15 @@ const BANNED = [
   'bitch', 'bitches', 'bitching', 'cunt', 'cunts',
   'slut', 'sluts', 'whore', 'whores', 'bastard', 'bastards',
   'dickhead', 'prick', 'twat', 'wanker', 'bollocks', 'douche', 'douchebag',
-  // --- English: slurs (discriminatory) ---
+];
+
+const SLURS = [
+  // --- German ---
+  'neger', 'negger', 'kanake', 'kanacke', 'kanaken',
+  'schwuchtel', 'schwuchteln', 'tunte', 'tunten',
+  'spasti', 'spast', 'behindi', 'mongo', 'mongoloid',
+  'zigeuner', 'krüppel', 'schlitzauge', 'schlitzaugen', 'fidschi', 'bimbo',
+  // --- English ---
   'nigger', 'niggers', 'nigga', 'niggas',
   'faggot', 'faggots', 'fag', 'fags', 'dyke',
   'retard', 'retards', 'retarded',
@@ -43,19 +51,30 @@ const BANNED = [
   'tranny', 'trannies',
 ];
 
+const BANNED = [...PROFANITY, ...SLURS];
+
 const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// A term must not be preceded or followed by another letter/number, so only
-// whole words match. \p{L}/\p{N} need the unicode (u) flag.
-const pattern = new RegExp(
+// Whole-word match (bounded by non letter/number) for censoring contributions.
+const bannedPattern = new RegExp(
   `(?<![\\p{L}\\p{N}])(?:${BANNED.map(escape).join('|')})(?![\\p{L}\\p{N}])`,
   'giu'
 );
 
 module.exports = {
   banned: BANNED,
+  profanity: PROFANITY,
+  slurs: SLURS,
+
   // Replace every disallowed word with one "*" per character, leaving the rest
   // of the text (punctuation, spacing) intact. Returns '' for non-strings.
   censor: text => (typeof text === 'string' ? text : '')
-    .replace(pattern, m => '*'.repeat([...m].length)),
+    .replace(bannedPattern, m => '*'.repeat([...m].length)),
+
+  // True if the text contains a slur anywhere (substring, case-insensitive).
+  // Used to reject player names; ordinary profanity is allowed in names.
+  hasSlur: text => {
+    const n = (typeof text === 'string' ? text : '').toLowerCase();
+    return SLURS.some(s => n.includes(s));
+  },
 };
