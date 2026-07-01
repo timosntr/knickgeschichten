@@ -1,7 +1,9 @@
 <template>
   <div class="player-list-widget">
     <sui-divider horizontal >
-      Lobby Members
+      Lobby Members<span
+        v-if="lobbyState === 'PLAYING' && $route.params.code"
+        class="lobby-code-inline">{{ $route.params.code.toUpperCase() }}</span>
     </sui-divider>
     <sui-table unstackable basic class="player-table" >
       <sui-table-header>
@@ -44,7 +46,7 @@
             {{p.name}}
             <span class="emote-container" :ref="`emote_${p.id}`"></span>
             <span class="user-icons">
-              <sui-button v-if="!p.connected"
+              <sui-button v-if="!p.connected && !isActivePlayer"
                 size="tiny"
                 @click="$socket.emit('lobby:replace', p.playerId)"
                                basic>
@@ -87,7 +89,7 @@
       <sui-button :basic="!confirmEndGame"
                color="red"
         @click="tryEndGame"
-        v-if="$root.playerId === admin && lobbyState === 'PLAYING'">
+        v-if="$root.playerId === admin && lobbyState === 'PLAYING' && !gameState.reading">
         {{confirmEndGame ? 'Are You Sure?' : 'End Game'}}
       </sui-button>
     </div>
@@ -95,6 +97,15 @@
 </template>
 
 <style>
+
+.lobby-code-inline {
+  margin-left: 8px;
+  font-family: monospace;
+  font-size: 0.85em;
+  font-weight: normal;
+  letter-spacing: 1px;
+  opacity: 0.55;
+}
 
 td {
   position: relative;
@@ -237,6 +248,11 @@ export default {
   computed: {
     isAdmin() {
       return this.$root.playerId === this.admin;
+    },
+    // True when the viewer already holds a connected player slot — they should
+    // never see the "Join" button on someone else's disconnected slot.
+    isActivePlayer() {
+      return this.players.some(p => p.id === this.$root.playerId && p.connected);
     },
   },
   data() {

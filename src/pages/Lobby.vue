@@ -65,7 +65,7 @@
       </sui-form>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'LOBBY_WAITING'"
-      :title="lobbyInfo.title || (currGame ? currGame.title : 'Raconteur')"
+      :title="lobbyInfo.title || (currGame ? currGame.title : 'Knickgeschichten')"
       :subtitle="currGame ? currGame.subtitle : ''">
       <div>
         <div v-if="!lobbyInfo.isAsync">
@@ -179,7 +179,7 @@
       </ooc-player-list>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'PLAYING'"
-      :title="lobbyInfo.title || (currGame ? currGame.title : 'Raconteur')"
+      :title="lobbyInfo.title || (currGame ? currGame.title : 'Knickgeschichten')"
       :subtitle="currGame ? currGame.subtitle : ''">
       <ooc-game :game="lobbyInfo.game">
       </ooc-game>
