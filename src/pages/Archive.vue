@@ -69,12 +69,6 @@
             <sui-icon name="chevron right"/>
           </sui-button>
         </div>
-
-        <div style="margin-top: 16px; text-align: center">
-          <router-link is="sui-button" to="/" size="small" basic>
-            Zurück
-          </router-link>
-        </div>
       </div>
     </ooc-menu>
     <ooc-util></ooc-util>
