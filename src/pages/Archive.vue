@@ -52,7 +52,12 @@
             </div>
             <div v-if="session.teaser" class="session-teaser">„{{ session.teaser }}"</div>
             <div class="session-footer">
-              <span class="session-age">{{ dateSpan(session.createdAt, session.completedAt) }}</span>
+              <span class="session-meta">
+                <span class="session-age">{{ dateSpan(session.createdAt, session.completedAt) }}</span>
+                <span v-if="session.totalLikes > 0" class="session-likes">
+                  <span class="session-likes__heart">♥</span> {{ session.totalLikes }}
+                </span>
+              </span>
               <sui-button size="tiny" color="teal" @click="joinSession(session.code)">
                 Lesen
               </sui-button>
@@ -81,6 +86,19 @@
   font-size: 0.78em;
   color: #aaa;
   margin-left: 5px;
+}
+.session-meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.session-likes {
+  font-size: 0.82em;
+  color: #999;
+  white-space: nowrap;
+}
+.session-likes__heart {
+  color: #d66;
 }
 .session-teaser {
   font-family: 'Lora', serif;

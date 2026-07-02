@@ -148,8 +148,13 @@
                     „{{ recentCompleted[archiveIndex].teaser }}"
                   </p>
                   <div class="kg-card__foot">
-                    <span class="kg-card__time">
-                      {{ dateSpan(recentCompleted[archiveIndex].createdAt, recentCompleted[archiveIndex].completedAt) }}
+                    <span class="kg-card__meta">
+                      <span class="kg-card__time">
+                        {{ dateSpan(recentCompleted[archiveIndex].createdAt, recentCompleted[archiveIndex].completedAt) }}
+                      </span>
+                      <span v-if="recentCompleted[archiveIndex].totalLikes > 0" class="kg-card__likes">
+                        ♥ {{ recentCompleted[archiveIndex].totalLikes }}
+                      </span>
                     </span>
                     <span class="kg-pill kg-pill--cream">Lesen</span>
                   </div>
@@ -450,6 +455,16 @@
   margin-top: 14px;
 }
 .kg-card__time { font-size: 11px; font-style: italic; opacity: 0.85; }
+.kg-card__meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.kg-card__likes {
+  font-size: 11px;
+  opacity: 0.85;
+  white-space: nowrap;
+}
 
 .kg-pill {
   border-radius: var(--kg-radius-pill);
