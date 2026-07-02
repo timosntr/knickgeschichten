@@ -150,7 +150,7 @@
                   <div class="kg-card__foot">
                     <span class="kg-card__time">
                       {{ timeAgo(recentCompleted[archiveIndex].createdAt) }}
-                      · {{ recentCompleted[archiveIndex].numAuthors }} {{ recentCompleted[archiveIndex].numAuthors === 1 ? 'Autor' : 'Autoren' }}
+                      · {{ dateSpan(recentCompleted[archiveIndex].createdAt, recentCompleted[archiveIndex].completedAt) }}
                     </span>
                     <span class="kg-pill kg-pill--cream">Lesen</span>
                   </div>
@@ -537,6 +537,21 @@ export default {
       if (hrs < 24) return `vor ${hrs} Std.`;
       const days = Math.floor(hrs / 24);
       return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
+    },
+    // Format a timestamp as DD.MM.YYYY
+    formatDate(ts) {
+      const d = new Date(ts);
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+    },
+    // Creation span of a completed story: "19.06.2026 – 21.06.2026",
+    // collapsed to a single date when start and end fall on the same day
+    // or completedAt is missing (old data).
+    dateSpan(createdAt, completedAt) {
+      const start = this.formatDate(createdAt);
+      if (!completedAt) return start;
+      const end = this.formatDate(completedAt);
+      return start === end ? end : `${start} – ${end}`;
     },
     // Shortest circular direction from cur to next: 'slide-left' = forward.
     slideDirection(cur, next, len) {

@@ -51,9 +51,6 @@
               <span v-if="storyNumber(session.title)" class="session-number">#{{ storyNumber(session.title) }}</span>
             </div>
             <div v-if="session.teaser" class="session-teaser">„{{ session.teaser }}"</div>
-            <div class="session-meta">
-              {{ session.numAuthors }} {{ session.numAuthors === 1 ? 'Autor' : 'Autoren' }}
-            </div>
             <div class="session-footer">
               <span class="session-age">{{ dateSpan(session.createdAt, session.completedAt) }}</span>
               <sui-button size="tiny" color="teal" @click="joinSession(session.code)">
