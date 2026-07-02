@@ -43,6 +43,10 @@ module.exports = class Story extends Game {
     this.aborted = blob.aborted || false;
     this.ring = blob.ring || null;
     this.succ = blob.succ || {};
+    // Restore per-player last-contribution timestamps (feeds lastActivity in
+    // the public session list). Old saves lack this field — keep the
+    // constructor's zero-initialized map in that case.
+    this.lastEdit = blob.lastEdit || this.lastEdit;
 
     // A restored game has no live connections — nobody is actually mid-turn.
     // Release every held chain so it can be reassigned when players (re)join.
@@ -64,6 +68,7 @@ module.exports = class Story extends Game {
       aborted: this.aborted,
       ring: this.ring,
       succ: this.succ,
+      lastEdit: this.lastEdit,
     }
   }
 

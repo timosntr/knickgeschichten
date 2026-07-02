@@ -218,6 +218,7 @@ class Lobby {
     return {
       version: 1,
       code: this.code,
+      created: this.created,
       date: new Date().toString(),
       lobbyState: this.lobbyState,
       selectedGame: this.selectedGame,
@@ -243,6 +244,8 @@ class Lobby {
   restoreState(lobbyState) {
     if (lobbyState.code)
       this.code = lobbyState.code;
+    // Restore original creation time; fall back to now for old saves.
+    this.created = lobbyState.created || this.created;
     this.members = [];
 
     if (lobbyState.players) {

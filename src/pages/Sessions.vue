@@ -40,7 +40,7 @@
               <span v-if="session.playersOnline > 0">{{ session.playersOnline }} online</span>
             </div>
             <div class="session-footer">
-              <span class="session-age">{{ timeAgo(session.createdAt) }}</span>
+              <span class="session-age">{{ timeAgo(session.lastActivity) }}</span>
               <sui-button size="tiny" color="green" @click="joinSession(session.code)">
                 Mitmachen
               </sui-button>
@@ -252,15 +252,16 @@ export default {
     joinSession(code) {
       this.$router.push(`/lobby/${code}`);
     },
+    // Relative time since the last contribution
     timeAgo(ts) {
-      const diff = Date.now() - ts;
+      const diff = Date.now() - (ts || 0);
       const mins = Math.floor(diff / 60000);
-      if (mins < 1) return 'gerade eben';
-      if (mins < 60) return `vor ${mins} Min.`;
+      if (mins < 1) return 'Gerade eben';
+      if (mins < 60) return `Vor ${mins} Minute${mins !== 1 ? 'n' : ''}`;
       const hrs = Math.floor(mins / 60);
-      if (hrs < 24) return `vor ${hrs} Std.`;
+      if (hrs < 24) return `Vor ${hrs} Stunde${hrs !== 1 ? 'n' : ''}`;
       const days = Math.floor(hrs / 24);
-      return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
+      return `Vor ${days} Tag${days !== 1 ? 'en' : ''}`;
     },
   },
   beforeDestroy() {
