@@ -32,6 +32,11 @@
       <div v-if="linkCopied" style="font-size:0.82em; color:#21ba45; margin-top:6px">
         Link kopiert!
       </div>
+      <div style="margin-top: 20px;">
+        <sui-button basic size="small" @click="$router.push('/sessions')">
+          <sui-icon name="arrow left"/> Zurück zu den Stories
+        </sui-button>
+      </div>
     </div>
     <div v-else-if="player.state === 'EDITING'"
       style="margin: 16px 0">
