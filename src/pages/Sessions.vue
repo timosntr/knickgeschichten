@@ -39,6 +39,9 @@
             <div class="session-meta">
               <span v-if="session.playersOnline > 0">{{ session.playersOnline }} online</span>
             </div>
+            <div class="kg-progress session-progress">
+              <div class="kg-progress__fill" :style="{ width: Math.round((session.progress || 0) * 100) + '%' }"></div>
+            </div>
             <div class="session-footer">
               <span class="session-age">{{ timeAgo(session.lastActivity) }}</span>
               <sui-button size="tiny" color="green" @click="joinSession(session.code)">
@@ -100,6 +103,10 @@
   font-size: 0.88em;
   color: #888;
   margin-bottom: 4px;
+}
+
+.kg-progress.session-progress {
+  margin: 10px 0 0;
 }
 
 .session-footer {

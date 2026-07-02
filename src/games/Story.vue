@@ -160,12 +160,9 @@
         Stories are Being Written
       </sui-loader>
     </div>
-    <sui-progress
-           v-if="game.progress > 0 && game.progress !== 1"
-      state="active"
-      progress
-      indicating
-      :percent="Math.round(game.progress * 100)"/>
+    <div class="kg-progress" style="margin-top: 14px" v-if="game.progress > 0 && game.progress !== 1">
+      <div class="kg-progress__fill" :style="{ width: Math.round(game.progress * 100) + '%' }"></div>
+    </div>
   </div>
 </template>
 
