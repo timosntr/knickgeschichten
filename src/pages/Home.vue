@@ -149,8 +149,7 @@
                   </p>
                   <div class="kg-card__foot">
                     <span class="kg-card__time">
-                      {{ timeAgo(recentCompleted[archiveIndex].createdAt) }}
-                      · {{ dateSpan(recentCompleted[archiveIndex].createdAt, recentCompleted[archiveIndex].completedAt) }}
+                      {{ dateSpan(recentCompleted[archiveIndex].createdAt, recentCompleted[archiveIndex].completedAt) }}
                     </span>
                     <span class="kg-pill kg-pill--cream">Lesen</span>
                   </div>
