@@ -485,34 +485,44 @@ class Lobby {
     const playerIdx = this.players.findIndex(p => p.id === member.id);
     const playerObj = playerIdx >= 0 ? this.players[playerIdx] : null;
     if(playerObj) {
-      // For async sessions: remove from player list immediately (they'll rejoin as new contributor)
-      // and schedule chain release after 60s so others aren't kept waiting
       if (this.isAsync && this.lobbyState === 'PLAYING') {
         const pid = playerObj.playerId;
         const name = member.name || playerObj.name || pid;
-        this.players.splice(playerIdx, 1);
-        if (pid) {
+
+        if (voluntary) {
+          // Voluntary leave: drop them entirely and release their chain
+          // immediately so others aren't kept waiting on someone who's gone.
+          this.players.splice(playerIdx, 1);
+          if (this.game) this.game.detachPlayer(pid);
+          if (this.disconnectTimers[pid]) clearTimeout(this.disconnectTimers[pid]);
+          if (this.game) {
+            const released = this.game.releasePlayer(pid);
+            if (released)
+              console.log(new Date(), `-- [lobby ${this.code}] released chain of leaving player "${name}" immediately`);
+          }
+        } else {
+          // Disconnect (dropped connection, closed tab, page refresh): keep the
+          // player row marked disconnected instead of deleting it, so a same-name
+          // rejoin within the grace period reclaims their in-progress chain via
+          // replacePlayer() rather than starting over as a brand-new contributor.
+          playerObj.connected = false;
+          playerObj.member = null;
+          playerObj.id = -1;
           // Detach from game.players immediately so redistribute() ignores them
           if (this.game) this.game.detachPlayer(pid);
           if (this.disconnectTimers[pid]) clearTimeout(this.disconnectTimers[pid]);
-          if (voluntary) {
-            // Voluntary leave: release chain immediately so others aren't kept waiting
+          // Give 60s grace period in case they reconnect; afterwards drop the
+          // row for good and release their chain so others aren't kept waiting
+          this.disconnectTimers[pid] = setTimeout(() => {
+            delete this.disconnectTimers[pid];
+            const idx = this.players.findIndex(p => p.playerId === pid);
+            if (idx >= 0) this.players.splice(idx, 1);
             if (this.game) {
               const released = this.game.releasePlayer(pid);
               if (released)
-                console.log(new Date(), `-- [lobby ${this.code}] released chain of leaving player "${name}" immediately`);
+                console.log(new Date(), `-- [lobby ${this.code}] released chain of absent player "${name}" after 60s`);
             }
-          } else {
-            // Disconnect: give 60s grace period in case they reconnect
-            this.disconnectTimers[pid] = setTimeout(() => {
-              delete this.disconnectTimers[pid];
-              if (this.game) {
-                const released = this.game.releasePlayer(pid);
-                if (released)
-                  console.log(new Date(), `-- [lobby ${this.code}] released chain of absent player "${name}" after 60s`);
-              }
-            }, 60000);
-          }
+          }, 60000);
         }
       } else {
         playerObj.name = member.name;
@@ -588,10 +598,22 @@ class Lobby {
   // Replace a player that has left the game
   replacePlayer(member, pid) {
     const id = member.id;
-    const isPlayer = this.players.find(p => p.id === id);
-    const targetPlayer = this.players.find(p => p.playerId === pid && p.id === -1 && !p.connected);
+    const targetPlayer = this.players.find(p => p.playerId === pid);
 
-    if(!isPlayer && targetPlayer && member.name) {
+    // Already reattached to this same connection (e.g. member:name already
+    // reclaimed the slot) — resend current state instead of wiping it out.
+    if (targetPlayer && targetPlayer.id === id && targetPlayer.connected) {
+      if (this.game && this.lobbyState === 'PLAYING') {
+        member.socket.emit('game:info', this.game.getState());
+        this.getPlayerState(id);
+      }
+      return;
+    }
+
+    const isPlayer = this.players.find(p => p.id === id);
+    const reclaimable = targetPlayer && targetPlayer.id === -1 && !targetPlayer.connected;
+
+    if(!isPlayer && reclaimable && member.name) {
       targetPlayer.id = id;
       targetPlayer.name = member.name;
       targetPlayer.member = member;
@@ -602,6 +624,12 @@ class Lobby {
         clearTimeout(this.disconnectTimers[targetPlayer.playerId]);
         delete this.disconnectTimers[targetPlayer.playerId];
       }
+
+      // Async sessions detach disconnected players from the active write
+      // queue — rejoin it now so redistribute() considers them again and
+      // reunites them with their in-progress chain (if it wasn't released yet).
+      if (this.isAsync && this.lobbyState === 'PLAYING' && this.game)
+        this.game.addPlayer(targetPlayer.playerId);
 
       this.updateMembers();
       this.sendLobbyInfo();

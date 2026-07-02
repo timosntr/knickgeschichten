@@ -63,6 +63,14 @@ io.on('connection', socket => {
       player.name = name;
       socket.emit('member:nameOk', true);
       if(player.lobby) {
+        // Async sessions: if a same-named contributor recently disconnected,
+        // reclaim their slot (and in-progress chain) before updateMembers()
+        // below gets a chance to register this connection as a brand-new
+        // contributor — otherwise the reclaim always loses that race.
+        if (isAsync && player.lobby.lobbyState === 'PLAYING' && name) {
+          const reclaim = player.lobby.players.find(p => !p.connected && p.id === -1 && p.name === name);
+          if (reclaim) player.lobby.replacePlayer(player, reclaim.playerId);
+        }
         player.lobby.updateMembers();
         player.lobby.sendLobbyInfo();
         // Auto-start async sessions when first player joins (but not if stories are already completed)
