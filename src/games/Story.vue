@@ -102,7 +102,7 @@
         <div v-for="(story, i) in stories" :key="i">
           <sui-divider horizonal v-if="i > 0" ></sui-divider>
           <sui-card >
-            <div class="like-bar">
+            <div class="like-bar" v-if="lobby.isAsync">
               <div :is="player.state ? 'sui-button' : 'sui-label'"
                 :color="player.state && !player.liked[i] ? 'grey' : 'red'"
                 @click="player.state && $socket.emit('game:message', 'chain:like', i)"
