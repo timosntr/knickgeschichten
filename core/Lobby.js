@@ -355,6 +355,13 @@ class Lobby {
     this.game = undefined;
     this.lobbyState = 'WAITING';
 
+    // Re-open the player cap that startGame() pinned to the last round's count,
+    // so members who joined between rounds become players again (and the next
+    // round gets one story per player via numStories = #numPlayers).
+    if (!this.isAsync) {
+      this.gameConfig.players = '#numPlayers';
+    }
+
     this.updateMembers();
     this.sendLobbyInfo();
   }
