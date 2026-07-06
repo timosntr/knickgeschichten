@@ -18,24 +18,24 @@ const SLURS = [
   'neger', 'negger', 'negerin', 'nega',
   'kanake', 'kanacke', 'kanaken', 'kümmeltürke', 'kümmeltuerke',
   'zigeuner', 'zigeunerin', 'zigano',
-  'schlitzauge', 'schlitzaugen', 'schlitzi', 'reisfresser', 'reiskocher',
-  'fidschi', 'fidschis', 'bimbo', 'bimbos', 'mohrenkopf',
+  'schlitzauge', 'schlitzaugen', 'schlitzi', 'reisfresser',
+  'bimbo', 'bimbos', 'mohrenkopf',
   'musel', 'muselmann', 'kameltreiber', 'bimbes',
   'itaker', 'spaghettifresser', 'polacke', 'polacken', 'tschusch', 'tschuschen',
   // === Racist (English) ===
   'nigger', 'niggers', 'nigga', 'niggas', 'negro', 'negroes',
   'spic', 'spics', 'chink', 'chinks', 'gook', 'gooks',
-  'wetback', 'wetbacks', 'paki', 'pakis', 'coon', 'coons', 'beaner', 'beaners',
+  'wetback', 'wetbacks', 'paki', 'pakis', 'beaner', 'beaners',
   'wop', 'wops', 'dago', 'dagos', 'gyppo', 'towelhead', 'raghead',
   'jigaboo', 'jigaboos', 'sambo', 'zipperhead', 'chinaman',
   // === Antisemitic ===
   'kike', 'kikes', 'yid', 'yids', 'heeb', 'heebs',
   // === Anti-LGBTQ / queerphobic (German) ===
   'schwuchtel', 'schwuchteln', 'tunte', 'tunten',
-  'transe', 'transen', 'kampflesbe', 'kampflesben',
+  'transe', 'transen', 
   // === Anti-LGBTQ / queerphobic (English) ===
   'faggot', 'faggots', 'fag', 'fags', 'faggy',
-  'dyke', 'dykes', 'poofter', 'poofters',
+  'poofter', 'poofters',
   'tranny', 'trannies', 'shemale', 'shemales', 'fudgepacker', 'fudgepackers',
   // === Ableist ===
   'spasti', 'spast', 'behindi', 'mongo', 'mongoloid', 'mongos',
