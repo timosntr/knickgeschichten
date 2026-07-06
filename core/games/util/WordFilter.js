@@ -38,17 +38,33 @@ const PROFANITY = [
 ];
 
 const SLURS = [
-  // --- German ---
-  'neger', 'negger', 'kanake', 'kanacke', 'kanaken',
+  // === Racist (German) ===
+  'neger', 'negger', 'negerin', 'nega',
+  'kanake', 'kanacke', 'kanaken', 'kümmeltürke', 'kümmeltuerke',
+  'zigeuner', 'zigeunerin', 'zigano',
+  'schlitzauge', 'schlitzaugen', 'schlitzi', 'reisfresser', 'reiskocher',
+  'fidschi', 'fidschis', 'bimbo', 'bimbos', 'mohrenkopf',
+  'musel', 'muselmann', 'kameltreiber', 'bimbes',
+  'itaker', 'spaghettifresser', 'polacke', 'polacken', 'tschusch', 'tschuschen',
+  // === Racist (English) ===
+  'nigger', 'niggers', 'nigga', 'niggas', 'negro', 'negroes',
+  'spic', 'spics', 'chink', 'chinks', 'gook', 'gooks',
+  'wetback', 'wetbacks', 'paki', 'pakis', 'coon', 'coons', 'beaner', 'beaners',
+  'wop', 'wops', 'dago', 'dagos', 'gyppo', 'towelhead', 'raghead',
+  'jigaboo', 'jigaboos', 'sambo', 'zipperhead', 'chinaman',
+  // === Antisemitic ===
+  'kike', 'kikes', 'yid', 'yids', 'heeb', 'heebs',
+  // === Anti-LGBTQ / queerphobic (German) ===
   'schwuchtel', 'schwuchteln', 'tunte', 'tunten',
-  'spasti', 'spast', 'behindi', 'mongo', 'mongoloid',
-  'zigeuner', 'krüppel', 'schlitzauge', 'schlitzaugen', 'fidschi', 'bimbo',
-  // --- English ---
-  'nigger', 'niggers', 'nigga', 'niggas',
-  'faggot', 'faggots', 'fag', 'fags', 'dyke',
-  'retard', 'retards', 'retarded',
-  'spic', 'chink', 'chinks', 'gook', 'wetback', 'paki', 'coon', 'kike', 'beaner',
-  'tranny', 'trannies',
+  'transe', 'transen', 'kampflesbe', 'kampflesben',
+  // === Anti-LGBTQ / queerphobic (English) ===
+  'faggot', 'faggots', 'fag', 'fags', 'faggy',
+  'dyke', 'dykes', 'poofter', 'poofters',
+  'tranny', 'trannies', 'shemale', 'shemales', 'fudgepacker', 'fudgepackers',
+  // === Ableist ===
+  'spasti', 'spast', 'behindi', 'mongo', 'mongoloid', 'mongos',
+  'krüppel', 'kruppel',
+  'retard', 'retards', 'retarded', 'spaz', 'spazzes',
 ];
 
 const BANNED = [...PROFANITY, ...SLURS];
