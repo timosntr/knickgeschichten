@@ -30,6 +30,11 @@ const SLURS = [
   'jigaboo', 'jigaboos', 'sambo', 'zipperhead', 'chinaman',
   // === Antisemitic ===
   'kike', 'kikes', 'yid', 'yids', 'heeb', 'heebs',
+  'judensau', 'judensäue', 'saujude', 'saujuden', 'judenschwein', 'judenschweine',
+  'judenpack', 'judenbengel',
+  // === Anti-indigenous ===
+  'redskin', 'redskins', 'injun', 'injuns', 'squaw', 'squaws',
+  'boong', 'boongs', 'lubra', 'lubras',
   // === Anti-LGBTQ / queerphobic (German) ===
   'schwuchtel', 'schwuchteln', 'tunte', 'tunten',
   'transe', 'transen', 
