@@ -15,37 +15,40 @@
 
 const SLURS = [
   // === Racist (German) ===
-  'neger', 'negger', 'negerin', 'nega',
-  'kanake', 'kanacke', 'kanaken', 'kümmeltürke', 'kümmeltuerke',
+  'neger', 'negger', 'negerin', 'nega', 'negerlein',
+  'kanake', 'kanacke', 'kanaken', 'kümmeltürke', 'kümmeltuerke', 'kümmeltürken',
   'zigeuner', 'zigeunerin', 'zigano',
   'schlitzauge', 'schlitzaugen', 'schlitzi', 'reisfresser',
   'bimbo', 'bimbos', 'mohrenkopf',
-  'musel', 'muselmann', 'kameltreiber', 'bimbes',
-  'itaker', 'spaghettifresser', 'polacke', 'polacken', 'tschusch', 'tschuschen',
+  'musel', 'muselmann', 'kameltreiber', 'bimbes', 'ziegenficker',
+  'itaker', 'spaghettifresser', 'katzelmacher', 'polacke', 'polacken', 'tschusch', 'tschuschen',
   // === Racist (English) ===
-  'nigger', 'niggers', 'nigga', 'niggas', 'negro', 'negroes',
+  'nigger', 'niggers', 'nigga', 'niggas', 'negro', 'negroes', 'darkie', 'darky', 'darkies',
   'spic', 'spics', 'chink', 'chinks', 'gook', 'gooks',
   'wetback', 'wetbacks', 'paki', 'pakis', 'beaner', 'beaners',
   'wop', 'wops', 'dago', 'dagos', 'gyppo', 'towelhead', 'raghead',
   'jigaboo', 'jigaboos', 'sambo', 'zipperhead', 'chinaman',
+  'wog', 'wogs', 'muzzie', 'muzzies', 'mudslime', 'mudslimes', 'dothead', 'dotheads',
   // === Antisemitic ===
-  'kike', 'kikes', 'yid', 'yids', 'heeb', 'heebs',
+  'kike', 'kikes', 'yid', 'yids', 'heeb', 'heebs', 'hymie', 'hymies', 'sheeny',
   'judensau', 'judensäue', 'saujude', 'saujuden', 'judenschwein', 'judenschweine',
   'judenpack', 'judenbengel',
   // === Anti-indigenous ===
   'redskin', 'redskins', 'injun', 'injuns', 'squaw', 'squaws',
-  'boong', 'boongs', 'lubra', 'lubras',
+  'boong', 'boongs', 'lubra', 'lubras', 'wagonburner', 'wagonburners',
+  'indianer', 'indianerin', 'indianern', 'rothaut', 'rothäute',
+  'eskimo', 'eskimos', 'eskimofrau',
   // === Anti-LGBTQ / queerphobic (German) ===
   'schwuchtel', 'schwuchteln', 'tunte', 'tunten',
-  'transe', 'transen', 
+  'transe', 'transen', 'schwuppe', 'schwuppen',
   // === Anti-LGBTQ / queerphobic (English) ===
   'faggot', 'faggots', 'fag', 'fags', 'faggy',
-  'poofter', 'poofters',
+  'poofter', 'poofters', 'ladyboy', 'ladyboys', 'heshe',
   'tranny', 'trannies', 'shemale', 'shemales', 'fudgepacker', 'fudgepackers',
   // === Ableist ===
   'spasti', 'spast', 'behindi', 'mongo', 'mongoloid', 'mongos',
-  'krüppel', 'kruppel',
-  'retard', 'retards', 'retarded', 'spaz', 'spazzes',
+  'krüppel', 'kruppel', 'spacko', 'spacken', 'debil',
+  'retard', 'retards', 'retarded', 'spaz', 'spazzes', 'cripple', 'cripples', 'gimp', 'gimps',
 ];
 
 const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
