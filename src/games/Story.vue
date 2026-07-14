@@ -93,7 +93,7 @@
     </div>
     <div v-else-if="player.state === 'READING' || !player.state && stories.length">
       <sui-loader active centered inline size="huge"  v-if="!stories.length">
-        Lädt Geschichten
+        lädt Geschichten
       </sui-loader>
       <div style="text-align: left">
         <div style="text-align: right; margin-bottom: 8px">

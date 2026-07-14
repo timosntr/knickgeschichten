@@ -48,7 +48,7 @@
       <div>
         <div v-if="!lobbyInfo.isAsync">
           <sui-divider horizontal >
-            CODE
+            Code
           </sui-divider>
           <sui-statistic  style="margin-bottom: 14px; margin-top: 0;">
             <sui-statistic-value>

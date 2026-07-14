@@ -42,7 +42,7 @@
         <div v-else>
           <div v-if="filteredSessions.length === 0"
             style="text-align: center; padding: 24px; color: #888;">
-            {{ hasSearch ? 'Keine Ergebnisse gefunden.' : 'Noch keine abgeschlossenen Geschichten' }}
+            {{ hasSearch ? 'keine Ergebnisse gefunden' : 'noch keine abgeschlossenen Geschichten' }}
           </div>
 
           <div v-for="session in pagedSessions" :key="session.code" class="session-card">
