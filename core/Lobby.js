@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const gameInfo = require('../gameInfo');
 const Persistence = require('./Persistence');
+const TitleGenerator = require('./TitleGenerator');
 
 const GAMES = {
   story: require('./games/story'),
@@ -112,6 +113,7 @@ class Lobby {
         return {
           code: l.code,
           title: l.title,
+          number: l.number || 0,
           progress,
           isComplete,
           numStories: typeof config.numStories === 'number' ? config.numStories : l.players.length,
@@ -206,6 +208,11 @@ class Lobby {
     this.game = null;
     this.isAsync = false;
     this.title = '';
+    // Sequential story number for async sessions. Kept separate from `title` so
+    // an AI-generated title can replace the title text without breaking the
+    // numbering (the counter and the "#N" badge used to be parsed out of the
+    // title string with a regex).
+    this.number = 0;
     this.disconnectTimers = {};
     this.completedStories = null;
     this.completedAuthors = 0;
@@ -232,6 +239,7 @@ class Lobby {
       } : null,
       isAsync: this.isAsync,
       title: this.title,
+      number: this.number || 0,
       completedStories: this.completedStories || null,
       completedAuthors: this.completedAuthors || 0,
       completedAt: this.completedAt || null,
@@ -267,6 +275,11 @@ class Lobby {
     this.lobbyState = lobbyState.lobbyState || 'WAITING';
     this.isAsync = lobbyState.isAsync || false;
     this.title = lobbyState.title || '';
+    // Older saves have no `number` — fall back to the trailing digits of the
+    // title ("Knickgeschichte 7"), which is how it used to be derived.
+    this.number = lobbyState.number
+      || Number((/(\d+)\s*$/.exec(lobbyState.title || '') || [])[1])
+      || 0;
     this.disconnectTimers = {};
     this.completedStories = lobbyState.completedStories || null;
     this.completedAuthors = lobbyState.completedAuthors || 0;
@@ -786,6 +799,38 @@ class Lobby {
     }
   }
 
+  // Give a finished async story an AI-generated title (fire-and-forget).
+  //
+  // Never blocks completion: the story is finished immediately and the title —
+  // if the model returns a usable one — lands a few seconds later and is pushed
+  // out via sendLobbyInfo(). On failure/timeout the "Knickgeschichte N" default
+  // simply stays. The story number lives in this.number, so replacing the title
+  // text is safe.
+  generateStoryTitle() {
+    if (!this.isAsync || !TitleGenerator.enabled()) return;
+    if (!this.completedStories || !this.completedStories.length) return;
+    if (this.titleGenerated) return;
+    this.titleGenerated = true;
+
+    const text = this.completedStories
+      .map(story => story.map(e => e.link).join(' '))
+      .join('\n\n');
+
+    TitleGenerator.generate(text)
+      .then(title => {
+        if (!title) return;
+        this.title = title;
+        console.log(new Date(), `-- [lobby ${this.code}] AI title: "${title}"`);
+        try {
+          Persistence.saveLobbyState(this);
+        } catch (err) {
+          console.error(new Date(), 'error saving AI title for', this.code, err);
+        }
+        this.sendLobbyInfo();
+      })
+      .catch(() => {});
+  }
+
   // lobby info is the current lobby state sent to the players
   genLobbyInfo() {
     const isPlayer = {};
@@ -802,6 +847,7 @@ class Lobby {
       // (as an accordion) before the next round starts.
       completedStories: !this.isAsync ? (this.completedStories || null) : null,
       title: this.title,
+      number: this.number || 0,
       gameState: this.game ? this.game.getState() : {},
       members: this.members.map(m => ({
         id: m.id,
