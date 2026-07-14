@@ -41,25 +41,22 @@
     <div v-else-if="player.state === 'EDITING'"
       style="margin: 16px 0">
       <h2 is="sui-header" icon="pencil" v-if="player.link.length !== 0">
-        {{player.isLastLink ? 'Finish the story! ' : ''}}The story so far ends with...
+        {{player.isLastLink ? 'Beende die Geschichte! ' : ''}}Die Geschichte endet gerade mit...
         <div style="margin-top: 10px">
           <div v-for="(link, i) in player.link" :key="i">
-            <sui-divider horizontal v-if="i !== 0" >Then</sui-divider>
+            <sui-divider horizontal v-if="i !== 0" >Dann</sui-divider>
             <sui-header-subheader>
               {{link}}
             </sui-header-subheader>
           </div>
         </div>
       </h2>
-      <h2 is="sui-header" icon="pencil" v-else-if="player.link.length === 0">
-        Write the first line
-      </h2>
       <div v-if="player.deadline" class="countdown" :class="{urgent: secondsLeft <= 30}">
         ⏱ {{ formattedTime }} verbleibend
       </div>
       <sui-form @submit="writeLine" >
         <sui-form-field>
-          <label>The Story Goes...</label>
+          <label>{{ player.link.length !== 0 ? 'und so geht es weiter...' : 'Der erste Satz gehört dir...' }}</label>
           <textarea v-model="line" rows="2"
             @keydown.enter.prevent
             @paste="onPaste">
@@ -77,7 +74,7 @@
         <sui-button type="submit"
           :color="player.isLastLink ? 'green' : 'blue'"
                    :disabled="line.length < 1 || line.length > 250 || wordCount < game.minWords">
-          {{player.isLastLink ? 'Finish' : 'Sign'}}
+          {{player.isLastLink ? 'beenden' : 'weitergeben'}}
         </sui-button>
         <sui-button v-if="lobby.isAsync"
           type="button"
@@ -91,12 +88,12 @@
     <div v-else-if="player.state === 'WAITING'"
       style="margin: 16px">
       <sui-loader active centered inline size="huge" >
-        Waiting on Other Authors
+        Warte auf den nächsten Abschnitt
       </sui-loader>
     </div>
     <div v-else-if="player.state === 'READING' || !player.state && stories.length">
       <sui-loader active centered inline size="huge"  v-if="!stories.length">
-        Loading Stories
+        Lädt Geschichten
       </sui-loader>
       <div style="text-align: left">
         <div style="text-align: right; margin-bottom: 8px">
@@ -149,7 +146,7 @@
           @click="$socket.emit('game:message', 'story:done', game.icons[player.id] !== 'check')"
           color="blue"
           :basic="game.icons[player.id] === 'check'">
-          {{game.icons[player.id] === 'check' ? 'Still Reading' : 'Done Reading'}}
+          {{game.icons[player.id] === 'check' ? 'lese noch' : 'durchgelesen'}}
         </sui-button>
         <sui-button
           v-if="lobby.isAsync"
@@ -162,7 +159,7 @@
     </div>
     <div v-else style="margin: 16px">
       <sui-loader active centered inline size="huge" >
-        Stories are Being Written
+        warte auf ander*n Autor*in
       </sui-loader>
     </div>
     <div class="kg-progress" style="margin-top: 14px" v-if="game.progress > 0 && game.progress !== 1">
