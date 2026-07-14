@@ -257,12 +257,12 @@ export default {
     timeAgo(ts) {
       const diff = Date.now() - (ts || 0);
       const mins = Math.floor(diff / 60000);
-      if (mins < 1) return 'Gerade eben';
-      if (mins < 60) return `Vor ${mins} Minute${mins !== 1 ? 'n' : ''}`;
+      if (mins < 1) return 'gerade eben';
+      if (mins < 60) return `vor ${mins} Minute${mins !== 1 ? 'n' : ''}`;
       const hrs = Math.floor(mins / 60);
-      if (hrs < 24) return `Vor ${hrs} Stunde${hrs !== 1 ? 'n' : ''}`;
+      if (hrs < 24) return `vor ${hrs} Stunde${hrs !== 1 ? 'n' : ''}`;
       const days = Math.floor(hrs / 24);
-      return `Vor ${days} Tag${days !== 1 ? 'en' : ''}`;
+      return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
     },
   },
   beforeDestroy() {
