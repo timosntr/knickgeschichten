@@ -10,6 +10,11 @@
     <div class="page-content">
       <slot></slot>
     </div>
+    <footer class="page-legal">
+      <router-link to="/impressum">Impressum</router-link>
+      ·
+      <router-link to="/datenschutz">Datenschutz</router-link>
+    </footer>
     <!-- <ooc-settings></ooc-settings> -->
   </div>
 </template>
@@ -72,6 +77,21 @@ body {
 
 .page-content {
   flex: 1;
+}
+
+.page-legal {
+  text-align: center;
+  padding: 14px 0 18px;
+  font-size: 0.75em;
+  color: #aaa;
+}
+.page-legal a {
+  color: #999;
+  text-decoration: none;
+}
+.page-legal a:hover {
+  color: var(--kg-green);
+  text-decoration: underline;
 }
 </style>
 

@@ -331,36 +331,17 @@ export default {
       this.stories = stories;
     },
     'game:player:info': function(info) {
-      // keep track of how long turns are
-      const logWait = (event, name, playing) => {
-        if(!this.playing) {
-          this.playing = playing;
-          return;
-        }
-        gtag('event', event, {
-          [name]: Math.floor((Date.now() - this.timer)/1000),
-          game_name: this.lobby.game,
-          lobby_code: this.$route.params.code,
-        });
-        this.timer = Date.now();
-        this.playing = playing;
-      }
-
       if(this.player.state !== info.state) {
         switch(info.state) {
         case 'WAITING':
           this.line = '';
-          logWait('turn_event', 'turn_duration', true);
           this.stopCountdown();
           break;
         case 'EDITING':
           vibrate(40);
-          logWait('wait_event', 'wait_duration', true);
-
           break;
         case 'READING':
           vibrate(40, 100, 40);
-          logWait('wait_event', 'wait_duration', false);
           this.stopCountdown();
           break;
         }

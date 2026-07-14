@@ -544,11 +544,6 @@ export default {
       if(info.state === 'PLAYING' && this.state === 'LOBBY_WAITING') {
         this.state = 'PLAYING';
         this.openStories = {};
-        gtag('event', 'playing_game', {
-          game_name: info.game,
-          player_count: info.players.length,
-          lobby_code: this.$route.params.code,
-        });
       }
 
       // If the lobby says we're not playing, we're probably not playing
