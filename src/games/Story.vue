@@ -296,20 +296,24 @@
   position: absolute;
   top: 0;
   left: 0;
+  z-index: 20;
+  pointer-events: none;
   width: var(--w, 9px);
   height: var(--h, 13px);
   border-radius: 1px;
   /* lined college-block paper: pale sheet + thin blue rules */
   background:
-    repeating-linear-gradient(to bottom, transparent 0 2.5px, rgba(74,124,196,0.45) 2.5px 3px),
-    var(--paper, #fdfdf6);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+    repeating-linear-gradient(to bottom, transparent 0 2.5px, rgba(74,124,196,0.6) 2.5px 3px),
+    var(--paper, #fefefe);
+  /* hairline edge + shadow so the pale paper stands out on the cream page */
+  border: 0.5px solid rgba(25,66,30,0.22);
+  box-shadow: 0 2px 4px rgba(25,66,30,0.28);
   animation: confetti-fall var(--dur, 2400ms) cubic-bezier(.22,.6,.35,1) forwards;
   animation-delay: var(--delay, 0ms);
   will-change: transform, opacity;
 }
 .confetti-piece.has-margin {
-  border-left: 2px solid rgba(206,74,58,0.6);
+  border-left: 2px solid rgba(206,74,58,0.7);
 }
 @keyframes confetti-fall {
   0%   { transform: translate(0, 0) rotate(0); opacity: 1; }
