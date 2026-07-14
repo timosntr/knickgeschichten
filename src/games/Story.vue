@@ -97,9 +97,10 @@
       </sui-loader>
       <div style="text-align: left">
         <div style="text-align: right; margin-bottom: 8px">
-          <button class="view-toggle" @click="flowView = !flowView">
-            {{ flowView ? 'Beiträge' : 'Fließtext' }}
-          </button>
+          <div class="view-switch">
+            <button type="button" :class="{ active: flowView }" @click="flowView = true">Fließtext</button>
+            <button type="button" :class="{ active: !flowView }" @click="flowView = false">Abschnitte</button>
+          </div>
         </div>
         <div v-for="(story, i) in stories" :key="i">
           <sui-divider horizonal v-if="i > 0" ></sui-divider>
@@ -153,7 +154,7 @@
           basic
           size="small"
           @click="leaveToArchive">
-          Zurück
+          zurück
         </sui-button>
       </div>
     </div>
@@ -224,19 +225,33 @@
   padding: 6px 10px 0;
 }
 
-.view-toggle {
+.view-switch {
+  display: inline-flex;
+  border: 1px solid rgba(25, 66, 30, 0.25);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.view-switch button {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.78em;
-  color: #aaa;
-  letter-spacing: 0.03em;
+  font-size: 0.72em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 0;
+  color: #8a8a83;
+  padding: 4px 12px;
+  transition: background 0.15s, color 0.15s;
 }
 
-.view-toggle:hover {
+.view-switch button:hover:not(.active) {
   color: #555;
+}
+
+.view-switch button.active {
+  background: #19421e;
+  color: #fff;
+  font-weight: 700;
 }
 
 .flow-text {
@@ -515,7 +530,7 @@ export default {
       }
       const parts = [...named];
       if (hasAnon) parts.push('Anonym');
-      return parts.length ? 'Von: ' + parts.join(', ') : '';
+      return parts.length ? 'von: ' + parts.join(', ') : '';
     },
     inviteUrl() {
       return `${location.origin}/einladen/${this.$route.params.code}`;
