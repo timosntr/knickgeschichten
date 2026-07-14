@@ -1,35 +1,12 @@
 <template>
   <ooc-page>
     <ooc-menu v-if="state === 'NO_LOBBY'"
-      title="Invalid Lobby"
-      subtitle="This lobby does not exist">
-      <div>
-        <sui-divider horizontal >
-          Lobby
-        </sui-divider>
-        <sui-button-group>
-          <sui-button
-            color="green"
-                       :loading="creatingLobby"
-            @click="createLobby">
-            Create
-          </sui-button>
-          <sui-button-or/>
-          <sui-button
-            color="blue"
-                       :loading="showJoinLobby"
-            @click="showJoinLobby = true">
-            Join
-          </sui-button>
-        </sui-button-group>
-        <sui-divider horizontal >
-          Redirect
-        </sui-divider>
-        <sui-button-group vertical basic>
-          <router-link is="sui-button"             to="/">
-            Home
-          </router-link>
-        </sui-button-group>
+      title="Diese Lobby gibt es nicht"
+      subtitle="Vielleicht ist der Code abgelaufen oder falsch.">
+      <div style="text-align: center; margin-top: 8px">
+        <router-link is="sui-button" to="/" color="blue">
+          zur Startseite
+        </router-link>
       </div>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'JOIN_LOBBY'">
