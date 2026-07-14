@@ -101,7 +101,10 @@ async function ollamaTitle(storyText) {
       stream: false,
       // Unload the model right after this request — see the RAM note above.
       keep_alive: 0,
-      options: { temperature: 0.8, num_predict: 24 },
+      // Lower temperature: at 0.8 the 1.5B model liked to invent nonsense
+      // compounds ("Das Waldstückteauffangheute"). 0.6 keeps it playful but
+      // markedly more coherent.
+      options: { temperature: 0.6, num_predict: 24 },
     }),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
