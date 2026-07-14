@@ -416,12 +416,6 @@ export default {
   beforeDestroy() {
     this.stopCountdown();
   },
-  watch: {
-    // Fire the paper confetti once the share screen appears.
-    submitted(val) {
-      if (val) this.$nextTick(() => this.paperConfetti());
-    },
-  },
   created() {
     // Restore an unsent draft for this story (survives reconnects, remounts and
     // full page reloads) so a dropped connection never loses what you typed.
@@ -440,6 +434,10 @@ export default {
         if (val) localStorage.setItem(this.draftKey, val);
         else localStorage.removeItem(this.draftKey);
       } catch (e) {}
+    },
+    // Fire the paper confetti once the share screen appears.
+    submitted(val) {
+      if (val) this.$nextTick(() => this.paperConfetti());
     },
   },
   computed: {
