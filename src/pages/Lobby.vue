@@ -54,9 +54,6 @@
             <sui-statistic-value>
               {{$route.params.code}}
             </sui-statistic-value>
-            <sui-statistic-label>
-              {{phonetic}}
-            </sui-statistic-label>
           </sui-statistic>
         </div>
         <div v-if="lobbyInfo.admin === $root.playerId && !lobbyInfo.isAsync">
@@ -232,21 +229,6 @@
 <script>
 
 import gameInfo from '../../gameInfo';
-import converter, { NATO_PHONETIC_ALPHABET } from 'phonetic-alphabet-converter'
-
-const alphabet = {
-  ...NATO_PHONETIC_ALPHABET,
-  '0': 'zero',
-  '1': 'one',
-  '2': 'two',
-  '3': 'three',
-  '4': 'four',
-  '5': 'five',
-  '6': 'six',
-  '7': 'seven',
-  '8': 'eight',
-  '9': 'nine',
-}
 
 const emptyInfo = () => ({
   admin: '',
@@ -280,9 +262,6 @@ export default {
     };
   },
   computed:  {
-    phonetic() {
-      return converter(this.$route.params.code, alphabet).join(' - ');
-    },
     // Config fields to show in the lobby waiting UI (exclude 'players' and hidden fields)
     configFieldsForDisplay() {
       if (!this.currGame) return {};
