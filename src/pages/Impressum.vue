@@ -3,36 +3,44 @@
     <ooc-menu title="Impressum" subtitle="Angaben gemäß § 5 DDG">
       <div class="legal">
         <p class="legal-draft">
-          ⚠️ Entwurf – vor Veröffentlichung rechtlich prüfen lassen und alle
-          <code>[PLATZHALTER]</code> ausfüllen.
+          ⚠️ Entwurf – vor Veröffentlichung mit der zuständigen Einrichtung der
+          Ruhr-Universität Bochum (Lehrstuhl, Justiziariat, Datenschutz)
+          abstimmen und alle <code>[PLATZHALTER]</code> ausfüllen.
         </p>
 
         <h3>Diensteanbieter</h3>
         <p>
-          [PLATZHALTER: Name der verantwortlichen Person oder Einrichtung]<br>
-          [PLATZHALTER: Straße und Hausnummer]<br>
-          [PLATZHALTER: PLZ und Ort]<br>
-          [PLATZHALTER: Land]
+          Ruhr-Universität Bochum<br>
+          [PLATZHALTER: Lehrstuhl / Einrichtung, z. B. Institut für Medienwissenschaft]<br>
+          Universitätsstraße 150<br>
+          44801 Bochum<br>
+          Deutschland
+        </p>
+        <p>
+          Die Ruhr-Universität Bochum ist eine Körperschaft des öffentlichen
+          Rechts. Sie wird [PLATZHALTER: durch das Rektorat / durch die
+          verantwortliche Person des Lehrstuhls] vertreten.
         </p>
 
         <h3>Kontakt</h3>
         <p>
-          E-Mail: [PLATZHALTER: kontakt@example.de]<br>
+          E-Mail: [PLATZHALTER: kontakt@rub.de]<br>
           Telefon: [PLATZHALTER: optional]
         </p>
 
-        <h3>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h3>
+        <h3>Zuständige Aufsichtsbehörde</h3>
         <p>
-          [PLATZHALTER: Name]<br>
-          [PLATZHALTER: Anschrift, falls abweichend]
+          [PLATZHALTER: z. B. Ministerium für Kultur und Wissenschaft des Landes
+          Nordrhein-Westfalen – nur angeben, falls einschlägig.]
         </p>
 
         <h3>Zum Projekt</h3>
         <p>
           Diese Website ist im Rahmen des Projektmoduls „Schreibszenen“ im
           akademischen Jahr 2025/26 an der Ruhr-Universität Bochum entstanden.
-          [PLATZHALTER: Falls die Universität bzw. ein Lehrstuhl Diensteanbieter
-          ist, hier auf deren Impressum/Trägerschaft verweisen.]
+          [PLATZHALTER: Ob die Universität bzw. der Lehrstuhl formal
+          Diensteanbieter ist, mit der Einrichtung klären und ggf. auf deren
+          zentrales Impressum verweisen.]
         </p>
 
         <h3>Haftung für Inhalte</h3>

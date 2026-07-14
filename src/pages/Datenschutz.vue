@@ -10,8 +10,17 @@
 
         <h3>1. Verantwortlicher</h3>
         <p>
-          [PLATZHALTER: Name, Anschrift und E-Mail des Verantwortlichen –
-          siehe Impressum.]
+          Ruhr-Universität Bochum,
+          [PLATZHALTER: Lehrstuhl / Einrichtung], Universitätsstraße 150,
+          44801 Bochum, E-Mail: [PLATZHALTER: kontakt@rub.de] – siehe
+          <router-link to="/impressum">Impressum</router-link>.
+        </p>
+
+        <h3>1a. Datenschutzbeauftragte:r</h3>
+        <p>
+          [PLATZHALTER: Kontaktdaten der/des behördlichen
+          Datenschutzbeauftragten der Ruhr-Universität Bochum – bei der
+          Einrichtung erfragen.]
         </p>
 
         <h3>2. Hosting (Hetzner)</h3>
