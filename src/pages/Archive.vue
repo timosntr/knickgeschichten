@@ -1,17 +1,17 @@
 <template>
   <ooc-page>
-    <ooc-menu title="Archiv" subtitle="Fertige Geschichten lesen">
+    <ooc-menu title="Archiv" subtitle="abgeschlossene Geschichten">
       <div>
         <form class="search-form" @submit.prevent="submitSearch">
           <input
             v-model="searchQuery"
             class="search-input"
             type="text"
-            placeholder="Titel, Autor …"
+            placeholder="#, Titel, Autor*in, Stichwort"
             @input="onSearchInput"
           />
           <button type="submit" class="search-btn" :disabled="searching">
-            {{ searching ? '…' : 'Suchen' }}
+            {{ searching ? '…' : 'suchen' }}
           </button>
           <button v-if="hasSearch" type="button" class="search-clear" @click="clearSearch">✕</button>
         </form>
@@ -37,12 +37,12 @@
         </div>
 
         <div v-if="loading" style="text-align: center; padding: 24px">
-          <sui-loader active inline centered>Laden...</sui-loader>
+          <sui-loader active inline centered>lädt</sui-loader>
         </div>
         <div v-else>
           <div v-if="filteredSessions.length === 0"
             style="text-align: center; padding: 24px; color: #888;">
-            {{ hasSearch ? 'Keine Ergebnisse gefunden.' : 'Noch keine fertigen Storys.' }}
+            {{ hasSearch ? 'Keine Ergebnisse gefunden.' : 'Noch keine abgeschlossenen Geschichten' }}
           </div>
 
           <div v-for="session in pagedSessions" :key="session.code" class="session-card">
@@ -59,7 +59,7 @@
                 </span>
               </span>
               <sui-button size="tiny" color="teal" @click="joinSession(session.code)">
-                Lesen
+                lesen
               </sui-button>
             </div>
           </div>
@@ -230,11 +230,11 @@ export default {
       sortBy: 'completedAt',
       sortDesc: true,
       sortOptions: [
-        { value: 'completedAt', label: 'Beendet' },
-        { value: 'createdAt',   label: 'Erstellt' },
-        { value: 'number',      label: 'Nummer' },
+        { value: 'completedAt', label: 'beendet am' },
+        { value: 'createdAt',   label: 'erstellt am' },
+        { value: 'number',      label: '#' },
         { value: 'title',       label: 'Titel' },
-        { value: 'totalLikes',  label: 'Likes' },
+        { value: 'totalLikes',  label: '♥' },
       ],
     };
   },
