@@ -5,6 +5,7 @@ const path = require('path');
 const cron = require('node-cron');
 const glob = require('glob');
 const Sanitize = require('./core/games/util/Sanitize');
+const WordFilter = require('./core/games/util/WordFilter');
 
 const app = express();
 const server = require('http').Server(app);
@@ -57,6 +58,12 @@ io.on('connection', socket => {
 
     // remove zero width no break spaces, trim spaces
     name = name.replace(/[\u200B-\u200D\uFEFF\n\t]/g, '').trim()
+
+    // Reject names containing a slur (crude/profane names are still allowed).
+    if (WordFilter.hasSlur(name)) {
+      socket.emit('member:nameOk', false);
+      return;
+    }
 
     const isAsync = player.lobby && player.lobby.isAsync;
     if((isAsync ? name.length < 16 : name.length > 0 && name.length < 16)) {
@@ -161,6 +168,14 @@ io.on('connection', socket => {
   socket.on('lobby:join', code => {
     code = code.toLowerCase();
 
+    // Auto-leave any current WAITING lobby before joining.
+    // Handles race where lobby:join arrives before the client's lobby:leave event —
+    // e.g. when the HTTP lobby-exists check resolves faster than the WS leave frame.
+    if (player.lobby && player.lobby.lobbyState === 'WAITING') {
+      Lobby.removePlayer(player, true);
+      player.autoLeftAt = Date.now();
+    }
+
     if(!player.lobby && Lobby.lobbyExists(code)) {
       player.interact();
 
@@ -173,6 +188,7 @@ io.on('connection', socket => {
       }
 
       player.lobby = Lobby.lobbies[code];
+      player.autoLeftAt = null;
       socket.emit('lobby:join', code);
       Lobby.lobbies[code].addMember(player);
     }
@@ -221,8 +237,15 @@ io.on('connection', socket => {
   socket.on('game:end', game => {
     if(player.isAdmin()) {
       player.interact();
-      player.lobby.endGame();
-      console.log(new Date(), `-- [lobby ${player.lobby.code}] ended game ${player.lobby.selectedGame}`);
+      const lobby = player.lobby;
+      // For incomplete games, abort gracefully so players can read what was written
+      if (lobby.game && lobby.game.getGameProgress() < 1) {
+        lobby.game.abort();
+        console.log(new Date(), `-- [lobby ${lobby.code}] game aborted by admin, showing partial results`);
+      } else {
+        lobby.endGame();
+        console.log(new Date(), `-- [lobby ${lobby.code}] ended game ${lobby.selectedGame}`);
+      }
     }
   });
 
@@ -265,6 +288,13 @@ io.on('connection', socket => {
 
   // Leave the lobby if a player is in one
   socket.on('lobby:leave', () => {
+    // Ignore stale leave events that arrive after the player already auto-rejoined
+    // (race condition: lobby:join processed first, delayed lobby:leave would otherwise
+    // remove the player from the lobby they just re-entered)
+    if (player.autoLeftAt && Date.now() - player.autoLeftAt < 500) {
+      player.autoLeftAt = null;
+      return;
+    }
     player.name = null;
     Lobby.removePlayer(player, true);
   });

@@ -2,6 +2,7 @@ const Game = require('./game');
 const _ = require('lodash');
 const Chain = require('./util/Chain');
 const Sanitize = require('./util/Sanitize');
+const WordFilter = require('./util/WordFilter');
 
 const MIN_WORDS = 15;
 const MAX_CONTRIBUTION = 250;
@@ -24,6 +25,12 @@ module.exports = class Story extends Game {
     this.timers = {};
     this.deadlines = {};
     this.idleTimers = {};
+    // Set once the game is aborted mid-way: players read the partial stories
+    // instead of writing, and the game waits for them to finish reading.
+    this.aborted = false;
+    // Fixed rotation ring for private games (built in start()/restore()).
+    this.ring = null;
+    this.succ = {};
   }
 
 
@@ -33,6 +40,9 @@ module.exports = class Story extends Game {
 
     this.chains = blob.chains.map(Chain.restore);
     this.finishedReading = blob.finishedReading;
+    this.aborted = blob.aborted || false;
+    this.ring = blob.ring || null;
+    this.succ = blob.succ || {};
 
     // A restored game has no live connections — nobody is actually mid-turn.
     // Release every held chain so it can be reassigned when players (re)join.
@@ -51,6 +61,9 @@ module.exports = class Story extends Game {
       chains: this.chains.map(s => s.save()),
       finishedReading: this.finishedReading,
       deadlines: this.deadlines,
+      aborted: this.aborted,
+      ring: this.ring,
+      succ: this.succ,
     }
   }
 
@@ -154,7 +167,8 @@ module.exports = class Story extends Game {
     this.redistribute();
   }
 
-  // Find a story for a player
+  // Find a story for a player (async balancing model — public sessions).
+  // Private sync games use the fixed ring rotation instead (see assignRing).
   findChainForPlayer(player, memberId = '') {
     // Order chains by total char length (shortest first)
     let available = _.sortBy(
@@ -177,6 +191,63 @@ module.exports = class Story extends Game {
     return available[0];
   }
 
+  // --- Fixed rotation ring (private sync games) ---------------------------
+  // Stories are passed in a fixed cyclic order chosen randomly at start:
+  // ring[i] always passes the story they finish to ring[i+1]. Absent players
+  // are skipped so the remaining authors can still finish every story, but the
+  // relative order between the present players never changes.
+
+  // Build the ring + successor map from a (shuffled) player order.
+  initRing(order) {
+    this.ring = order.slice();
+    this.succ = {};
+    const n = this.ring.length;
+    for (let i = 0; i < n; i++)
+      this.succ[this.ring[i]] = this.ring[(i + 1) % n];
+  }
+
+  // The next still-present player after `pid` in the ring (skips players who
+  // left). Returns `pid` itself if they are the only one left, or '' if none.
+  nextInRing(pid) {
+    if (!this.succ || !this.succ[pid]) return '';
+    let cur = this.succ[pid];
+    for (let i = 0; i < this.ring.length; i++) {
+      if (this.players.includes(cur)) return cur;
+      cur = this.succ[cur];
+    }
+    return '';
+  }
+
+  // Resolve a chain's designated next author to a present player (advancing
+  // past anyone who has left the game).
+  ringTarget(pid) {
+    if (pid && this.players.includes(pid)) return pid;
+    return pid ? this.nextInRing(pid) : '';
+  }
+
+  // Assign every free, writable chain to its designated next author in the
+  // ring, when that author isn't already busy with another chain.
+  assignRing() {
+    const busy = {};
+    for (const c of this.chains)
+      if (c.editor) busy[c.editor] = true;
+
+    const free = _.sortBy(
+      this.chains.filter(c => !c.editor && !c.closed &&
+        _.sumBy(c.chain, l => l.length) + MAX_CONTRIBUTION <= MAX_STORY_CHARS),
+      c => _.sumBy(c.chain, l => l.length)
+    );
+
+    for (const c of free) {
+      const target = this.ringTarget(c.nextEditor);
+      if (target && !busy[target]) {
+        c.nextEditor = target; // collapse past any players who left
+        this.assignChain(target, c);
+        busy[target] = true;
+      }
+    }
+  }
+
   start() {
     const numPlayers = this.players.length;
     const { numStories, numLinks } = this.config;
@@ -184,9 +255,20 @@ module.exports = class Story extends Game {
     this.chains = _.range(numStories)
       .map(() => new Chain(numPlayers, numLinks));
 
-    // Every player has an equal chance of getting a story
+    // Random starting order — fixed for the rest of the game.
     const players = _.shuffle(this.players);
 
+    if (!this.lobby.isAsync) {
+      // Private game: fixed rotation. Give each player one starting story and
+      // let redistribute() hand them out via the ring.
+      this.initRing(players);
+      for (let i = 0; i < this.chains.length; i++)
+        this.chains[i].nextEditor = players[i % players.length];
+      this.redistribute();
+      return;
+    }
+
+    // Public async game: balancing assignment.
     for(const player of players) {
       const playerObj = this.lobby.players.find(p => p.playerId === player);
       const memberId = playerObj ? playerObj.id : '';
@@ -202,18 +284,23 @@ module.exports = class Story extends Game {
 
   // Find stories for those who are not working on one
   redistribute() {
-    const hasStory = this.chains.filter(s => s.editor).reduce((obj, i) => ({...obj, [i.editor]: true}), {});
+    if (!this.lobby.isAsync && this.ring) {
+      // Private game: assign strictly by the fixed ring rotation.
+      this.assignRing();
+    } else {
+      const hasStory = this.chains.filter(s => s.editor).reduce((obj, i) => ({...obj, [i.editor]: true}), {});
 
-    // find players not editing stories
-    const players = _.sortBy(this.players.filter(p => !hasStory[p]), p => this.lastEdit[p]);
+      // find players not editing stories
+      const players = _.sortBy(this.players.filter(p => !hasStory[p]), p => this.lastEdit[p]);
 
-    for(const player of players) {
-      const playerObj = this.lobby.players.find(p => p.playerId === player);
-      const memberId = playerObj ? playerObj.id : '';
-      const story = this.findChainForPlayer(player, memberId);
-      if(!story)
-        continue;
-      this.assignChain(player, story);
+      for(const player of players) {
+        const playerObj = this.lobby.players.find(p => p.playerId === player);
+        const memberId = playerObj ? playerObj.id : '';
+        const story = this.findChainForPlayer(player, memberId);
+        if(!story)
+          continue;
+        this.assignChain(player, story);
+      }
     }
 
     // When all stories are complete, save them to lobby so they survive endGame()
@@ -255,13 +342,49 @@ module.exports = class Story extends Game {
     this.lobby.emitAll('story:result', stories);
   }
 
+  // Abort mid-game: show partial stories to remaining players and wait for them
+  // to click Done before ending the game (so they can read what was written).
+  abort() {
+    for (const pid in this.timers) clearTimeout(this.timers[pid]);
+    this.timers = {};
+    this.deadlines = {};
+    for (const pid in this.idleTimers) clearTimeout(this.idleTimers[pid]);
+    this.idleTimers = {};
+
+    this.aborted = true;
+    // Release every chain so no one is left assigned as an editor — otherwise
+    // getPlayerState would send them back to EDITING on the next sendGameInfo().
+    for (const c of this.chains)
+      c.editor = '';
+
+    // Save the partial stories (the ones that actually got written) so the
+    // lobby can show them in its accordion after the round, just like a
+    // completed round.
+    const partial = this.compilePartialStories().filter(s => s.length > 0);
+    this.lobby.completedStories = partial.length ? partial : null;
+    this.lobby.completedAt = partial.length ? Date.now() : null;
+
+    // No players left to read — end immediately rather than leaving lobby stuck in PLAYING
+    if (this.players.length === 0) {
+      this.lobby.endGame();
+      return;
+    }
+
+    // Send the partial stories, then broadcast state so every remaining player
+    // enters READING (getPlayerState now resolves to READING while aborted).
+    this.lobby.emitAll('story:result', this.compilePartialStories());
+    this.sendGameInfo();
+  }
+
   cleanup() {}
 
   handleMessage(pid, type, data) {
     switch(type) {
 
     case 'story:result':
-      if (this.getGameProgress() === 1) {
+      if (this.aborted) {
+        this.emitTo(pid, 'story:result', this.compilePartialStories());
+      } else if (this.getGameProgress() === 1) {
         this.emitTo(pid, 'story:result', this.compileStories());
       }
       break;
@@ -280,7 +403,9 @@ module.exports = class Story extends Game {
       if(typeof data !== 'string')
         return;
 
-      const line = Sanitize.str(data);
+      // Sanitize, then censor disallowed words (replaced with ***) so the
+      // stored line — and everything downstream (context, results) — is clean.
+      const line = WordFilter.censor(Sanitize.str(data));
 
       if(line.length < 1 || line.length > MAX_CONTRIBUTION)
         return;
@@ -308,6 +433,10 @@ module.exports = class Story extends Game {
       story.addLink(pid, line, authorName, memberId);
       if (wasLastLink)
         story.closed = true;
+
+      // Private game: pass the story to the next present author in the ring.
+      if (!this.lobby.isAsync && this.ring)
+        story.nextEditor = this.nextInRing(pid);
 
       this.redistribute();
 
@@ -339,8 +468,8 @@ module.exports = class Story extends Game {
       break;
 
     case 'chain:like':
-      const progress = this.getGameProgress();
-      if(typeof data === 'number' && data >= 0 && data <= this.chains.length && progress === 1) {
+      const reading = this.aborted || this.getGameProgress() === 1;
+      if(typeof data === 'number' && data >= 0 && data <= this.chains.length && reading) {
         this.chains[data].likes[pid] = !this.chains[data].likes[pid];
         this.sendGameInfo();
       }
@@ -358,8 +487,8 @@ module.exports = class Story extends Game {
   }
 
   getPlayerState(pid) {
-    const story = this.chains.find(s => s.editor === pid);
-    const done = this.getGameProgress() === 1;
+    const story = this.aborted ? null : this.chains.find(s => s.editor === pid);
+    const done = this.aborted || this.getGameProgress() === 1;
 
     return story ? {
       id: pid,
@@ -409,11 +538,14 @@ module.exports = class Story extends Game {
     for (const c of this.chains.filter(s => s.editor))
       hasStory[c.editor] = true;
     const progress = this.getGameProgress();
+    // "reading" covers both a naturally finished game and an aborted one — in
+    // both cases players are reading partial/complete stories, not writing.
+    const reading = this.aborted || progress === 1;
     return {
-      // players who are writing have pencil icons, players who are not have a clock icon
+      // players who are reading have check/clock icons, writers have a pencil
       icons: Object.fromEntries(this.players.map(p => ([
         p,
-        progress === 1
+        reading
           ? this.finishedReading[p] ? 'check' : 'clock'
           : hasStory[p] ? 'pencil' : 'clock',
       ]))),
@@ -421,6 +553,7 @@ module.exports = class Story extends Game {
       minWords: MIN_WORDS,
       likes: this.chains.map(s => _.size(_.filter(s.likes, l => l))),
       isComplete: progress === 1,
+      reading,
     };
   }
 };
