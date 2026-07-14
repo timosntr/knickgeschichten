@@ -11,15 +11,15 @@
     </div>
     <div v-else-if="submitted" style="margin: 16px 0">
       <sui-icon name="check circle" color="green" size="large"/>
-      <p style="margin-top: 8px; font-size: 1.05em; font-weight: bold;">Beitrag gesendet!</p>
+      <p style="margin-top: 8px; font-size: 1.05em; font-weight: bold;">erfolgreich weitergegeben</p>
 
       <div class="share-contribution">
-        <div class="share-contribution-label">Dein Beitrag:</div>
+        <div class="share-contribution-label">dein Text:</div>
         <p class="share-contribution-text">{{ submittedLine }}</p>
       </div>
 
       <p style="font-size: 0.9em; color: #555; margin-bottom: 10px">
-        Lad andere ein, die Geschichte weiterzuschreiben:
+        Lade andere ein, die Geschichte weiterzuschreiben:
       </p>
       <div class="share-buttons">
         <sui-button color="green" @click="shareLink">
@@ -34,7 +34,7 @@
       </div>
       <div style="margin-top: 20px;">
         <sui-button basic size="small" @click="$router.push('/sessions')">
-          <sui-icon name="arrow left"/> Zurück zu den Stories
+          <sui-icon name="arrow left"/> zu den Geschichten
         </sui-button>
       </div>
     </div>
