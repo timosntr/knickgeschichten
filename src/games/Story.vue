@@ -81,7 +81,7 @@
                    basic
           @click="skipTurn"
           style="margin-top: 6px;">
-          Abbrechen
+          abbrechen
         </sui-button>
       </sui-form>
     </div>
