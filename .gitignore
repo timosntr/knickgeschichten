@@ -7,3 +7,6 @@ nginx.letsencrypt.conf
 .DS_Store
 .env
 persistence/
+
+# local design assets (large binaries, not for the repo)
+design/

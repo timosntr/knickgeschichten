@@ -1,5 +1,5 @@
 <template>
-  <sui-dimmer :active="active" >
+  <sui-dimmer :active="active" style="position: fixed">
     <sui-form
            @submit="testLobby"
       :error="lobbyError"

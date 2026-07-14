@@ -35,8 +35,11 @@ class Lobby {
         continue;
       }
 
-      // delete empty, non-persist, non-async lobbies that are older than 60 seconds
-      if (lobby.empty() && !lobby.persist && !lobby.isAsync && now - lobby.created > 60000) {
+      // delete empty, non-persist, non-async lobbies after a 2-minute grace period
+      // (grace period starts when it emptied, so players can rejoin)
+      const emptyAge = now - (lobby.emptiedAt || lobby.created);
+      if (lobby.empty() && !lobby.persist && !lobby.isAsync && emptyAge > 120000) {
+        if (lobby.game) { lobby.game.stop(); lobby.game.cleanup(); lobby.game = undefined; }
         Lobby.cull(code);
         ++count;
       }
@@ -165,20 +168,9 @@ class Lobby {
         return;
       }
 
-      try {
-        // kill and cleanup the game
-        if(lobby.game) {
-          lobby.game.stop();
-          lobby.game.cleanup();
-          lobby.game = undefined;
-        }
-
-        console.log(new Date(), `-- [lobby ${lobby.code}] removed`);
-
-        Lobby.cull(lobby.code);
-      } catch (err) {
-        //
-      }
+      // Mark when the lobby emptied — cullEmpty will clean it up after a grace period
+      lobby.emptiedAt = Date.now();
+      console.log(new Date(), `-- [lobby ${lobby.code}] emptied, will be culled after grace period`);
     }
   }
 
@@ -335,6 +327,14 @@ class Lobby {
     const Constructor = GAMES[this.selectedGame];
 
     if(Constructor) {
+      // Clear the previous round's stories so a new round can record its own
+      // (redistribute only saves completedStories when none are set yet).
+      if (!this.isAsync) {
+        this.completedStories = null;
+        this.completedAuthors = 0;
+        this.completedAt = null;
+        this.completedLikes = 0;
+      }
       this.game = new Constructor(...args);
       this.lobbyState = 'PLAYING';
       this.updateMembers();
@@ -347,6 +347,11 @@ class Lobby {
     if(!this.selectedGame) return;
     if(this.lobbyState !== 'PLAYING') return;
 
+    for (const pid in this.disconnectTimers) {
+      clearTimeout(this.disconnectTimers[pid]);
+      delete this.disconnectTimers[pid];
+    }
+
     if(this.game) {
       this.game.stop();
       this.game.cleanup();
@@ -354,6 +359,13 @@ class Lobby {
 
     this.game = undefined;
     this.lobbyState = 'WAITING';
+
+    // Re-open the player cap that startGame() pinned to the last round's count,
+    // so members who joined between rounds become players again (and the next
+    // round gets one story per player via numStories = #numPlayers).
+    if (!this.isAsync) {
+      this.gameConfig.players = '#numPlayers';
+    }
 
     this.updateMembers();
     this.sendLobbyInfo();
@@ -524,6 +536,31 @@ class Lobby {
             }
           }, 60000);
         }
+      } else if (!this.isAsync && this.lobbyState === 'PLAYING') {
+        // Sync PLAYING: keep the player slot so they can rejoin via lobby:replace,
+        // detach from game queue, and release their chain after a 60s grace period.
+        const pid = playerObj.playerId;
+        const name = playerObj.name || pid;
+        playerObj.connected = false;
+        playerObj.member = null;
+        playerObj.id = -1;
+        if (pid && this.game) {
+          this.game.detachPlayer(pid);
+          if (this.disconnectTimers[pid]) clearTimeout(this.disconnectTimers[pid]);
+          const gameAtDisconnect = this.game;
+          this.disconnectTimers[pid] = setTimeout(() => {
+            delete this.disconnectTimers[pid];
+            if (!this.game || this.game !== gameAtDisconnect || this.lobbyState !== 'PLAYING') return;
+            this.game.releasePlayer(pid);
+            console.log(new Date(), `-- [lobby ${this.code}] released chain of absent sync player "${name}" after 60s`);
+            // If fewer than 2 players remain, abort: show partial stories to whoever is left
+            const connected = this.players.filter(p => p.connected).length;
+            if (connected < 2) {
+              console.log(new Date(), `-- [lobby ${this.code}] only ${connected} player(s) left, aborting game`);
+              this.game.abort();
+            }
+          }, 60000);
+        }
       } else {
         playerObj.name = member.name;
         playerObj.connected = false;
@@ -635,6 +672,11 @@ class Lobby {
       this.sendLobbyInfo();
 
       if(this.game && this.lobbyState === 'PLAYING') {
+        // For sync games: re-add player to the game queue and give them a chain
+        if (!this.isAsync && !this.game.players.includes(targetPlayer.playerId)) {
+          this.game.players.push(targetPlayer.playerId);
+          this.game.redistribute();
+        }
         member.socket.emit('game:info', this.game.getState());
         this.getPlayerState(id);
       }
@@ -756,6 +798,9 @@ class Lobby {
       admin: this.admin,
       isAsync: this.isAsync,
       isComplete: !!this.completedStories,
+      // Stories from the last finished round, so a private lobby can show them
+      // (as an accordion) before the next round starts.
+      completedStories: !this.isAsync ? (this.completedStories || null) : null,
       title: this.title,
       gameState: this.game ? this.game.getState() : {},
       members: this.members.map(m => ({
