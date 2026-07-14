@@ -313,6 +313,30 @@ export default {
   },
   methods: {
     update() { this.$forceUpdate(); },
+    // Show the reconnecting overlay and arm the give-up timer. Shared by the
+    // socket 'disconnect' handler and the browser 'offline' event so the
+    // overlay appears the instant the network drops — socket.io itself only
+    // fires 'disconnect' after its heartbeat times out (~20s), which is far too
+    // late to be useful.
+    beginReconnect() {
+      if (this.state !== 'PLAYING' && this.state !== 'LOBBY_WAITING')
+        return;
+      this.reconnecting = true;
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = setTimeout(() => {
+        this.reconnecting = false;
+        this.validLobby = false;
+        this.state = 'NO_LOBBY';
+      }, 20000);
+    },
+    onOffline() { this.beginReconnect(); },
+    onOnline() {
+      // Network is back. socket.io reconnects on its own and connect() rejoins;
+      // hide the overlay optimistically so a recovered blip clears immediately
+      // even if the socket never actually dropped.
+      this.reconnecting = false;
+      clearTimeout(this.reconnectTimer);
+    },
     leaveLobby() {
       this.$socket.emit('lobby:leave');
       this.$router.push('/');
@@ -474,13 +498,7 @@ export default {
       // after a grace period. This keeps the player in their seat and preserves
       // whatever they were typing.
       if (this.state === 'PLAYING' || this.state === 'LOBBY_WAITING') {
-        this.reconnecting = true;
-        clearTimeout(this.reconnectTimer);
-        this.reconnectTimer = setTimeout(() => {
-          this.reconnecting = false;
-          this.validLobby = false;
-          this.state = 'NO_LOBBY';
-        }, 20000);
+        this.beginReconnect();
         return;
       }
       this.validLobby = false;
@@ -505,9 +523,13 @@ export default {
   beforeDestroy() {
     this.bus.$off('toggle-hide-lobby', this.update);
     clearTimeout(this.reconnectTimer);
+    window.removeEventListener('offline', this.onOffline);
+    window.removeEventListener('online', this.onOnline);
   },
   created() {
     this.bus.$on('toggle-hide-lobby', this.update);
+    window.addEventListener('offline', this.onOffline);
+    window.addEventListener('online', this.onOnline);
     const lobbyCode = this.$route.params.code;
     if(!lobbyCode || lobbyCode.length < 4) {
       this.loading = false;
