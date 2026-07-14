@@ -562,8 +562,11 @@ export default {
     // collapsed to a single date when start and end fall on the same day
     // or completedAt is missing (old data).
     dateSpan(createdAt, completedAt) {
+      if (!completedAt) return this.formatDate(createdAt);
+      // Legacy data can lack a real createdAt (falls back to "today") — if it's
+      // missing or after completion, just show the reliable completion date.
+      if (!createdAt || createdAt > completedAt) return this.formatDate(completedAt);
       const start = this.formatDate(createdAt);
-      if (!completedAt) return start;
       const end = this.formatDate(completedAt);
       return start === end ? end : `${start} – ${end}`;
     },

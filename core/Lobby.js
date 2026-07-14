@@ -244,8 +244,10 @@ class Lobby {
   restoreState(lobbyState) {
     if (lobbyState.code)
       this.code = lobbyState.code;
-    // Restore original creation time; fall back to now for old saves.
-    this.created = lobbyState.created || this.created;
+    // Restore original creation time. Old saves lack `created`: fall back to
+    // the completion time (so a finished story doesn't get "today" as its start
+    // and show a reversed span), and only to now as a last resort.
+    this.created = lobbyState.created || lobbyState.completedAt || this.created;
     this.members = [];
 
     if (lobbyState.players) {
