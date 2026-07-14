@@ -63,27 +63,27 @@
           class="kg-btn kg-btn--solid"
           :disabled="!connected || creatingAsync"
           @click="createAsync">
-          Neue öffentliche Story starten
+          öffentliche Geschichte starten
         </button>
 
         <!-- Private Geschichten -->
-        <div class="kg-divider"><span>Private Geschichten</span></div>
+        <div class="kg-divider"><span>private Geschichten</span></div>
         <button
           class="kg-btn kg-btn--outline"
           :disabled="!connected || creatingLobby"
           @click="createLobby">
-          Lobby erstellen
+          Raum erstellen
         </button>
         <button
           class="kg-btn kg-btn--outline"
           :disabled="!connected || showJoinLobby"
           @click="showJoinLobby = true">
-          Lobby beitreten
+          Raum beitreten
         </button>
 
         <!-- Öffentliche Geschichten Karussell -->
         <section v-if="recentSessions.length > 0" class="kg-sheet">
-          <h2 class="kg-sheet__title">Öffentliche Geschichten</h2>
+          <h2 class="kg-sheet__title">angefangene Geschichten</h2>
           <div class="carousel"
             @touchstart="onTouchStart"
             @touchend="onTouchEnd"
@@ -113,7 +113,7 @@
                         · {{ recentSessions[carouselIndex].playersOnline }} online
                       </template>
                     </span>
-                    <span class="kg-pill kg-pill--solid">Beitreten</span>
+                    <span class="kg-pill kg-pill--solid">beitreten</span>
                   </div>
                 </div>
               </transition>
@@ -156,7 +156,7 @@
                         ♥ {{ recentCompleted[archiveIndex].totalLikes }}
                       </span>
                     </span>
-                    <span class="kg-pill kg-pill--cream">Lesen</span>
+                    <span class="kg-pill kg-pill--cream">lesen</span>
                   </div>
                 </div>
               </transition>
@@ -546,9 +546,9 @@ export default {
       const diff = Date.now() - ts;
       const mins = Math.floor(diff / 60000);
       if (mins < 1) return 'gerade eben';
-      if (mins < 60) return `vor ${mins} Min.`;
+      if (mins < 60) return `vor ${mins} Minute${mins !== 1 ? 'n' : ''}`;
       const hrs = Math.floor(mins / 60);
-      if (hrs < 24) return `vor ${hrs} Std.`;
+      if (hrs < 24) return `vor ${hrs} Stunde${hrs !== 1 ? 'n' : ''}`;
       const days = Math.floor(hrs / 24);
       return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
     },
