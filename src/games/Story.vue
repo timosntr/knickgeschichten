@@ -10,7 +10,7 @@
       </p>
     </div>
     <div v-else-if="submitted" style="margin: 16px 0">
-      <sui-icon name="check circle" color="green" size="large"/>
+      <div ref="confetti" class="paper-confetti"></div>
       <p style="margin-top: 8px; font-size: 1.05em; font-weight: bold;">erfolgreich weitergegeben</p>
 
       <div class="share-contribution">
@@ -285,6 +285,41 @@
   margin: 0;
 }
 
+/* Paper-snippet confetti on the share screen (bursts from this origin point). */
+.paper-confetti {
+  position: relative;
+  width: 0;
+  height: 0;
+  margin: 10px auto 0;
+}
+.confetti-piece {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--w, 9px);
+  height: var(--h, 13px);
+  border-radius: 1px;
+  /* lined college-block paper: pale sheet + thin blue rules */
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 2.5px, rgba(74,124,196,0.45) 2.5px 3px),
+    var(--paper, #fdfdf6);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+  animation: confetti-fall var(--dur, 2400ms) cubic-bezier(.22,.6,.35,1) forwards;
+  animation-delay: var(--delay, 0ms);
+  will-change: transform, opacity;
+}
+.confetti-piece.has-margin {
+  border-left: 2px solid rgba(206,74,58,0.6);
+}
+@keyframes confetti-fall {
+  0%   { transform: translate(0, 0) rotate(0); opacity: 1; }
+  12%  { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti-piece { display: none; }
+}
+
 </style>
 
 <script>
@@ -377,6 +412,12 @@ export default {
   beforeDestroy() {
     this.stopCountdown();
   },
+  watch: {
+    // Fire the paper confetti once the share screen appears.
+    submitted(val) {
+      if (val) this.$nextTick(() => this.paperConfetti());
+    },
+  },
   created() {
     // Restore an unsent draft for this story (survives reconnects, remounts and
     // full page reloads) so a dropped connection never loses what you typed.
@@ -420,6 +461,29 @@ export default {
   },
   methods: {
     update() { this.$forceUpdate(); },
+    // Burst of lined-paper snippets from the center of the share screen.
+    paperConfetti() {
+      const host = this.$refs.confetti;
+      if (!host) return;
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const papers = ['#fdfdf6', '#ffffff', '#f2f6fc', '#fbf8ef'];
+      for (let i = 0; i < 32; i++) {
+        const p = document.createElement('div');
+        p.className = 'confetti-piece' + (Math.random() < 0.35 ? ' has-margin' : '');
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 55 + Math.random() * 95;
+        p.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+        p.style.setProperty('--dy', (80 + Math.random() * 170) + 'px');
+        p.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+        p.style.setProperty('--paper', papers[i % papers.length]);
+        p.style.setProperty('--w', (7 + Math.random() * 5) + 'px');
+        p.style.setProperty('--h', (11 + Math.random() * 7) + 'px');
+        p.style.setProperty('--dur', (2300 + Math.random() * 800) + 'ms');
+        p.style.setProperty('--delay', (Math.random() * 160) + 'ms');
+        host.appendChild(p);
+        setTimeout(() => p.remove(), 3400);
+      }
+    },
     // Resolve display name for a single entry: named / "Anonym" / fallback via nameTable
     entryAuthor(entry) {
       if (entry.authorName !== null && entry.authorName !== undefined) {
