@@ -4,7 +4,7 @@
     </portal-target>
     <sui-dimmer :active="disconnected" style="position: fixed">
       <sui-loader>
-        Lost Connection to Server
+        Verbindung zum Server …
       </sui-loader>
     </sui-dimmer>
   </div>

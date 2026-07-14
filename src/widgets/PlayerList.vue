@@ -1,7 +1,7 @@
 <template>
   <div class="player-list-widget">
     <sui-divider horizontal >
-      Lobby Members<span
+      Schreibraum<span
         v-if="lobbyState === 'PLAYING' && $route.params.code"
         class="lobby-code-inline">{{ $route.params.code.toUpperCase() }}</span>
     </sui-divider>
@@ -9,7 +9,7 @@
       <sui-table-header>
         <sui-table-row>
           <th style="position: relative;">
-            Players
+            Autor*innen
           </th>
         </sui-table-row>
       </sui-table-header>
@@ -25,7 +25,7 @@
                 size="tiny"
                 @click="$socket.emit('lobby:replace', p.playerId)"
                                basic>
-                Join
+                beitreten
               </sui-button>
                <sui-icon
                 v-if="admin === p.id"
@@ -48,7 +48,7 @@
         </sui-table-row>
         <sui-table-row v-if="!players.length">
           <td>
-            <i>No Players</i>
+            <i>keine Autor*innen da</i>
           </td>
         </sui-table-row>
       </sui-table-body>
@@ -58,7 +58,7 @@
                color="red"
         @click="tryEndGame"
         v-if="$root.playerId === admin && lobbyState === 'PLAYING' && !gameState.reading">
-        {{confirmEndGame ? 'Are You Sure?' : 'End Game'}}
+        {{confirmEndGame ? 'bist du sicher?' : 'Geschichten beenden'}}
       </sui-button>
     </div>
   </div>
