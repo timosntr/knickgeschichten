@@ -1,6 +1,6 @@
 <template>
   <ooc-page>
-    <ooc-menu title="Offene Storys" subtitle="Mach mit beim Schreiben">
+    <ooc-menu title="angefangene Geschichten" subtitle="schreib mit">
       <div>
         <div class="accordion">
           <button class="accordion-toggle" @click="showSort = !showSort">
@@ -20,14 +20,14 @@
         </div>
 
         <div v-if="loading" style="text-align: center; padding: 24px">
-          <sui-loader active inline centered>Laden...</sui-loader>
+          <sui-loader active inline centered>lädt</sui-loader>
         </div>
         <div v-else>
           <div v-if="activeSessions.length === 0"
             style="text-align: center; padding: 24px; color: #888;">
-            Keine offenen Storys vorhanden.
+            keine angefangenen Geschichten vorhanden
             <br>
-            <router-link to="/">Neue starten!</router-link>
+            <router-link to="/">neue Geschichte starten</router-link>
           </div>
 
           <div v-for="session in pagedSessions" :key="session.code" class="session-card">
@@ -45,7 +45,7 @@
             <div class="session-footer">
               <span class="session-age">{{ timeAgo(session.lastActivity) }}</span>
               <sui-button size="tiny" color="green" @click="joinSession(session.code)">
-                Mitmachen
+                mitschreiben
               </sui-button>
             </div>
           </div>
@@ -191,8 +191,8 @@ export default {
       sortBy: 'lastActivity',
       sortDesc: true,
       sortOptions: [
-        { value: 'lastActivity', label: 'Zuletzt bearbeitet' },
-        { value: 'number',       label: 'Nummer' },
+        { value: 'lastActivity', label: 'zuletzt' },
+        { value: 'number',       label: '#' },
       ],
     };
   },
