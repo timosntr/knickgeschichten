@@ -21,7 +21,7 @@
 
         <div class="accordion">
           <button class="accordion-toggle" @click="showSort = !showSort">
-            <span>Sortieren nach <span class="sort-active-label">· {{ currentSortLabel }}</span></span>
+            <span><span class="sort-icon">⇅</span> {{ currentSortLabel }}</span>
             <span class="accordion-icon">{{ showSort ? '▲' : '▼' }}</span>
           </button>
           <div v-if="showSort" class="accordion-body sort-options">
@@ -192,9 +192,10 @@
   padding: 8px 12px 10px;
   border-top: 1px solid #f0f0f0;
 }
-.sort-active-label {
+.sort-icon {
   color: #21ba45;
-  font-size: 0.92em;
+  font-size: 1.05em;
+  margin-right: 2px;
 }
 .sort-btn {
   padding: 3px 10px;
