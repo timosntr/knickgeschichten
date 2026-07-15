@@ -94,7 +94,10 @@
         Loading Stories
       </sui-loader>
       <div style="text-align: left">
-        <div style="text-align: right; margin-bottom: 8px">
+        <div style="text-align: right; margin-bottom: 8px; display: flex; justify-content: flex-end; gap: 16px;">
+          <button class="view-toggle" @click="exportPdf" :disabled="exportingPdf">
+            {{ exportingPdf ? 'erzeuge pdf …' : 'als pdf exportieren' }}
+          </button>
           <button class="view-toggle" @click="flowView = !flowView">
             {{ flowView ? 'Beiträge' : 'Fließtext' }}
           </button>
@@ -522,6 +525,22 @@ export default {
     requestExport() {
       this.$socket.emit('game:message', 'story:export');
     },
+    async exportPdf() {
+      if (this.exportingPdf) return;
+      this.exportingPdf = true;
+      try {
+        const { exportStoriesPdf } = await import('../pdf/export');
+        await exportStoriesPdf({
+          title: this.lobby.title || 'Knickgeschichte',
+          stories: this.stories,
+          storyAuthors: this.storyAuthors,
+        });
+      } catch (e) {
+        console.error('PDF export failed', e);
+      } finally {
+        this.exportingPdf = false;
+      }
+    },
     copyStories() {
       const text = this.stories.map((story, i) =>
         `=== Story ${i + 1} ===\n` +
@@ -561,6 +580,7 @@ export default {
       idleReason: 'idle',
       copied: false,
       flowView: false,
+      exportingPdf: false,
     };
   },
 };
