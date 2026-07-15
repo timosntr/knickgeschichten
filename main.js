@@ -383,6 +383,13 @@ app.get('/api/v1/lobbies/search', (req, res) => {
 });
 
 // Quote of the day — one random sentence from completed public stories, changes daily
+//
+// QUOTE_MAX_CHARS is capped below the card's design-breaking point, not
+// arbitrarily: the "Satz des Tages" card on the home page has a fixed
+// aspect-ratio background (torn-paper look) that visibly stretches once the
+// quote (rendered as `„${text}"`, i.e. 2 chars longer than the raw sentence)
+// exceeds ~67 characters total. 65 here keeps the displayed text at 67.
+const QUOTE_MAX_CHARS = 65;
 app.get('/api/v1/quote', (req, res) => {
   const sentences = [];
   for (const lobby of Object.values(Lobby.lobbies)) {
@@ -395,7 +402,7 @@ app.get('/api/v1/quote', (req, res) => {
         for (const s of parts) {
           const trimmed = s.trim();
           const wordCount = trimmed.split(/\s+/).filter(w => w.length > 0).length;
-          if (trimmed.length >= 20 && wordCount >= 5) {
+          if (trimmed.length >= 20 && trimmed.length <= QUOTE_MAX_CHARS && wordCount >= 4) {
             // Preserve '' (anonymous sentinel); only undefined/null become null
             sentences.push({ text: trimmed, code: lobby.code, authorName: entry.authorName ?? null });
           }
