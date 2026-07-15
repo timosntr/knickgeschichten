@@ -34,6 +34,10 @@ class Member {
   constructor(socket) {
     this.socket = socket;
     this.id = _.uniqueId('member');
+    // Stable per-browser id (from localStorage, sent on connect) used to
+    // recognize the same visitor across reconnects/reloads, e.g. for likes.
+    // null if the client didn't send one.
+    this.clientId = null;
     this.lobby = undefined;
     this.name = null;
     this.color = 0;
