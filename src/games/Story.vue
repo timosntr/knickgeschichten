@@ -534,6 +534,7 @@ export default {
           title: this.lobby.title || 'Knickgeschichte',
           stories: this.stories,
           storyAuthors: this.storyAuthors,
+          isAsync: this.lobby.isAsync,
         });
       } catch (e) {
         console.error('PDF export failed', e);
