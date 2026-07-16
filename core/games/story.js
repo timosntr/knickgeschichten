@@ -5,8 +5,16 @@ const Sanitize = require('./util/Sanitize');
 const WordFilter = require('./util/WordFilter');
 
 const MIN_WORDS = 15;
-const MAX_CONTRIBUTION = 250;
-const MAX_STORY_CHARS = 4000;
+const MAX_CONTRIBUTION = 300;
+// Total length at which a story is considered finished. Also the effective
+// per-contribution ceiling near the end: a chain stays assignable while
+// sum + MAX_CONTRIBUTION <= MAX_STORY_CHARS, so the last contribution can run
+// up to MAX_CONTRIBUTION and the completed story never exceeds this value.
+// Kept at 3900 so a finished public story fits on a single A4 page in the PDF
+// export at 10pt (see src/pdf/export.js). With MAX_CONTRIBUTION = 300 a chain
+// stays assignable up to sum <= 3600, and the "Finish"/last-link zone begins
+// at sum > 3300 (both derived from these two constants).
+const MAX_STORY_CHARS = 3900;
 const CONTEXT_LEN = 1;
 const CONTEXT_WORDS = 8;
 
@@ -430,8 +438,9 @@ module.exports = class Story extends Game {
 
       // If this writer was in the "last link" zone (same threshold the client
       // uses to show "Finish"), their contribution closes the story — otherwise
-      // a short final line would leave the chain assignable between 3500–3750
-      // chars and the "Finish" promise would be a lie.
+      // a short final line would leave the chain assignable in the
+      // (MAX_STORY_CHARS - 2*MAX_CONTRIBUTION, MAX_STORY_CHARS - MAX_CONTRIBUTION]
+      // char band and the "Finish" promise would be a lie.
       const wasLastLink = _.sumBy(story.chain, l => l.length) + 2 * MAX_CONTRIBUTION > MAX_STORY_CHARS;
       story.addLink(pid, line, authorName, memberId);
       if (wasLastLink)

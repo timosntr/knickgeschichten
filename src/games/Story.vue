@@ -60,7 +60,7 @@
             @paste="onPaste">
           </textarea>
           <div class="char-count">
-            {{line.length}}/250
+            {{line.length}}/300
           </div>
           <div v-if="game.minWords > 0" class="word-count" :class="{insufficient: wordCount < game.minWords}">
             {{wordCount}} / {{game.minWords}} Wörter
@@ -71,7 +71,7 @@
         </sui-form-field>
         <sui-button type="submit"
           :color="player.isLastLink ? 'green' : 'blue'"
-                   :disabled="line.length < 1 || line.length > 250 || wordCount < game.minWords">
+                   :disabled="line.length < 1 || line.length > 300 || wordCount < game.minWords">
           {{player.isLastLink ? 'Finish' : 'Sign'}}
         </sui-button>
         <sui-button v-if="lobby.isAsync"
@@ -94,7 +94,10 @@
         Loading Stories
       </sui-loader>
       <div style="text-align: left">
-        <div style="text-align: right; margin-bottom: 8px">
+        <div style="text-align: right; margin-bottom: 8px; display: flex; justify-content: flex-end; gap: 16px;">
+          <button class="view-toggle" @click="exportPdf" :disabled="exportingPdf">
+            {{ exportingPdf ? 'erzeuge pdf …' : 'als pdf exportieren' }}
+          </button>
           <button class="view-toggle" @click="flowView = !flowView">
             {{ flowView ? 'Beiträge' : 'Fließtext' }}
           </button>
@@ -481,7 +484,7 @@ export default {
     writeLine(event) {
       event.preventDefault();
 
-      if(this.line.length < 1 || this.line.length > 250)
+      if(this.line.length < 1 || this.line.length > 300)
         return;
 
       this.submittedLine = this.line;
@@ -522,6 +525,23 @@ export default {
     requestExport() {
       this.$socket.emit('game:message', 'story:export');
     },
+    async exportPdf() {
+      if (this.exportingPdf) return;
+      this.exportingPdf = true;
+      try {
+        const { exportStoriesPdf } = await import('../pdf/export');
+        await exportStoriesPdf({
+          title: this.lobby.title || 'Knickgeschichte',
+          stories: this.stories,
+          storyAuthors: this.storyAuthors,
+          isAsync: this.lobby.isAsync,
+        });
+      } catch (e) {
+        console.error('PDF export failed', e);
+      } finally {
+        this.exportingPdf = false;
+      }
+    },
     copyStories() {
       const text = this.stories.map((story, i) =>
         `=== Story ${i + 1} ===\n` +
@@ -561,6 +581,7 @@ export default {
       idleReason: 'idle',
       copied: false,
       flowView: false,
+      exportingPdf: false,
     };
   },
 };

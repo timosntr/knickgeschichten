@@ -14,10 +14,10 @@
           <div v-if="showInfo" class="accordion-body">
             <ul class="info-list">
               <li>Der bisher geschriebene Text wird wie beim klassischen Spiel „umgeknickt". Du siehst also nur einen kleinen Teil vom vorherigen Abschnitt.</li>
-              <li>Du liest den sichtbaren Teil und schreibst darauf basierend einen neuen Abschnitt – mindestens <strong>15 Wörter</strong>, maximal <strong>250 Zeichen</strong>.</li>
+              <li>Du liest den sichtbaren Teil und schreibst darauf basierend einen neuen Abschnitt – mindestens <strong>15 Wörter</strong>, maximal <strong>300 Zeichen</strong>.</li>
               <li>Alle Beiträge sind anonym. Du weißt nicht, wer vor dir geschrieben hat, und am Ende ist nicht ersichtlich, wer welchen Abschnitt verfasst hat.</li>
               <li>Den Fortschritt einer Geschichte erkennst du am Statusbalken.</li>
-              <li>Eine Geschichte ist fertig, wenn das Limit von <strong>4000 Zeichen</strong> erreicht ist.</li>
+              <li>Eine Geschichte ist fertig, wenn das Limit von <strong>3900 Zeichen</strong> erreicht ist.</li>
               <li>Du kannst jederzeit eine neue Geschichte starten.</li>
               <li>Fertige Geschichten findest du im <router-link to="/archive">Archiv</router-link>.</li>
             </ul>
