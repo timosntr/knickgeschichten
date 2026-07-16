@@ -25,25 +25,6 @@ const GAMES = require('./gameInfo.js');
 
 let asyncSessionCounter = 0;
 
-const EMOTES = [
-  'smile',
-  'meh',
-  'frown',
-  'heart',
-  'bug',
-  'hand rock',
-  'hand paper',
-  'hand scissors',
-  'question',
-  'exclamation',
-  'wait',
-  'write',
-  'check',
-  'times',
-  'thumbs up',
-  'thumbs down',
-];
-
 io.on('connection', socket => {
   const player = new Member(socket);
   socket.emit('member:id', player.id);
@@ -198,20 +179,6 @@ io.on('connection', socket => {
     if(player.lobby) {
       player.interact();
       player.lobby.replacePlayer(player, pid);
-    } else {
-      socket.emit('lobby:leave');
-    }
-  });
-
-  socket.on('lobby:emote', emote => {
-    if(player.lobby) {
-      const now = Date.now();
-      if(now - player.lastEmote < 400 || !EMOTES.includes(emote))
-        return;
-
-      player.activity = now;
-      player.lastEmote = now;
-      player.lobby.emitAll('lobby:emote', player.id, emote);
     } else {
       socket.emit('lobby:leave');
     }

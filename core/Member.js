@@ -37,7 +37,6 @@ class Member {
     this.lobby = undefined;
     this.name = null;
     this.color = 0;
-    this.lastEmote = Date.now();
     this.activity = Date.now();
     members.push(this);
   }
