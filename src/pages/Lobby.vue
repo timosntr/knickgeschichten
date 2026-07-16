@@ -133,13 +133,6 @@
         {{$route.params.code.toUpperCase()}}
       </code>
     </sui-label>
-    <sui-label
-      v-if="lobbyInfo.admin === $root.playerId"
-      class="lobby-code right"
-      color="green"
-      attached="top right">
-      <sui-icon name="shield"/>
-    </sui-label>
     <ooc-util></ooc-util>
     <ooc-join-lobby :active="showJoinLobby" @close="showJoinLobby = false">
     </ooc-join-lobby>
@@ -218,10 +211,6 @@
 
 .lobby-code.left {
   left: 0 !important;
-}
-
-.lobby-code.right {
-  right: 0 !important;
 }
 
 </style>
