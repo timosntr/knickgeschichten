@@ -46,6 +46,13 @@ const EMOTES = [
 
 io.on('connection', socket => {
   const player = new Member(socket);
+
+  // Accept the browser's stable client id, if it sent a plausible one.
+  const rawClientId = socket.handshake.query && socket.handshake.query.kgClientId;
+  if (typeof rawClientId === 'string' && /^[a-zA-Z0-9-]{8,64}$/.test(rawClientId)) {
+    player.clientId = rawClientId;
+  }
+
   socket.emit('member:id', player.id);
   socket.emit('version', VERSION);
 
