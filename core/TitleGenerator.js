@@ -26,9 +26,17 @@ const ENABLED = process.env.AI_TITLES === '1';
 // blocked while we wait — the story is already finished.
 const TIMEOUT_MS = 60000;
 const MAX_TITLE_LEN = 60;
-// Only feed the model the beginning of the story — enough to get the gist,
-// and keeps CPU time (and the KV cache) small on a modest server.
-const MAX_INPUT_CHARS = 1500;
+// Feed the model the whole story. Measured (qwen2.5:1.5b, keep_alive:0): peak
+// RSS and generation time are essentially flat between a 1500-char and a
+// ~3950-char input (~1.22-1.25 GB either way) — Ollama pre-allocates the KV
+// cache for its fixed context window (-c 4096 for this model) regardless of
+// actual prompt length, so a longer prompt doesn't cost meaningfully more RAM
+// or time here. Async stories are hard-capped at MAX_STORY_CHARS (4000) by the
+// game itself, so "the whole story" is already a small, known bound — not
+// unbounded growth. Truncating to only the opening was actively bad for
+// quality: Knickgeschichten's whole point is the twist at the end, and a
+// truncated context never sees it.
+const MAX_INPUT_CHARS = 4000;
 
 // The story is attacker-controlled text (anyone can write a contribution), so
 // it is a prompt-injection vector: a contribution saying "Ignoriere alle
