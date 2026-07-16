@@ -14,7 +14,7 @@
         </sui-table-row>
       </sui-table-header>
       <sui-table-body>
-        <sui-table-row v-for="p in players"
+        <sui-table-row v-for="p in sortedPlayers"
           :key="p.playerId"
           :negative="!p.connected"
           :positive="$root.playerId === p.id">
@@ -31,10 +31,6 @@
                 v-if="admin === p.id"
                 color="grey"
                 name="shield"/>
-              <sui-icon
-                v-if="$root.playerId === p.id"
-                color="grey"
-                name="user"/>
               <sui-icon
                 v-if="gameState.icons[p.playerId]"
                 color="grey"
@@ -121,6 +117,13 @@ export default {
     // never see the "Join" button on someone else's disconnected slot.
     isActivePlayer() {
       return this.players.some(p => p.id === this.$root.playerId && p.connected);
+    },
+    // Put the viewer's own row first so they can find themselves at a glance;
+    // everyone else keeps the server's order. Sorts a copy — `players` is a
+    // prop and must not be mutated.
+    sortedPlayers() {
+      const self = this.$root.playerId;
+      return [...this.players].sort((a, b) => (b.id === self) - (a.id === self));
     },
   },
   data() {
