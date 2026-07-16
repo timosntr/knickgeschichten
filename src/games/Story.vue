@@ -10,16 +10,16 @@
       </p>
     </div>
     <div v-else-if="submitted" style="margin: 16px 0">
-      <sui-icon name="check circle" color="green" size="large"/>
-      <p style="margin-top: 8px; font-size: 1.05em; font-weight: bold;">Beitrag gesendet!</p>
+      <div ref="confetti" class="paper-confetti"></div>
+      <p style="margin-top: 8px; font-size: 1.05em; font-weight: bold;">erfolgreich weitergegeben</p>
 
       <div class="share-contribution">
-        <div class="share-contribution-label">Dein Beitrag:</div>
+        <div class="share-contribution-label">dein Text:</div>
         <p class="share-contribution-text">{{ submittedLine }}</p>
       </div>
 
       <p style="font-size: 0.9em; color: #555; margin-bottom: 10px">
-        Lad andere ein, die Geschichte weiterzuschreiben:
+        Lade andere ein, die Geschichte weiterzuschreiben:
       </p>
       <div class="share-buttons">
         <sui-button color="green" @click="shareLink">
@@ -34,32 +34,29 @@
       </div>
       <div style="margin-top: 20px;">
         <sui-button basic size="small" @click="$router.push('/sessions')">
-          <sui-icon name="arrow left"/> Zurück zu den Stories
+          <sui-icon name="arrow left"/> zu den Geschichten
         </sui-button>
       </div>
     </div>
     <div v-else-if="player.state === 'EDITING'"
       style="margin: 16px 0">
       <h2 is="sui-header" icon="pencil" v-if="player.link.length !== 0">
-        {{player.isLastLink ? 'Finish the story! ' : ''}}The story so far ends with...
+        {{player.isLastLink ? 'Beende die Geschichte! ' : ''}}Die Geschichte endet gerade mit...
         <div style="margin-top: 10px">
           <div v-for="(link, i) in player.link" :key="i">
-            <sui-divider horizontal v-if="i !== 0" >Then</sui-divider>
+            <sui-divider horizontal v-if="i !== 0" >Dann</sui-divider>
             <sui-header-subheader>
               {{link}}
             </sui-header-subheader>
           </div>
         </div>
       </h2>
-      <h2 is="sui-header" icon="pencil" v-else-if="player.link.length === 0">
-        Write the first line
-      </h2>
       <div v-if="player.deadline" class="countdown" :class="{urgent: secondsLeft <= 30}">
         ⏱ {{ formattedTime }} verbleibend
       </div>
       <sui-form @submit="writeLine" >
         <sui-form-field>
-          <label>The Story Goes...</label>
+          <label>{{ player.link.length !== 0 ? 'und so geht es weiter...' : 'Der erste Satz gehört dir...' }}</label>
           <textarea v-model="line" rows="2"
             @keydown.enter.prevent
             @paste="onPaste">
@@ -77,32 +74,33 @@
         <sui-button type="submit"
           :color="player.isLastLink ? 'green' : 'blue'"
                    :disabled="line.length < 1 || line.length > 250 || wordCount < game.minWords">
-          {{player.isLastLink ? 'Finish' : 'Sign'}}
+          {{player.isLastLink ? 'beenden' : 'weitergeben'}}
         </sui-button>
         <sui-button v-if="lobby.isAsync"
           type="button"
                    basic
           @click="skipTurn"
           style="margin-top: 6px;">
-          Abbrechen
+          abbrechen
         </sui-button>
       </sui-form>
     </div>
     <div v-else-if="player.state === 'WAITING'"
       style="margin: 16px">
       <sui-loader active centered inline size="huge" >
-        Waiting on Other Authors
+        Warte auf den nächsten Abschnitt
       </sui-loader>
     </div>
     <div v-else-if="player.state === 'READING' || !player.state && stories.length">
       <sui-loader active centered inline size="huge"  v-if="!stories.length">
-        Loading Stories
+        lädt Geschichten
       </sui-loader>
       <div style="text-align: left">
         <div style="text-align: right; margin-bottom: 8px">
-          <button class="view-toggle" @click="flowView = !flowView">
-            {{ flowView ? 'Beiträge' : 'Fließtext' }}
-          </button>
+          <div class="view-switch">
+            <button type="button" :class="{ active: flowView }" @click="flowView = true">Fließtext</button>
+            <button type="button" :class="{ active: !flowView }" @click="flowView = false">Abschnitte</button>
+          </div>
         </div>
         <div v-for="(story, i) in stories" :key="i">
           <sui-divider horizonal v-if="i > 0" ></sui-divider>
@@ -149,20 +147,20 @@
           @click="$socket.emit('game:message', 'story:done', game.icons[player.id] !== 'check')"
           color="blue"
           :basic="game.icons[player.id] === 'check'">
-          {{game.icons[player.id] === 'check' ? 'Still Reading' : 'Done Reading'}}
+          {{game.icons[player.id] === 'check' ? 'lese noch' : 'durchgelesen'}}
         </sui-button>
         <sui-button
           v-if="lobby.isAsync"
           basic
           size="small"
           @click="leaveToArchive">
-          Zurück
+          zurück
         </sui-button>
       </div>
     </div>
     <div v-else style="margin: 16px">
       <sui-loader active centered inline size="huge" >
-        Stories are Being Written
+        warte auf ander*n Autor*in
       </sui-loader>
     </div>
     <div class="kg-progress" style="margin-top: 14px" v-if="game.progress > 0 && game.progress !== 1">
@@ -227,19 +225,33 @@
   padding: 6px 10px 0;
 }
 
-.view-toggle {
+.view-switch {
+  display: inline-flex;
+  border: 1px solid rgba(25, 66, 30, 0.25);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.view-switch button {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.78em;
-  color: #aaa;
-  letter-spacing: 0.03em;
+  font-size: 0.72em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 0;
+  color: #8a8a83;
+  padding: 4px 12px;
+  transition: background 0.15s, color 0.15s;
 }
 
-.view-toggle:hover {
+.view-switch button:hover:not(.active) {
   color: #555;
+}
+
+.view-switch button.active {
+  background: #19421e;
+  color: #fff;
+  font-weight: 700;
 }
 
 .flow-text {
@@ -286,6 +298,45 @@
   font-size: 0.97em;
   color: #333;
   margin: 0;
+}
+
+/* Paper-snippet confetti on the share screen (bursts from this origin point). */
+.paper-confetti {
+  position: relative;
+  width: 0;
+  height: 0;
+  margin: 10px auto 0;
+}
+.confetti-piece {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  pointer-events: none;
+  width: var(--w, 9px);
+  height: var(--h, 13px);
+  border-radius: 1px;
+  /* lined college-block paper: pale sheet + thin blue rules */
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 2.5px, rgba(74,124,196,0.6) 2.5px 3px),
+    var(--paper, #fefefe);
+  /* hairline edge + shadow so the pale paper stands out on the cream page */
+  border: 0.5px solid rgba(25,66,30,0.22);
+  box-shadow: 0 2px 4px rgba(25,66,30,0.28);
+  animation: confetti-fall var(--dur, 2400ms) cubic-bezier(.22,.6,.35,1) forwards;
+  animation-delay: var(--delay, 0ms);
+  will-change: transform, opacity;
+}
+.confetti-piece.has-margin {
+  border-left: 2px solid rgba(206,74,58,0.7);
+}
+@keyframes confetti-fall {
+  0%   { transform: translate(0, 0) rotate(0); opacity: 1; }
+  12%  { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti-piece { display: none; }
 }
 
 </style>
@@ -399,6 +450,10 @@ export default {
         else localStorage.removeItem(this.draftKey);
       } catch (e) {}
     },
+    // Fire the paper confetti once the share screen appears.
+    submitted(val) {
+      if (val) this.$nextTick(() => this.paperConfetti());
+    },
   },
   computed: {
     draftKey() {
@@ -423,6 +478,29 @@ export default {
   },
   methods: {
     update() { this.$forceUpdate(); },
+    // Burst of lined-paper snippets from the center of the share screen.
+    paperConfetti() {
+      const host = this.$refs.confetti;
+      if (!host) return;
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const papers = ['#fdfdf6', '#ffffff', '#f2f6fc', '#fbf8ef'];
+      for (let i = 0; i < 32; i++) {
+        const p = document.createElement('div');
+        p.className = 'confetti-piece' + (Math.random() < 0.35 ? ' has-margin' : '');
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 55 + Math.random() * 95;
+        p.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+        p.style.setProperty('--dy', (80 + Math.random() * 170) + 'px');
+        p.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+        p.style.setProperty('--paper', papers[i % papers.length]);
+        p.style.setProperty('--w', (7 + Math.random() * 5) + 'px');
+        p.style.setProperty('--h', (11 + Math.random() * 7) + 'px');
+        p.style.setProperty('--dur', (2300 + Math.random() * 800) + 'ms');
+        p.style.setProperty('--delay', (Math.random() * 160) + 'ms');
+        host.appendChild(p);
+        setTimeout(() => p.remove(), 3400);
+      }
+    },
     // Resolve display name for a single entry: named / "Anonym" / fallback via nameTable
     entryAuthor(entry) {
       if (entry.authorName !== null && entry.authorName !== undefined) {
@@ -452,7 +530,7 @@ export default {
       }
       const parts = [...named];
       if (hasAnon) parts.push('Anonym');
-      return parts.length ? 'Von: ' + parts.join(', ') : '';
+      return parts.length ? 'von: ' + parts.join(', ') : '';
     },
     inviteUrl() {
       return `${location.origin}/einladen/${this.$route.params.code}`;

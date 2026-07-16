@@ -1,17 +1,17 @@
 <template>
   <ooc-page>
-    <ooc-menu title="Archiv" subtitle="Fertige Geschichten lesen">
+    <ooc-menu title="Archiv" subtitle="abgeschlossene Geschichten">
       <div>
         <form class="search-form" @submit.prevent="submitSearch">
           <input
             v-model="searchQuery"
             class="search-input"
             type="text"
-            placeholder="Titel, Autor …"
+            placeholder="#, Titel, Autor*in, Stichwort"
             @input="onSearchInput"
           />
           <button type="submit" class="search-btn" :disabled="searching">
-            {{ searching ? '…' : 'Suchen' }}
+            {{ searching ? '…' : 'suchen' }}
           </button>
           <button v-if="hasSearch" type="button" class="search-clear" @click="clearSearch">✕</button>
         </form>
@@ -21,7 +21,7 @@
 
         <div class="accordion">
           <button class="accordion-toggle" @click="showSort = !showSort">
-            <span>Sortieren nach <span class="sort-active-label">· {{ currentSortLabel }}</span></span>
+            <span><span class="sort-icon">⇅</span> {{ currentSortLabel }}</span>
             <span class="accordion-icon">{{ showSort ? '▲' : '▼' }}</span>
           </button>
           <div v-if="showSort" class="accordion-body sort-options">
@@ -37,12 +37,12 @@
         </div>
 
         <div v-if="loading" style="text-align: center; padding: 24px">
-          <sui-loader active inline centered>Laden...</sui-loader>
+          <sui-loader active inline centered>lädt</sui-loader>
         </div>
         <div v-else>
           <div v-if="filteredSessions.length === 0"
             style="text-align: center; padding: 24px; color: #888;">
-            {{ hasSearch ? 'Keine Ergebnisse gefunden.' : 'Noch keine fertigen Storys.' }}
+            {{ hasSearch ? 'keine Ergebnisse gefunden' : 'noch keine abgeschlossenen Geschichten' }}
           </div>
 
           <div v-for="session in pagedSessions" :key="session.code" class="session-card">
@@ -59,7 +59,7 @@
                 </span>
               </span>
               <sui-button size="tiny" color="teal" @click="joinSession(session.code)">
-                Lesen
+                lesen
               </sui-button>
             </div>
           </div>
@@ -192,9 +192,10 @@
   padding: 8px 12px 10px;
   border-top: 1px solid #f0f0f0;
 }
-.sort-active-label {
+.sort-icon {
   color: #21ba45;
-  font-size: 0.92em;
+  font-size: 1.05em;
+  margin-right: 2px;
 }
 .sort-btn {
   padding: 3px 10px;
@@ -229,11 +230,11 @@ export default {
       sortBy: 'completedAt',
       sortDesc: true,
       sortOptions: [
-        { value: 'completedAt', label: 'Beendet' },
-        { value: 'createdAt',   label: 'Erstellt' },
-        { value: 'number',      label: 'Nummer' },
+        { value: 'completedAt', label: 'beendet am' },
+        { value: 'createdAt',   label: 'erstellt am' },
+        { value: 'number',      label: '#' },
         { value: 'title',       label: 'Titel' },
-        { value: 'totalLikes',  label: 'Likes' },
+        { value: 'totalLikes',  label: '♥' },
       ],
     };
   },

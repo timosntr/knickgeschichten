@@ -1,40 +1,15 @@
 <template>
   <ooc-page>
     <ooc-menu v-if="state === 'NO_LOBBY'"
-      title="Invalid Lobby"
-      subtitle="This lobby does not exist">
-      <div>
-        <sui-divider horizontal >
-          Lobby
-        </sui-divider>
-        <sui-button-group>
-          <sui-button
-            color="green"
-                       :loading="creatingLobby"
-            @click="createLobby">
-            Create
-          </sui-button>
-          <sui-button-or/>
-          <sui-button
-            color="blue"
-                       :loading="showJoinLobby"
-            @click="showJoinLobby = true">
-            Join
-          </sui-button>
-        </sui-button-group>
-        <sui-divider horizontal >
-          Redirect
-        </sui-divider>
-        <sui-button-group vertical basic>
-          <router-link is="sui-button"             to="/">
-            Home
-          </router-link>
-        </sui-button-group>
+      title="Diese Lobby gibt es nicht"
+      subtitle="Vielleicht ist der Code abgelaufen oder falsch.">
+      <div style="text-align: center; margin-top: 8px">
+        <router-link is="sui-button" to="/" color="blue">
+          zur Startseite
+        </router-link>
       </div>
     </ooc-menu>
-    <ooc-menu v-else-if="state === 'JOIN_LOBBY'"
-      title="Enter a Name"
-      subtitle="Try to be creative">
+    <ooc-menu v-else-if="state === 'JOIN_LOBBY'">
       <sui-form
                @submit="e => enterName(e)"
         :error="!validName"
@@ -49,7 +24,7 @@
             minlength="1"
             maxlength="15"
             autocomplete="on"
-            placeholder="Ethan">
+            placeholder="Uwe">
         </sui-form-field>
         <div v-if="!validName" style="color:#db2828; font-size:0.85em; margin:-6px 0 10px; text-align:left;">
           Dieser Name ist nicht erlaubt. Bitte wähle einen anderen.
@@ -57,13 +32,13 @@
         <sui-form-field v-if="lobbyInfo.isAsync">
           <sui-checkbox
             v-model="anonymousJoin"
-            label="Anonym bleiben"/>
+            label="anonym"/>
         </sui-form-field>
         <sui-button color="blue"  type="submit">
-          Mitmachen
+          mitschreiben
         </sui-button>
         <sui-button basic type="button" @click="leaveLobby">
-          Leave
+          zurück
         </sui-button>
       </sui-form>
     </ooc-menu>
@@ -73,115 +48,46 @@
       <div>
         <div v-if="!lobbyInfo.isAsync">
           <sui-divider horizontal >
-            Lobby Code
+            Code
           </sui-divider>
           <sui-statistic  style="margin-bottom: 14px; margin-top: 0;">
             <sui-statistic-value>
               {{$route.params.code}}
             </sui-statistic-value>
-            <sui-statistic-label>
-              {{phonetic}}
-            </sui-statistic-label>
           </sui-statistic>
         </div>
-        <div v-if="lobbyInfo.admin === $root.playerId && !lobbyInfo.isAsync" style="text-align: left">
-          <sui-divider horizontal >
-            Game Settings
-          </sui-divider>
-          <sui-form @submit="event => event.preventDefault()" >
-            <div v-if="currGame">
-              <sui-form-field v-for="(opt, name) in configFieldsForDisplay" :key="name">
-                <label>{{opt.name}}</label>
-                <div v-if="opt.type === 'int'" style="display: flex">
-                  <sui-input
-                    type="number"
-                    @input="val => updateConfig(name, val)"
-                    :value="deriveConfigValue(name)"
-                    :min="opt.min"
-                    :max="opt.max || 256"
-                    autocomplete="off"/>
-                  <sui-button v-if="opt.defaults === '#numPlayers'"
-                    type="button"
-                    :color="configVal(name) === '#numPlayers' ? 'blue' : undefined"
-                                       @click="updateConfig(name, '#numPlayers')"
-                    style="margin-left: 8px"
-                    icon="users"/>
-                </div>
-                <div class="char-count" v-if="typeof opt.max !== 'undefined' && deriveConfigValue(name) > opt.max">
-                  Maximum: {{opt.max}}
-                </div>
-                <div class="char-count" v-if="typeof opt.min !== 'undefined' &&
-                (deriveConfigValue(name) < opt.min || configVal(name) === '#numPlayers' && lobbyInfo.players.length < opt.min)">
-                  Minimum: {{opt.min}}
-                </div>
-                <sui-dropdown v-else-if="opt.type === 'bool'"
-                  :value="deriveConfigValue(name)"
-                  :options="[{text: 'Enabled', value: 'true'}, {text: 'Disabled', value: 'false'}]"
-                  @input="val => updateConfig(name, val)"
-                  selection>
-                </sui-dropdown>
-                <sui-dropdown v-else-if="opt.type === 'list'"
-                  :value="deriveConfigValue(name)"
-                  :options="opt.options.map(o => ({
-                    text: o.more || o.text,
-                    value: o.name,
-                  }))"
-                  @input="val => updateConfig(name, val)"
-                  selection>
-                </sui-dropdown>
-              </sui-form-field>
-              <div style="margin: 1em 0; text-align: center">
-                <sui-button
-                  type="button"
-                  :disabled="invalidConfig"
-                  @click="$socket.emit('game:start')"
-                  color="blue">
-                  Start Game
-                </sui-button>
-                <sui-button
-                  type="button"
-                  basic
-                  @click="leaveLobby">
-                  Leave
-                </sui-button>
-              </div>
-            </div>
-          </sui-form>
+        <div v-if="lobbyInfo.admin === $root.playerId && !lobbyInfo.isAsync">
+          <div v-if="currGame" style="margin: 1em 0; text-align: center">
+            <sui-button
+              type="button"
+              :disabled="invalidConfig"
+              @click="$socket.emit('game:start')"
+              color="blue">
+              Geschichten starten
+            </sui-button>
+            <sui-button
+              type="button"
+              basic
+              @click="leaveLobby">
+              verlassen
+            </sui-button>
+          </div>
         </div>
         <div v-else-if="currGame && !lobbyInfo.isAsync">
-          <sui-divider horizontal >
-            Game Setup
-          </sui-divider>
-          <sui-card>
-            <div style="display: flex; flex-flow: row wrap; align-items: center; justify-content: center;">
-              <div v-for="(opt, name) in configFieldsForDisplay"
-                :key="name"
-                style="margin: 8px;">
-                <sui-statistic >
-                  <sui-statistic-value>
-                    {{deriveConfigText(name)}}
-                  </sui-statistic-value>
-                  <sui-statistic-label>
-                    {{opt.text}}
-                  </sui-statistic-label>
-                </sui-statistic>
-              </div>
-            </div>
-          </sui-card>
           <div style="margin-top: 1em; text-align: center">
-            <sui-button basic @click="leaveLobby">Leave</sui-button>
+            <sui-button basic @click="leaveLobby">verlassen</sui-button>
           </div>
         </div>
 
         <div v-if="!lobbyInfo.isAsync && lobbyInfo.completedStories && lobbyInfo.completedStories.length"
           style="margin-top: 8px;">
           <sui-divider horizontal >
-            Letzte Runde
+            letzte Runde
           </sui-divider>
           <div class="story-accordion">
             <div v-for="(story, i) in lobbyInfo.completedStories" :key="i" class="story-acc-item">
               <button type="button" class="story-acc-toggle" @click="toggleStory(i)">
-                <span class="story-acc-title">Geschichte {{ i + 1 }}</span>
+                <span class="story-acc-title">{{ storyTitle(story, i) }}</span>
                 <span class="story-acc-preview" v-if="!openStories[i]">{{ storyPreview(story) }}</span>
                 <span class="story-acc-icon">{{ openStories[i] ? '▲' : '▼' }}</span>
               </button>
@@ -219,21 +125,6 @@
     <sui-dimmer :active="reconnecting">
       <sui-loader>Verbindung verloren – verbinde neu …</sui-loader>
     </sui-dimmer>
-    <sui-label
-      v-if="validLobby && !rocketcrab && !lobbyInfo.isAsync"
-      class="lobby-code left"
-      attached="top left">
-      <code>
-        {{$route.params.code.toUpperCase()}}
-      </code>
-    </sui-label>
-    <sui-label
-      v-if="lobbyInfo.admin === $root.playerId"
-      class="lobby-code right"
-      color="green"
-      attached="top right">
-      <sui-icon name="shield"/>
-    </sui-label>
     <ooc-util></ooc-util>
     <ooc-join-lobby :active="showJoinLobby" @close="showJoinLobby = false">
     </ooc-join-lobby>
@@ -305,39 +196,11 @@
   margin: 0;
 }
 
-.lobby-code {
-  position: fixed !important;
-  top: 0 !important;
-}
-
-.lobby-code.left {
-  left: 0 !important;
-}
-
-.lobby-code.right {
-  right: 0 !important;
-}
-
 </style>
 
 <script>
 
 import gameInfo from '../../gameInfo';
-import converter, { NATO_PHONETIC_ALPHABET } from 'phonetic-alphabet-converter'
-
-const alphabet = {
-  ...NATO_PHONETIC_ALPHABET,
-  '0': 'zero',
-  '1': 'one',
-  '2': 'two',
-  '3': 'three',
-  '4': 'four',
-  '5': 'five',
-  '6': 'six',
-  '7': 'seven',
-  '8': 'eight',
-  '9': 'nine',
-}
 
 const emptyInfo = () => ({
   admin: '',
@@ -364,16 +227,12 @@ export default {
       validName: true,
       lobbyInfo: emptyInfo(),
       state: 'LOADING',
-      gameInfo,
       reconnecting: false,
       reconnectTimer: null,
       openStories: {},
     };
   },
   computed:  {
-    phonetic() {
-      return converter(this.$route.params.code, alphabet).join(' - ');
-    },
     // Config fields to show in the lobby waiting UI (exclude 'players' and hidden fields)
     configFieldsForDisplay() {
       if (!this.currGame) return {};
@@ -427,49 +286,15 @@ export default {
       const words = text.trim().split(/\s+/);
       return words.length > 6 ? words.slice(0, 6).join(' ') + '…' : text;
     },
+    // Title a story after whoever wrote its first line ("Geschichte von Pavlo");
+    // fall back to a number when the first author is anonymous/unknown.
+    storyTitle(story, i) {
+      const first = story && story[0] && story[0].authorName;
+      return first ? `Geschichte von ${first}` : `Geschichte ${i + 1}`;
+    },
     leaveLobby() {
       this.$socket.emit('lobby:leave');
       this.$router.push('/');
-    },
-    configVal(name) {
-      const confVal = this.lobbyInfo.config[name];
-      const defVal = gameInfo[this.lobbyInfo.game].config[name].defaults;
-      return typeof confVal !== 'undefined' ? confVal : defVal;
-    },
-    deriveConfigText(name) {
-      const val = this.configVal(name);
-      const conf = gameInfo[this.lobbyInfo.game].config[name];
-
-      switch(conf.type) {
-      case 'int':
-        return this.deriveConfigValue(name);
-      case 'bool':
-        return val === 'true' ? 'Yes' : 'No';
-      case 'list':
-        const entry = conf.options.find(v => v.name === val);
-        return entry ? entry.text : '???';
-      }
-    },
-    deriveConfigValue(name) {
-      const val = this.configVal(name);
-      const conf = gameInfo[this.lobbyInfo.game].config[name];
-
-      switch(conf.type) {
-      case 'int':
-        switch(val) {
-        case '#numPlayers':
-          return Math.min(this.lobbyInfo.players.length, conf.max);
-        default:
-          return val;
-        }
-      case 'bool':
-        return val;
-      case 'list':
-        return val
-      }
-    },
-    updateConfig(name, val) {
-      this.$socket.emit('lobby:game:config', name, val);
     },
     enterName(event) {
       event.preventDefault();
