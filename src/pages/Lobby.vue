@@ -227,7 +227,6 @@ export default {
       validName: true,
       lobbyInfo: emptyInfo(),
       state: 'LOADING',
-      gameInfo,
       reconnecting: false,
       reconnectTimer: null,
       openStories: {},
@@ -296,46 +295,6 @@ export default {
     leaveLobby() {
       this.$socket.emit('lobby:leave');
       this.$router.push('/');
-    },
-    configVal(name) {
-      const confVal = this.lobbyInfo.config[name];
-      const defVal = gameInfo[this.lobbyInfo.game].config[name].defaults;
-      return typeof confVal !== 'undefined' ? confVal : defVal;
-    },
-    deriveConfigText(name) {
-      const val = this.configVal(name);
-      const conf = gameInfo[this.lobbyInfo.game].config[name];
-
-      switch(conf.type) {
-      case 'int':
-        return this.deriveConfigValue(name);
-      case 'bool':
-        return val === 'true' ? 'Yes' : 'No';
-      case 'list':
-        const entry = conf.options.find(v => v.name === val);
-        return entry ? entry.text : '???';
-      }
-    },
-    deriveConfigValue(name) {
-      const val = this.configVal(name);
-      const conf = gameInfo[this.lobbyInfo.game].config[name];
-
-      switch(conf.type) {
-      case 'int':
-        switch(val) {
-        case '#numPlayers':
-          return Math.min(this.lobbyInfo.players.length, conf.max);
-        default:
-          return val;
-        }
-      case 'bool':
-        return val;
-      case 'list':
-        return val
-      }
-    },
-    updateConfig(name, val) {
-      this.$socket.emit('lobby:game:config', name, val);
     },
     enterName(event) {
       event.preventDefault();

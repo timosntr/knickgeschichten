@@ -184,14 +184,7 @@ io.on('connection', socket => {
     }
   });
 
-  // Allow an admin player to change what game is being played
-  socket.on('lobby:game:set', game => {
-    if(player.isAdmin()) {
-      player.lobby.setGame(game);
-    }
-  });
-
-  // Allow an admin player to change what game is being played
+  // Allow an admin player to start the game
   socket.on('game:start', game => {
     if(player.isAdmin()) {
       player.interact();
@@ -217,18 +210,6 @@ io.on('connection', socket => {
   });
 
 
-  // Change the admin
-  socket.on('lobby:admin:grant', targetId => {
-    if(player.isAdmin() && targetId !== player.id) {
-      player.interact();
-      const targetPlayer = player.lobby.players.find(p => p.id === targetId);
-      if(targetPlayer && targetPlayer.member) {
-        player.lobby.admin = targetPlayer.id;
-        player.lobby.sendLobbyInfo();
-      }
-    }
-  });
-
   // Core gameplay messages
   socket.on('game:message', (type, data) => {
     if(player.lobby) {
@@ -239,17 +220,6 @@ io.on('connection', socket => {
       });
     } else {
       socket.emit('lobby:leave');
-    }
-  });
-
-  // Change game config if the player is an admin
-  socket.on('lobby:game:config', (name, val) => {
-    if(player.isAdmin()) {
-      player.interact();
-      // Error handling
-      player.lobby.attempt(() => {
-        player.lobby.setConfig(name, val);
-      });
     }
   });
 
