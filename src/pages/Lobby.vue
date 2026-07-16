@@ -125,14 +125,6 @@
     <sui-dimmer :active="reconnecting">
       <sui-loader>Verbindung verloren – verbinde neu …</sui-loader>
     </sui-dimmer>
-    <sui-label
-      v-if="validLobby && !rocketcrab && !lobbyInfo.isAsync"
-      class="lobby-code left"
-      attached="top left">
-      <code>
-        {{$route.params.code.toUpperCase()}}
-      </code>
-    </sui-label>
     <ooc-util></ooc-util>
     <ooc-join-lobby :active="showJoinLobby" @close="showJoinLobby = false">
     </ooc-join-lobby>
@@ -202,15 +194,6 @@
   line-height: 1.7;
   white-space: pre-wrap;
   margin: 0;
-}
-
-.lobby-code {
-  position: fixed !important;
-  top: 0 !important;
-}
-
-.lobby-code.left {
-  left: 0 !important;
 }
 
 </style>
