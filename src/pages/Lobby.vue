@@ -315,11 +315,11 @@ export default {
       const words = text.trim().split(/\s+/);
       return words.length > 6 ? words.slice(0, 6).join(' ') + '…' : text;
     },
-    // Title a story after whoever wrote its first line ("Geschichte Pavlo");
+    // Title a story after whoever wrote its first line ("Geschichte von Pavlo");
     // fall back to a number when the first author is anonymous/unknown.
     storyTitle(story, i) {
       const first = story && story[0] && story[0].authorName;
-      return first ? `Geschichte ${first}` : `Geschichte ${i + 1}`;
+      return first ? `Geschichte von ${first}` : `Geschichte ${i + 1}`;
     },
     leaveLobby() {
       this.$socket.emit('lobby:leave');
