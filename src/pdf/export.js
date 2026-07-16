@@ -3,24 +3,32 @@
 // jsPDF's default Helvetica. Loaded on demand (dynamic import) so the fonts
 // and jsPDF itself don't bloat the main bundle.
 
-const MARGIN_X = 56;
-const MARGIN_TOP = 72;
-const MARGIN_BOTTOM = 56;
+// Page margins, specified in cm and converted to pt (jsPDF's unit here;
+// 1cm = 28.3465pt). "Bundsteg" (binding margin) is kept as its own constant
+// for clarity even though it's 0 — it would be added to the inside edge if
+// the export ever needs to support bound/printed booklets.
+const CM = 28.3465;
+const MARGIN_TOP = 4.5 * CM;
+const MARGIN_BOTTOM = 2.9 * CM;
+const MARGIN_LEFT = 2 * CM;
+const MARGIN_RIGHT = 2.8 * CM;
+const MARGIN_GUTTER = 0 * CM;
 
-const TITLE_SIZE = 20;
-const TITLE_LH = 25;
-const AUTHOR_SIZE = 9;
-const AUTHOR_LH = 14;
-const GAP_TITLE_AUTHOR = 8;   // space below the title, above the author line
+const TITLE_SIZE = 18;
+const TITLE_LH = 22.5;
+const AUTHOR_SIZE = 8;
+const AUTHOR_LH = 12.5;
+const GAP_TITLE_AUTHOR = 4;   // space below the title, above the author line
 const GAP_AUTHOR_BODY = 6;
 
-// Public sessions always export a single story, and are sized to fit on one
-// A4 page even at the max story length (MAX_STORY_CHARS, ~4000 chars) — this
-// size was picked by testing that worst case. Private sessions can hold
-// several long stories, so one-page-total isn't a realistic goal there;
-// they get the more comfortable reading size instead, with each story
-// starting on a fresh page.
-const BODY_PUBLIC = { size: 10.5, leading: 14.5 };
+// Public sessions always export a single story. At 10pt with the margins
+// above, a story fits on one A4 page up to ~3900 chars — which is exactly the
+// server-side story cap (MAX_STORY_CHARS in core/games/story.js), so a
+// finished public story fills at most one page. Private sessions can hold
+// several long stories, so one-page-total isn't a realistic goal there; they
+// get the more comfortable reading size instead, with each story starting on
+// a fresh page.
+const BODY_PUBLIC = { size: 10, leading: 13.8 };
 const BODY_PRIVATE = { size: 11.5, leading: 16 };
 
 function slugify(title) {
@@ -47,7 +55,8 @@ export async function exportStoriesPdf({ title, stories, storyAuthors, isAsync }
   doc.addFileToVFS('HankenGrotesk-Medium.ttf', fonts.hankenMedium);
   doc.addFont('HankenGrotesk-Medium.ttf', 'HankenGrotesk', 'medium');
 
-  const textWidth = doc.internal.pageSize.getWidth() - MARGIN_X * 2;
+  const textX = MARGIN_LEFT + MARGIN_GUTTER;
+  const textWidth = doc.internal.pageSize.getWidth() - textX - MARGIN_RIGHT;
   const pageHeight = doc.internal.pageSize.getHeight();
   const body = isAsync ? BODY_PUBLIC : BODY_PRIVATE;
 
@@ -61,7 +70,7 @@ export async function exportStoriesPdf({ title, stories, storyAuthors, isAsync }
   const writeLines = (lines, lineHeight) => {
     for (const line of lines) {
       ensureSpace(lineHeight);
-      doc.text(line, MARGIN_X, y);
+      doc.text(line, textX, y);
       y += lineHeight;
     }
   };
