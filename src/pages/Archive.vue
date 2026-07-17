@@ -51,11 +51,13 @@
               <span v-if="session.number" class="session-number">#{{ session.number }}</span>
             </div>
             <div v-if="session.teaser" class="session-teaser">„{{ session.teaser }}"</div>
-            <div class="session-meta">
-              {{ session.numAuthors }} {{ session.numAuthors === 1 ? 'Autor' : 'Autoren' }}
-            </div>
             <div class="session-footer">
-              <span class="session-age">{{ timeAgo(session.createdAt) }}</span>
+              <span class="session-meta">
+                <span class="session-age">{{ dateSpan(session.createdAt, session.completedAt) }}</span>
+                <span v-if="session.totalLikes > 0" class="session-likes">
+                  <span class="session-likes__heart">♥</span> {{ session.totalLikes }}
+                </span>
+              </span>
               <sui-button size="tiny" color="teal" @click="joinSession(session.code)">
                 Lesen
               </sui-button>
@@ -72,12 +74,6 @@
             <sui-icon name="chevron right"/>
           </sui-button>
         </div>
-
-        <div style="margin-top: 16px; text-align: center">
-          <router-link is="sui-button" to="/" size="small" basic>
-            Zurück
-          </router-link>
-        </div>
       </div>
     </ooc-menu>
     <ooc-util></ooc-util>
@@ -90,6 +86,19 @@
   font-size: 0.78em;
   color: #aaa;
   margin-left: 5px;
+}
+.session-meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.session-likes {
+  font-size: 0.82em;
+  color: #999;
+  white-space: nowrap;
+}
+.session-likes__heart {
+  color: #d66;
 }
 .session-teaser {
   font-family: 'Lora', serif;
@@ -335,15 +344,23 @@ export default {
     joinSession(code) {
       this.$router.push(`/lobby/${code}`);
     },
-    timeAgo(ts) {
-      const diff = Date.now() - ts;
-      const mins = Math.floor(diff / 60000);
-      if (mins < 1) return 'gerade eben';
-      if (mins < 60) return `vor ${mins} Min.`;
-      const hrs = Math.floor(mins / 60);
-      if (hrs < 24) return `vor ${hrs} Std.`;
-      const days = Math.floor(hrs / 24);
-      return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
+    // Format a timestamp as DD.MM.YYYY
+    formatDate(ts) {
+      const d = new Date(ts);
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+    },
+    // Creation span of a completed story: "19.06.2026 – 21.06.2026",
+    // collapsed to a single date when start and end fall on the same day
+    // or completedAt is missing (old data).
+    dateSpan(createdAt, completedAt) {
+      if (!completedAt) return this.formatDate(createdAt);
+      // Legacy data can lack a real createdAt (falls back to "today") — if it's
+      // missing or after completion, just show the reliable completion date.
+      if (!createdAt || createdAt > completedAt) return this.formatDate(completedAt);
+      const start = this.formatDate(createdAt);
+      const end = this.formatDate(completedAt);
+      return start === end ? end : `${start} – ${end}`;
     },
   },
   created() {
