@@ -29,6 +29,10 @@
         <div v-if="!validName" style="color:#db2828; font-size:0.85em; margin:-6px 0 10px; text-align:left;">
           Dieser Name ist nicht erlaubt. Bitte wähle einen anderen.
         </div>
+        <!-- Only for public sessions: private rooms never publish to the archive. -->
+        <div v-if="lobbyInfo.isAsync" style="color:#888; font-size:0.85em; margin:-6px 0 10px; text-align:left;">
+          Vorname oder Spitzname genügt<br>Er erscheint später mit der fertigen Geschichte im Archiv
+        </div>
         <sui-form-field v-if="lobbyInfo.isAsync">
           <sui-checkbox
             v-model="anonymousJoin"
