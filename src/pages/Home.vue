@@ -13,36 +13,33 @@
           </button>
           <div v-if="showInfo" class="accordion-body">
             <ul class="info-list">
-              <li>Der bisher geschriebene Text wird wie beim klassischen Spiel „umgeknickt". Du siehst also nur einen kleinen Teil vom vorherigen Abschnitt.</li>
-              <li>Du liest den sichtbaren Teil und schreibst darauf basierend einen neuen Abschnitt – mindestens <strong>15 Wörter</strong>, maximal <strong>250 Zeichen</strong>.</li>
-              <li>Alle Beiträge sind anonym. Du weißt nicht, wer vor dir geschrieben hat, und am Ende ist nicht ersichtlich, wer welchen Abschnitt verfasst hat.</li>
-              <li>Den Fortschritt einer Geschichte erkennst du am Statusbalken.</li>
-              <li>Eine Geschichte ist fertig, wenn das Limit von <strong>4000 Zeichen</strong> erreicht ist.</li>
-              <li>Du kannst jederzeit eine neue Geschichte starten.</li>
-              <li>Fertige Geschichten findest du im <router-link to="/archive">Archiv</router-link>.</li>
+              <li>gemeinsam, reihum an Geschichten schreiben</li>
+              <li>du kannst jederzeit neue öffentliche Geschichten starten oder an bestehenden mitschreiben</li>
+              <li>geschriebener Text wird wie beim klassischen Spiel „umgeknickt", die nächste Person sieht nur die letzten Wörter</li>
+              <li>sichtbaren Teil lesen, weiterschreiben, innerhalb von <strong>10 min</strong> an die nächste Person weitergeben</li>
+              <li>eine Geschichte ist fertig, wenn das Blatt vollgeschrieben ist</li>
+              <li>„abbrechen" = Zettel unbeschrieben zurückgeben</li>
+              <li>Name frei wählbar oder anonym – und erst in der fertigen Geschichte sichtbar</li>
+              <li>fertige Geschichten landen automatisch im <router-link to="/archive">Archiv</router-link>, wo du sie lesen und als PDF herunterladen kannst</li>
+              <li>die Geschichten sind nummeriert und erhalten nach Fertigstellung einen KI-generierten Titel</li>
             </ul>
-            <p class="info-section-title">Private Räume</p>
+            <p class="info-section-title">private Geschichten</p>
             <ul class="info-list">
-              <li>Du kannst eigene, private Räume erstellen und gemeinsam mit Freund:innen spielen.</li>
-              <li>Dafür wird ein Code generiert, den du mit deinen Freund:innen teilen kannst.</li>
-              <li>Nur Personen mit diesem Code können deiner Session beitreten.</li>
-              <li>Jede teilnehmende Person startet eine Geschichte. Die „Zettel" werden weitergereicht, bis alle einmal an jeder Geschichte mitgewirkt haben.</li>
-              <li>Am Ende könnt ihr eure Geschichten herunterladen.</li>
+              <li>erstelle einen eigenen Raum und lade Freund*innen mit einem Code ein</li>
+              <li>jede Person startet mit einem eigenen Zettel, es werden so viele Geschichten geschrieben, wie Autor*innen im Raum sind</li>
+              <li>Verbindungsprobleme: Wiederbeitritt möglich; sonst wandert der Zettel nach kurzer Zeit weiter und die Übrigen schreiben die Geschichten zu Ende</li>
+              <li>späterer Einstieg ab der nächsten Runde möglich</li>
             </ul>
             <p class="info-section-title">Tipps</p>
             <ul class="info-list">
-              <li>Achte darauf, was im vorherigen Abschnitt angedeutet wird (z.B. Zeitform, Perspektive, Setting).</li>
-              <li>Achte auf Groß- und Kleinschreibung, sodass ein einheitlicher Gesamttext entsteht.</li>
-              <li>Es gibt keine thematischen Einschränkungen.</li>
-              <li>Unerwartete Wendungen sind ausdrücklich erwünscht.</li>
+              <li>für eine einheitliche, gut lesbare Geschichte auf Andeutungen im sichtbaren Teil (z.B. Zeitform, Perspektive, Setting) sowie auf Groß-/Kleinschreibung achten</li>
+              <li>es gibt keine thematischen Einschränkungen, unerwartete Wendungen sind ausdrücklich erwünscht</li>
             </ul>
             <p class="info-section-title">Disclaimer</p>
             <ul class="info-list">
-              <li>Diskriminierende, beleidigende oder anderweitig unangemessene Inhalte sind nicht erlaubt und werden durch Wortfilter erkannt und entfernt.</li>
-              <li>Bitte gib keine persönlichen oder sensiblen Daten in deinem Text preis.</li>
-              <li>Die Texte können nach dem Absenden nicht mehr geändert werden. Es werden auch extern keine nachträglichen Änderungen vorgenommen.</li>
-              <li>Stories aus öffentlichen Sessions werden am Ende automatisch im Archiv veröffentlicht.</li>
-              <li>Einige der veröffentlichten Geschichten werden im Rahmen des Projekts in gedruckter Form in einem Magazin festgehalten.</li>
+              <li>keine persönlichen/sensiblen Daten preisgeben</li>
+              <li>diskriminierende Begriffe werden automatisch erkannt und zensiert</li>
+              <li>Beiträge nach „weitergeben" nicht mehr änderbar</li>
             </ul>
           </div>
         </div>
