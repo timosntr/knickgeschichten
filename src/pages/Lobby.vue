@@ -230,22 +230,19 @@
   top: 1px;
   border-radius: 50%;
   border: 1.5px solid var(--kg-green);
-  background: #fff;
+  background: var(--kg-cream);   /* unchecked: same as page background */
 }
 .anon-field .ui.checkbox input:checked ~ label:before,
 .anon-field .ui.checkbox input:focus:checked ~ label:before {
-  background: var(--kg-green);
+  background: var(--kg-green);   /* checked: solid green, no checkmark */
   border-color: var(--kg-green);
 }
-/* White check inside the filled green circle. */
+/* No checkmark glyph — the fill alone signals the state. The checked selector
+   is needed to beat Semantic's higher-specificity checked rule. */
+.anon-field .ui.checkbox label:after,
 .anon-field .ui.checkbox input:checked ~ label:after,
 .anon-field .ui.checkbox input:focus:checked ~ label:after {
-  width: 16px;
-  height: 16px;
-  top: 1px;
-  line-height: 16px;
-  font-size: 10px;
-  color: #fff;
+  content: none;
 }
 .name-buttons {
   display: flex;
