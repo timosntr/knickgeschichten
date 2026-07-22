@@ -219,12 +219,20 @@
    rectangle). Shared by the context snippet and the "Vorschau" snippet. */
 .context-snippet,
 .preview-snippet {
+  /* The XD places the scrap at ~311×155 (≈2:1) undistorted. Fix the box to the
+     texture's own ratio so background-size:100% 100% doesn't stretch it, and
+     centre the text inside. */
+  aspect-ratio: 2515 / 1243;
+  max-width: 320px;
+  margin: 0 auto;
   background-image: url('../assets/paper-snippet.webp');
   background-size: 100% 100%;
   background-repeat: no-repeat;
-  max-width: 300px;
-  margin: 0 auto;
-  padding: 26px 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 40px;
   text-align: center;
   filter: drop-shadow(0 3px 4px rgba(25, 66, 30, 0.28));
 }
