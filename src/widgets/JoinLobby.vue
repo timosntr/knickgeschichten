@@ -13,7 +13,7 @@
           @input="lobbyError = false"
           :type="hideLobbyCode ? 'password' : 'text'"
           autocomplete="off"
-          placeholder="Code">
+          placeholder="1c1b">
       </sui-form-field>
       <div v-if="lobbyError" class="code-error">
         Der Code ist falsch oder der Raum existiert nicht mehr
@@ -46,7 +46,7 @@
 }
 .code-form {
   width: 100%;
-  max-width: 320px;
+  max-width: 313px;   /* input is 313 in the XD */
   margin: 0 auto;
   text-align: center;
 }
@@ -63,12 +63,18 @@
   box-sizing: border-box;
   border: 1.5px solid var(--kg-green);
   border-radius: 17px;
-  background: #fff;
-  padding: 0 18px;
+  background: #fff;              /* XD fill is #FFFFFF */
+  padding: 0 20px;
   font-family: var(--font-sans);
   font-size: 13px;
   color: var(--kg-green);
-  text-align: center;
+  text-align: left;
+}
+/* Kill Semantic's blue focus glow; keep the green outline. */
+.ui.form input.code-input:focus {
+  border-color: var(--kg-green);
+  box-shadow: 0 0 0 2px rgba(25, 66, 30, 0.12);
+  outline: none;
 }
 .ui.form input.code-input::placeholder {
   font-style: italic;
@@ -87,8 +93,12 @@
   justify-content: center;
   margin-top: 18px;
 }
+/* Fixed 112px each (XD) so the two-button row is narrower than the 313 input. */
 .code-buttons .write-btn {
   margin: 0;
+  width: 112px;
+  min-width: 0;
+  padding: 0;
 }
 </style>
 
