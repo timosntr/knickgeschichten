@@ -34,6 +34,15 @@
 <style>
 .code-dimmer.ui.dimmer {
   background: var(--kg-cream);
+  /* Sit below the sticky torn-paper header (z-index 100 in Page.vue) so it
+     stays visible, and top-align the content like the XD instead of Semantic's
+     default vertical centring. Force a column layout so justify-content
+     top-aligns and padding-top places the title where the artboard has it. */
+  z-index: 90;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 150px;
 }
 .code-form {
   width: 100%;
@@ -44,7 +53,7 @@
 .code-title {
   font-family: var(--font-serif);
   font-weight: 900;
-  font-size: 30px;
+  font-size: 33px;
   color: var(--kg-green);
   margin: 0 0 22px;
 }
@@ -53,7 +62,7 @@
   height: 33px;
   box-sizing: border-box;
   border: 1.5px solid var(--kg-green);
-  border-radius: var(--kg-radius-pill);
+  border-radius: 17px;
   background: #fff;
   padding: 0 18px;
   font-family: var(--font-sans);
@@ -74,7 +83,7 @@
 }
 .code-buttons {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   justify-content: center;
   margin-top: 18px;
 }
