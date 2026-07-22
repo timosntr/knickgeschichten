@@ -164,12 +164,12 @@
 .ui.form .name-label,
 .name-label {
   display: block;
-  text-align: left;
+  text-align: center;
   font-family: var(--font-sans);
-  font-weight: 300;
+  font-weight: 500;
   font-size: 13px;
   color: var(--kg-green);
-  margin: 0 0 6px 4px;
+  margin: 0 0 6px;
 }
 .ui.form input.name-input {
   width: 100%;
@@ -214,6 +214,38 @@
 .anon-field.field {
   margin-top: 14px;
   text-align: center;
+}
+/* "anonym" toggle: a round box that fills solid green when checked
+   (Semantic's default is a square with a dark checkmark). */
+.anon-field .ui.checkbox label {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  color: var(--kg-green);
+  padding-left: 24px;
+}
+.anon-field .ui.checkbox label:before {
+  width: 16px;
+  height: 16px;
+  top: 1px;
+  border-radius: 50%;
+  border: 1.5px solid var(--kg-green);
+  background: #fff;
+}
+.anon-field .ui.checkbox input:checked ~ label:before,
+.anon-field .ui.checkbox input:focus:checked ~ label:before {
+  background: var(--kg-green);
+  border-color: var(--kg-green);
+}
+/* White check inside the filled green circle. */
+.anon-field .ui.checkbox input:checked ~ label:after,
+.anon-field .ui.checkbox input:focus:checked ~ label:after {
+  width: 16px;
+  height: 16px;
+  top: 1px;
+  line-height: 16px;
+  font-size: 10px;
+  color: #fff;
 }
 .name-buttons {
   display: flex;
