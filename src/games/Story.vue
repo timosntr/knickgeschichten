@@ -195,9 +195,15 @@
   display: block;
   text-align: center;
   font-family: var(--font-sans);
+  font-weight: 300;
   font-size: 13px;
   color: var(--kg-green);
   margin-bottom: 8px;
+}
+/* Semantic UI makes form labels bold; keep this one Metropolis Light. */
+.ui.form .field > label.write-label {
+  font-weight: 300;
+  font-size: 13px;
 }
 
 /* Context shown while continuing a story ("Die Geschichte endet gerade mit…"

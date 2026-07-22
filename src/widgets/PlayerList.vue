@@ -43,10 +43,20 @@
 
 <style>
 
+/* "Schreibraum" divider: XD specs Metropolis Light 10px, not Semantic's
+   large uppercase bold. */
+.player-list-widget .ui.horizontal.divider {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 10px;
+  text-transform: none;
+  color: var(--kg-green);
+}
+
 .lobby-code-inline {
   margin-left: 8px;
   font-family: monospace;
-  font-size: 0.85em;
+  font-size: 0.9em;
   font-weight: normal;
   letter-spacing: 1px;
   opacity: 0.55;
