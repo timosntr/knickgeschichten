@@ -2,7 +2,7 @@
   <ooc-page>
     <ooc-menu title="angefangene Geschichten" subtitle="schreib mit">
       <div>
-        <div class="accordion">
+        <div class="accordion sessions-sort">
           <button class="accordion-toggle" @click="showSort = !showSort">
             <span><span class="sort-icon">⇅</span> {{ currentSortLabel }}</span>
             <span class="accordion-icon">{{ showSort ? '▲' : '▼' }}</span>
@@ -22,7 +22,7 @@
         <div v-if="loading" style="text-align: center; padding: 24px">
           <sui-loader active inline centered>lädt</sui-loader>
         </div>
-        <div v-else>
+        <div v-else class="sessions-list">
           <div v-if="activeSessions.length === 0"
             style="text-align: center; padding: 24px; color: #888;">
             keine angefangenen Geschichten vorhanden
@@ -31,22 +31,22 @@
           </div>
 
           <div v-for="session in pagedSessions" :key="session.code" class="session-card">
-            <div class="session-title">
-              {{ session.title }}
+            <div class="session-head">
+              <span class="session-title">{{ session.title }}</span>
               <span v-if="storyNumber(session.title)" class="session-number">#{{ storyNumber(session.title) }}</span>
+              <span v-if="session.playersOnline > 0" class="session-online">{{ session.playersOnline }} online</span>
             </div>
-            <div v-if="session.teaser" class="session-teaser">„{{ session.teaser }}"</div>
-            <div class="session-meta">
-              <span v-if="session.playersOnline > 0">{{ session.playersOnline }} online</span>
-            </div>
-            <div class="kg-progress session-progress">
-              <div class="kg-progress__fill" :style="{ width: Math.round((session.progress || 0) * 100) + '%' }"></div>
+            <div v-if="session.teaser" class="session-teaser">{{ session.teaser }}</div>
+            <div class="session-progress">
+              <div class="session-progress__fill"
+                :style="{ width: Math.round((session.progress || 0) * 100) + '%' }"></div>
             </div>
             <div class="session-footer">
               <span class="session-age">{{ timeAgo(session.lastActivity) }}</span>
-              <sui-button size="tiny" color="green" @click="joinSession(session.code)">
+              <button class="write-btn write-btn--solid session-join"
+                @click="joinSession(session.code)">
                 mitschreiben
-              </sui-button>
+              </button>
             </div>
           </div>
         </div>
@@ -79,102 +79,153 @@
   color: #888;
 }
 
-.session-card {
-  border: 1px solid rgba(34, 36, 38, 0.15);
-  border-radius: 4px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
+/* --- Session cards (XD artboard 7e09c9f6) -----------------------------------
+   Card: 310x152 r23, white fill, #19421E 2px border. Title Metropolis Medium
+   13px, #number italic 11px muted, teaser Metropolis Light 13px, a 2px
+   progress bar (#19421E 25% track + solid fill), age italic 11px + green pill. */
+/* Scoped under .sessions-list so these beat the global .session-* rules that
+   Archive.vue also defines (both pages share the class names). */
+.sessions-list .session-card {
+  border: 2px solid var(--kg-green);
+  border-radius: 23px;
+  background: #fff;
+  padding: 18px 20px 16px;
+  margin-bottom: 20px;
   text-align: left;
+  color: var(--kg-green);
 }
 
-.session-title {
-  font-weight: bold;
-  font-size: 1.05em;
-  margin-bottom: 2px;
-}
-.session-number {
-  font-weight: normal;
-  font-size: 0.78em;
-  color: #aaa;
-  margin-left: 5px;
-}
-
-.session-meta {
-  font-size: 0.88em;
-  color: #888;
-  margin-bottom: 4px;
-}
-
-.kg-progress.session-progress {
-  margin: 10px 0 0;
-}
-
-.session-footer {
+.sessions-list .session-head {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 6px;
+  align-items: baseline;
+  gap: 10px;
 }
-
-.session-age {
-  font-size: 0.82em;
-  color: #aaa;
+.sessions-list .session-title {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--kg-green);
 }
-
-.session-complete {
-  opacity: 0.85;
-}
-
-.session-teaser {
-  font-family: 'Lora', serif;
+.sessions-list .session-number {
+  font-family: var(--font-sans);
+  font-weight: 300;
   font-style: italic;
-  font-size: 0.92em;
-  color: #444;
-  margin: 4px 0;
+  font-size: 11px;
+  color: var(--kg-muted);
+}
+.sessions-list .session-online {
+  margin-left: auto;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-muted);
 }
 
-.accordion {
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  margin-bottom: 12px;
+.sessions-list .session-teaser {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: normal;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--kg-green);
+  margin: 8px 0 0;
+}
+
+/* 2px rule: 25%-opacity green track with a solid green fill (round caps). */
+.sessions-list .session-progress {
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(25, 66, 30, 0.25);
+  margin: 18px 0 0;
   overflow: hidden;
 }
-.accordion-toggle {
-  width: 100%;
+.sessions-list .session-progress__fill {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--kg-green);
+}
+
+.sessions-list .session-footer {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+.sessions-list .session-age {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-green);
+}
+/* Compact green pill sized to "mitschreiben" (.write-btn is global, Story.vue). */
+.sessions-list .session-join.write-btn {
+  min-width: 0;
+  width: auto;
+  padding: 0 18px;
+  height: 26px;
+}
+
+/* Sort control: the XD shows a plain italic "⇅ zuletzt" label, no boxed
+   accordion. Keep the toggle logic but strip the border/background. Scoped
+   under .sessions-sort to beat the global .accordion styles from other pages. */
+.sessions-sort.accordion {
+  border: none;
+  border-radius: 0;
+  margin-bottom: 18px;
+  overflow: visible;
+  text-align: left;
+}
+.sessions-sort .accordion-toggle {
+  width: auto;
+  display: inline-flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.88em;
-  color: #555;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-green);
   text-align: left;
 }
-.accordion-toggle:hover { background: #fafafa; }
-.accordion-icon { font-size: 0.75em; color: #aaa; }
-.accordion-body.sort-options {
+.sessions-sort .accordion-toggle:hover { background: none; }
+.sessions-sort .accordion-icon {
+  font-size: 0.7em;
+  font-style: normal;
+  color: var(--kg-green);
+}
+.sessions-sort .sort-icon {
+  color: var(--kg-green);
+  font-style: normal;
+  font-size: 1.15em;
+  margin-right: 2px;
+}
+.sessions-sort .accordion-body.sort-options {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 8px 12px 10px;
-  border-top: 1px solid #f0f0f0;
+  padding: 8px 0 2px;
+  border-top: none;
 }
-.sort-icon { color: #21ba45; font-size: 1.05em; margin-right: 2px; }
-.sort-btn {
-  padding: 3px 10px;
-  font-size: 0.82em;
-  border: 1px solid #ddd;
-  border-radius: 12px;
+.sessions-sort .sort-btn {
+  padding: 3px 12px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  border: 1.5px solid var(--kg-green);
+  border-radius: var(--kg-radius-pill);
   background: none;
   cursor: pointer;
-  color: #666;
+  color: var(--kg-green);
 }
-.sort-btn.active {
-  border-color: #21ba45;
-  color: #21ba45;
-  background: rgba(33,186,69,0.06);
+.sessions-sort .sort-btn.active {
+  color: var(--kg-cream);
+  background: var(--kg-green);
 }
 </style>
 
