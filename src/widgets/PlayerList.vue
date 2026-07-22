@@ -5,50 +5,31 @@
         v-if="lobbyState === 'PLAYING' && $route.params.code"
         class="lobby-code-inline">{{ $route.params.code.toUpperCase() }}</span>
     </sui-divider>
-    <sui-table unstackable basic class="player-table" >
-      <sui-table-header>
-        <sui-table-row>
-          <th style="position: relative;">
-            Autor*innen
-          </th>
-        </sui-table-row>
-      </sui-table-header>
-      <sui-table-body>
-        <sui-table-row v-for="p in sortedPlayers"
-          :key="p.playerId"
-          :negative="!p.connected"
-          :positive="$root.playerId === p.id">
-          <td>
-            {{p.name}}
-            <span class="user-icons">
-              <sui-button v-if="!p.connected && !isActivePlayer"
-                size="tiny"
-                @click="$socket.emit('lobby:replace', p.playerId)"
-                               basic>
-                beitreten
-              </sui-button>
-               <sui-icon
-                v-if="admin === p.id"
-                color="grey"
-                name="shield"/>
-              <sui-icon
-                v-if="gameState.icons[p.playerId]"
-                color="grey"
-                :name="gameState.icons[p.playerId]"/>
-              <sui-icon
-                v-if="!p.connected"
-                color="grey"
-                name="times"/>
-            </span>
-          </td>
-        </sui-table-row>
-        <sui-table-row v-if="!players.length">
-          <td>
-            <i>keine Autor*innen da</i>
-          </td>
-        </sui-table-row>
-      </sui-table-body>
-    </sui-table>
+
+    <div class="player-pills">
+      <div v-for="p in sortedPlayers"
+        :key="p.playerId"
+        class="player-pill"
+        :class="{ 'is-self': $root.playerId === p.id, 'is-off': !p.connected }">
+        <span class="player-pill__name">{{ p.name }}</span>
+        <span class="player-pill__icons">
+          <sui-button v-if="!p.connected && !isActivePlayer"
+            size="tiny"
+            basic
+            @click="$socket.emit('lobby:replace', p.playerId)">
+            beitreten
+          </sui-button>
+          <img v-if="admin === p.id"
+            class="pl-icon" :class="{ 'pl-icon--wash': washed('shield', p) }"
+            :src="iconFor('shield', p)" alt="Admin">
+          <img v-if="gameState.icons[p.playerId]"
+            class="pl-icon" :class="{ 'pl-icon--wash': washed(gameState.icons[p.playerId], p) }"
+            :src="iconFor(gameState.icons[p.playerId], p)" alt="">
+        </span>
+      </div>
+      <div v-if="!players.length" class="player-empty">keine Autor*innen da</div>
+    </div>
+
     <div>
       <sui-button :basic="!confirmEndGame"
                color="red"
@@ -71,30 +52,82 @@
   opacity: 0.55;
 }
 
-td {
-  position: relative;
+.player-pills {
+  margin: 4px 0 12px;
 }
 
-.user-icons {
-  position: absolute;
-  right: .5em;
-  top: 0;
-  height: 100%;
-  align-items: center;
+/* Each author is a pill; your own row is filled blue, everyone else is an
+   outlined pill. Names are italic per the design. */
+.player-pill {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 18px;
+  margin-bottom: 8px;
+  border: 1.5px solid var(--kg-green);
+  border-radius: var(--kg-radius-pill);
+  color: var(--kg-green);
+  font-style: italic;
 }
 
-.user-icons button:not(:last-child) {
-  margin-right: 8px !important;
+.player-pill.is-self {
+  background: var(--kg-blue);
+  border-color: var(--kg-blue);
+  color: #fff;
 }
 
-.user-icons i {
-  height: 18px;
+.player-pill.is-off {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.player-pill__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-pill__icons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.pl-icon {
+  height: 17px;
+  width: auto;
+  display: block;
+}
+
+/* Fallback for icons Luisa didn't ship a light variant of (clock/check):
+   whiten the dark icon so it stays legible on the blue self row. */
+.pl-icon--wash {
+  filter: brightness(0) invert(1);
+}
+
+.player-empty {
+  font-style: italic;
+  color: var(--kg-muted);
+  padding: 8px 18px;
 }
 
 </style>
 
 <script>
+// New design icons (PNG). Light variants are used on the blue "self" row;
+// icons without a light variant fall back to a CSS whitening filter.
+const ICONS = {
+  shield: require('../assets/icons/shield.png'),
+  'shield-light': require('../assets/icons/shield-light.png'),
+  pencil: require('../assets/icons/pencil.png'),
+  'pencil-light': require('../assets/icons/pencil-light.png'),
+  clock: require('../assets/icons/clock.png'),
+  check: require('../assets/icons/check.png'),
+};
+
 export default {
   props: [
     'players', 'admin',
@@ -110,6 +143,16 @@ export default {
         this.confirmEndGame = true;
         this.confirmTimeout = setTimeout(() => this.confirmEndGame = false, 1000);
       }
+    },
+    // Pick the icon file for a player's row: the light variant on the viewer's
+    // own (blue) row when one exists, the dark one otherwise.
+    iconFor(name, p) {
+      const self = this.$root.playerId === p.id;
+      return (self && ICONS[name + '-light']) || ICONS[name];
+    },
+    // True when this icon is shown dark on the blue row and must be whitened.
+    washed(name, p) {
+      return this.$root.playerId === p.id && !ICONS[name + '-light'];
     },
   },
   computed: {
@@ -133,4 +176,4 @@ export default {
     };
   },
 };
-</script>fd
+</script>
