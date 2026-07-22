@@ -40,17 +40,15 @@
     </div>
     <div v-else-if="player.state === 'EDITING'"
       style="margin: 16px 0">
-      <h2 is="sui-header" icon="pencil" v-if="player.link.length !== 0">
-        {{player.isLastLink ? 'Beende die Geschichte! ' : ''}}Die Geschichte endet gerade mit...
-        <div style="margin-top: 10px">
-          <div v-for="(link, i) in player.link" :key="i">
+      <div v-if="player.link.length !== 0" class="context-block">
+        <div class="write-label">{{player.isLastLink ? 'Beende die Geschichte! ' : ''}}Die Geschichte endet gerade mit…</div>
+        <div class="context-snippet">
+          <div v-for="(link, i) in player.link" :key="i" class="context-text">
             <sui-divider horizontal v-if="i !== 0" >Dann</sui-divider>
-            <sui-header-subheader>
-              {{link}}
-            </sui-header-subheader>
+            {{link}}
           </div>
         </div>
-      </h2>
+      </div>
       <div v-if="player.deadline" class="countdown" :class="{urgent: secondsLeft <= 30}">
         <img :src="clockIcon" class="countdown-icon" alt=""> {{ formattedTime }} verbleibend
       </div>
@@ -200,6 +198,21 @@
   font-size: 13px;
   color: var(--kg-green);
   margin-bottom: 8px;
+}
+
+/* Context shown while continuing a story ("Die Geschichte endet gerade mit…"
+   + the last words). The torn-paper snippet background is a later step; the
+   text sizes match the XD (label 13, context 11 italic). */
+.context-block {
+  margin-bottom: 14px;
+}
+.context-text {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-style: italic;
+  color: var(--kg-green);
+  text-align: center;
+  line-height: 1.5;
 }
 
 /* Textarea: 307×99, radius 23, white fill, 2px green outline (higher
