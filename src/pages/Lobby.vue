@@ -11,18 +11,17 @@
     </ooc-menu>
     <ooc-menu v-else-if="state === 'JOIN_LOBBY'">
       <div class="name-screen">
-        <!-- Title/subtitle taken 1:1 from the "Namen geben" XD artboard (Boska
-             Black 33px + Metropolis Light 13px) so this stays a visual twin of
-             the "Raum beitreten" code screen. -->
-        <h1 class="name-title">Gib dir einen Namen</h1>
-        <div class="name-subtitle">sei kreativ</div>
         <sui-form
                  @submit="e => enterName(e)"
           :error="!validName"
           :loading="loadingName"
           class="name-form">
+          <!-- Design's big "Gib dir einen Namen" / "sei kreativ" was dropped in
+               favour of a small "Name" label sitting just above the field. -->
+          <label class="name-label" for="playerName">Name</label>
           <sui-form-field :disabled="anonymousJoin" :error="!validName">
             <input class="name-input"
+              id="playerName"
               name="playerName"
               aria-label="Dein Name"
               :required="!anonymousJoin"
@@ -158,23 +157,19 @@
   margin: 0 auto;
   text-align: center;
 }
-.name-title {
-  font-family: var(--font-serif);
-  font-weight: 900;
-  font-size: 33px;
-  line-height: 1.12;
-  color: var(--kg-green);
-  margin: 0 0 2px;
+.name-form {
+  text-align: center;
 }
-.name-subtitle {
+/* Small "Name" label above the field (replaces the dropped XD title). */
+.ui.form .name-label,
+.name-label {
+  display: block;
+  text-align: left;
   font-family: var(--font-sans);
   font-weight: 300;
   font-size: 13px;
   color: var(--kg-green);
-  margin: 0 0 24px;
-}
-.name-form {
-  text-align: center;
+  margin: 0 0 6px 4px;
 }
 .ui.form input.name-input {
   width: 100%;
