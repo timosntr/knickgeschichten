@@ -63,13 +63,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 44px;
-  padding: 6px 18px;
-  margin-bottom: 8px;
+  height: 33px;
+  padding: 0 16px;
+  margin-bottom: 7px;
   border: 1.5px solid var(--kg-green);
   border-radius: var(--kg-radius-pill);
   color: var(--kg-green);
   font-style: italic;
+  font-size: 13px;
 }
 
 .player-pill.is-self {
@@ -97,7 +98,7 @@
 }
 
 .pl-icon {
-  height: 17px;
+  height: 14px;
   width: auto;
   display: block;
 }
