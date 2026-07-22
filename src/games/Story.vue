@@ -52,18 +52,15 @@
         </div>
       </h2>
       <div v-if="player.deadline" class="countdown" :class="{urgent: secondsLeft <= 30}">
-        ⏱ {{ formattedTime }} verbleibend
+        <img :src="clockIcon" class="countdown-icon" alt=""> {{ formattedTime }} verbleibend
       </div>
       <sui-form @submit="writeLine" >
         <sui-form-field>
-          <label>{{ player.link.length !== 0 ? 'und so geht es weiter...' : 'Der erste Satz gehört dir...' }}</label>
-          <textarea v-model="line" rows="2"
+          <label class="write-label">{{ player.link.length !== 0 ? 'und so geht es weiter...' : 'Der erste Satz gehört dir...' }}</label>
+          <textarea class="kg-textarea" v-model="line" rows="2"
             @keydown.enter.prevent
             @paste="onPaste">
           </textarea>
-          <div class="char-count">
-            {{line.length}}/250
-          </div>
           <div v-if="game.minWords > 0" class="word-count" :class="{insufficient: wordCount < game.minWords}">
             {{wordCount}} / {{game.minWords}} Wörter
           </div>
@@ -71,18 +68,14 @@
             <span class="context-preview-label">Kontext →</span> „…{{ lastContextWords }}"
           </div>
         </sui-form-field>
-        <sui-button type="submit"
-          :color="player.isLastLink ? 'green' : 'blue'"
-                   :disabled="line.length < 1 || line.length > 250 || wordCount < game.minWords">
+        <button type="submit" class="kg-btn kg-btn--solid write-submit"
+          :disabled="line.length < 1 || line.length > 250 || wordCount < game.minWords">
           {{player.isLastLink ? 'beenden' : 'weitergeben'}}
-        </sui-button>
-        <sui-button v-if="lobby.isAsync"
-          type="button"
-                   basic
-          @click="skipTurn"
-          style="margin-top: 6px;">
+        </button>
+        <button v-if="lobby.isAsync" type="button" class="kg-btn kg-btn--outline write-cancel"
+          @click="skipTurn">
           abbrechen
-        </sui-button>
+        </button>
       </sui-form>
     </div>
     <div v-else-if="player.state === 'WAITING'"
@@ -181,9 +174,17 @@
 }
 
 .countdown {
-  margin-bottom: 8px;
+  margin: 4px 0 12px;
   font-size: 0.95em;
-  color: #555;
+  font-style: italic;
+  color: var(--kg-muted);
+  text-align: center;
+}
+.countdown-icon {
+  height: 15px;
+  width: auto;
+  vertical-align: -2px;
+  margin-right: 4px;
 }
 
 .countdown.urgent {
@@ -191,10 +192,52 @@
   font-weight: bold;
 }
 
+/* Writing view — new design ---------------------------------------------- */
+.write-label {
+  display: block;
+  text-align: center;
+  font-style: italic;
+  color: var(--kg-green);
+  margin-bottom: 8px;
+}
+
+/* Higher specificity than Semantic UI's `.ui.form textarea`. */
+.ui.form textarea.kg-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid var(--kg-green);
+  border-radius: var(--kg-radius-card);
+  background: transparent;
+  padding: 14px 16px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--kg-green);
+  resize: vertical;
+  outline: none;
+}
+.ui.form textarea.kg-textarea:focus {
+  border-color: var(--kg-green);
+  box-shadow: 0 0 0 2px rgba(25, 66, 30, 0.12);
+}
+
+.write-submit,
+.write-cancel {
+  width: auto;
+  min-width: 190px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.write-cancel {
+  margin-top: 2px;
+}
+
 .word-count {
-  margin-top: 4px;
+  margin-top: 6px;
   font-size: 0.85em;
-  color: #21ba45;
+  font-style: italic;
+  color: var(--kg-muted);
+  text-align: center;
 }
 
 .word-count.insufficient {
@@ -342,6 +385,8 @@
 </style>
 
 <script>
+const clockIcon = require('../assets/icons/clock.png');
+
 export default {
   sockets: {
     'lobby:info': function(info) {
@@ -616,6 +661,7 @@ export default {
   },
   data() {
     return {
+      clockIcon,
       line: '',
       stories: [],
       requestedResults: false,
