@@ -1,45 +1,87 @@
 <template>
-  <sui-dimmer :active="active" style="position: fixed">
+  <sui-dimmer :active="active" class="code-dimmer" style="position: fixed">
     <sui-form
            @submit="testLobby"
       :error="lobbyError"
-      :loading="testingLobby">
-      <sui-card>
-        <sui-card-content>
-          <sui-card-header>
-            Raum beitreten
-          </sui-card-header>
-        </sui-card-content>
-        <sui-card-content>
-          <sui-form-field
-            :error="lobbyError">
-            <label>Code</label>
-            <input name="lobbyCode"
-              required
-              @input="lobbyError = false"
-              :type="hideLobbyCode ? 'password' : 'text'"
-              autocomplete="off"
-              placeholder="1c1b">
-          </sui-form-field>
-          <sui-button
-            color="blue"
-                       type="submit">
-            beitreten
-          </sui-button>
-          <sui-button
-                       type="button"
-            @click="$emit('close')">
-            zurück
-          </sui-button>
-        </sui-card-content>
-      </sui-card>
-      <sui-message
-        error
-        header="ungültiger Code"
-        content="Der Code ist falsch oder der Raum existiert nicht mehr"/>
+      :loading="testingLobby"
+      class="code-form">
+      <h1 class="code-title">Raum beitreten</h1>
+      <sui-form-field :error="lobbyError">
+        <input class="code-input"
+          name="lobbyCode"
+          required
+          @input="lobbyError = false"
+          :type="hideLobbyCode ? 'password' : 'text'"
+          autocomplete="off"
+          placeholder="Code">
+      </sui-form-field>
+      <div v-if="lobbyError" class="code-error">
+        Der Code ist falsch oder der Raum existiert nicht mehr
+      </div>
+      <div class="code-buttons">
+        <!-- shared compact pill (.write-btn is a global class, see Story.vue) -->
+        <button type="button" class="write-btn write-btn--outline" @click="$emit('close')">
+          zurück
+        </button>
+        <button type="submit" class="write-btn write-btn--solid">
+          beitreten
+        </button>
+      </div>
     </sui-form>
   </sui-dimmer>
 </template>
+
+<style>
+.code-dimmer.ui.dimmer {
+  background: var(--kg-cream);
+}
+.code-form {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  text-align: center;
+}
+.code-title {
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 30px;
+  color: var(--kg-green);
+  margin: 0 0 22px;
+}
+.ui.form input.code-input {
+  width: 100%;
+  height: 33px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--kg-green);
+  border-radius: var(--kg-radius-pill);
+  background: #fff;
+  padding: 0 18px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--kg-green);
+  text-align: center;
+}
+.ui.form input.code-input::placeholder {
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-muted);
+}
+.code-error {
+  margin-top: 8px;
+  font-size: 11px;
+  font-style: italic;
+  color: #db2828;
+}
+.code-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 18px;
+}
+.code-buttons .write-btn {
+  margin: 0;
+}
+</style>
 
 <script>
 module.exports = {
