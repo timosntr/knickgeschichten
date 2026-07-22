@@ -62,8 +62,9 @@
           <div v-if="game.minWords > 0" class="word-count" :class="{insufficient: wordCount < game.minWords}">
             {{wordCount}} / {{game.minWords}} Wörter
           </div>
-          <div v-if="wordCount >= game.minWords && lastContextWords" class="context-preview">
-            <span class="context-preview-label">Kontext →</span> „…{{ lastContextWords }}"
+          <div v-if="wordCount >= game.minWords && lastContextWords" class="preview-snippet">
+            <div class="preview-label">Vorschau</div>
+            <div class="preview-text">„…{{ lastContextWords }}"</div>
           </div>
         </sui-form-field>
         <button type="submit" class="write-btn write-btn--solid"
@@ -212,13 +213,38 @@
 .context-block {
   margin-bottom: 14px;
 }
-.context-text {
+
+/* Torn-paper snippet: the paper is a background image with transparent torn
+   edges, so filter: drop-shadow follows that shape (a box-shadow would draw a
+   rectangle). Shared by the context snippet and the "Vorschau" snippet. */
+.context-snippet,
+.preview-snippet {
+  background-image: url('../assets/paper-snippet.webp');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  max-width: 300px;
+  margin: 0 auto;
+  padding: 26px 34px;
+  text-align: center;
+  filter: drop-shadow(0 3px 4px rgba(25, 66, 30, 0.28));
+}
+.preview-snippet {
+  margin-top: 16px;
+}
+.context-text,
+.preview-text {
   font-family: var(--font-sans);
   font-size: 11px;
   font-style: italic;
   color: var(--kg-green);
-  text-align: center;
   line-height: 1.5;
+}
+.preview-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-style: italic;
+  color: var(--kg-muted);
+  margin-bottom: 4px;
 }
 
 /* Textarea: 307×99, radius 23, white fill, 2px green outline (higher
@@ -271,23 +297,6 @@
 
 .word-count.insufficient {
   color: #db2828;
-}
-
-.context-preview {
-  margin-top: 4px;
-  font-size: 0.78em;
-  color: #888;
-  font-family: 'Lora', serif;
-  font-style: italic;
-  line-height: 1.3;
-  border-left: 2px solid #21ba45;
-  padding-left: 6px;
-}
-.context-preview-label {
-  font-style: normal;
-  font-family: sans-serif;
-  color: #21ba45;
-  font-size: 0.9em;
 }
 
 .like-bar {
