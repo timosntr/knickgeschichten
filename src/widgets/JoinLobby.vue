@@ -45,8 +45,10 @@
   padding-top: 150px;
 }
 .code-form {
-  width: 100%;
-  max-width: 313px;   /* input is 313 in the XD */
+  /* Fixed 313 (XD) so the field stays wider than the 238 button row; in a flex
+     column a max-width alone shrinks to the widest child (the buttons). */
+  width: 313px;
+  max-width: 88%;
   margin: 0 auto;
   text-align: center;
 }
@@ -70,11 +72,21 @@
   color: var(--kg-green);
   text-align: left;
 }
-/* Kill Semantic's blue focus glow; keep the green outline. */
+/* Keep the pill (and clean styling) in every state — focus and Semantic's
+   error state both otherwise reshape/recolour the input. */
+.ui.form input.code-input:focus,
+.ui.form .field.error input.code-input {
+  border-radius: 17px;
+  background: #fff;
+  outline: none;
+}
 .ui.form input.code-input:focus {
   border-color: var(--kg-green);
   box-shadow: 0 0 0 2px rgba(25, 66, 30, 0.12);
-  outline: none;
+}
+.ui.form .field.error input.code-input {
+  border-color: #db2828;
+  color: var(--kg-green);
 }
 .ui.form input.code-input::placeholder {
   font-style: italic;
