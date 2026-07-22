@@ -10,37 +10,49 @@
       </div>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'JOIN_LOBBY'">
-      <sui-form
-               @submit="e => enterName(e)"
-        :error="!validName"
-        :loading="loadingName">
-        <sui-form-field :disabled="anonymousJoin">
-          <label>Name</label>
-          <input name="playerName"
-            :required="!anonymousJoin"
-            @input="validName = true"
-            v-model="name"
-            :disabled="anonymousJoin"
-            minlength="1"
-            maxlength="15"
-            autocomplete="on"
-            placeholder="Uwe">
-        </sui-form-field>
-        <div v-if="!validName" style="color:#db2828; font-size:0.85em; margin:-6px 0 10px; text-align:left;">
-          Dieser Name ist nicht erlaubt. Bitte wähle einen anderen.
-        </div>
-        <sui-form-field v-if="lobbyInfo.isAsync">
-          <sui-checkbox
-            v-model="anonymousJoin"
-            label="anonym"/>
-        </sui-form-field>
-        <sui-button color="blue"  type="submit">
-          mitschreiben
-        </sui-button>
-        <sui-button basic type="button" @click="leaveLobby">
-          zurück
-        </sui-button>
-      </sui-form>
+      <div class="name-screen">
+        <!-- Title/subtitle taken 1:1 from the "Namen geben" XD artboard (Boska
+             Black 33px + Metropolis Light 13px) so this stays a visual twin of
+             the "Raum beitreten" code screen. -->
+        <h1 class="name-title">Gib dir einen Namen</h1>
+        <div class="name-subtitle">sei kreativ</div>
+        <sui-form
+                 @submit="e => enterName(e)"
+          :error="!validName"
+          :loading="loadingName"
+          class="name-form">
+          <sui-form-field :disabled="anonymousJoin" :error="!validName">
+            <input class="name-input"
+              name="playerName"
+              aria-label="Dein Name"
+              :required="!anonymousJoin"
+              @input="validName = true"
+              v-model="name"
+              :disabled="anonymousJoin"
+              minlength="1"
+              maxlength="15"
+              autocomplete="on"
+              placeholder="Uwe">
+          </sui-form-field>
+          <div v-if="!validName" class="name-error">
+            Dieser Name ist nicht erlaubt. Bitte wähle einen anderen.
+          </div>
+          <sui-form-field v-if="lobbyInfo.isAsync" class="anon-field">
+            <sui-checkbox
+              v-model="anonymousJoin"
+              label="anonym"/>
+          </sui-form-field>
+          <div class="name-buttons">
+            <!-- .write-btn is a global pill (defined in Story.vue) -->
+            <button type="button" class="write-btn write-btn--outline" @click="leaveLobby">
+              zurück
+            </button>
+            <button type="submit" class="write-btn write-btn--solid">
+              mitschreiben
+            </button>
+          </div>
+        </sui-form>
+      </div>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'LOBBY_WAITING'"
       :title="lobbyInfo.title || (currGame ? currGame.title : 'Knickgeschichten')"
@@ -132,6 +144,95 @@
 </template>
 
 <style>
+
+/* --- "Namen geben" screen (JOIN_LOBBY) --------------------------------------
+   Values taken directly from the XD artboard (bc63d558): field 313x33 r17,
+   fill #FFFFFF, border #19421E 1.5; buttons 112x26 r15. Mirrors the code
+   screen (JoinLobby.vue) so the two entry screens look identical. */
+.name-screen {
+  /* Fixed 313 (XD) so the field stays wider than the 238 button row. This sits
+     inside the ~352px .menu container, so cap at 100% (not 88%, which would
+     clamp to ~310 here) — 313 still fits and can't overflow narrow screens. */
+  width: 313px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+.name-title {
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 33px;
+  line-height: 1.12;
+  color: var(--kg-green);
+  margin: 0 0 2px;
+}
+.name-subtitle {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  color: var(--kg-green);
+  margin: 0 0 24px;
+}
+.name-form {
+  text-align: center;
+}
+.ui.form input.name-input {
+  width: 100%;
+  height: 33px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--kg-green);
+  border-radius: 17px;
+  background: #fff;              /* XD fill is #FFFFFF */
+  padding: 0 20px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--kg-green);
+  text-align: left;
+}
+/* Keep the pill (and clean styling) in focus and Semantic's error state,
+   both of which otherwise reshape/recolour the input. */
+.ui.form input.name-input:focus,
+.ui.form .field.error input.name-input {
+  border-radius: 17px;
+  background: #fff;
+  outline: none;
+}
+.ui.form input.name-input:focus {
+  border-color: var(--kg-green);
+  box-shadow: 0 0 0 2px rgba(25, 66, 30, 0.12);
+}
+.ui.form .field.error input.name-input {
+  border-color: #db2828;
+  color: var(--kg-green);
+}
+.ui.form input.name-input::placeholder {
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-muted);
+}
+.name-error {
+  margin-top: 8px;
+  font-size: 11px;
+  font-style: italic;
+  color: #db2828;
+}
+.anon-field.field {
+  margin-top: 14px;
+  text-align: center;
+}
+.name-buttons {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 22px;
+}
+/* Fixed 112px each (XD) so the two-button row is narrower than the 313 input. */
+.name-buttons .write-btn {
+  margin: 0;
+  width: 112px;
+  min-width: 0;
+  padding: 0;
+}
 
 .player-table td {
   font-weight: normal !important;
