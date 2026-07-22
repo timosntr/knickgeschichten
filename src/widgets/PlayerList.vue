@@ -20,7 +20,7 @@
             beitreten
           </sui-button>
           <img v-if="admin === p.id"
-            class="pl-icon" :class="{ 'pl-icon--wash': washed('shield', p) }"
+            class="pl-icon pl-icon--shield" :class="{ 'pl-icon--wash': washed('shield', p) }"
             :src="iconFor('shield', p)" alt="Admin">
           <img v-if="gameState.icons[p.playerId]"
             class="pl-icon" :class="{ 'pl-icon--wash': washed(gameState.icons[p.playerId], p) }"
@@ -70,7 +70,7 @@
   border-radius: var(--kg-radius-pill);
   color: var(--kg-green);
   font-style: italic;
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .player-pill.is-self {
@@ -98,9 +98,12 @@
 }
 
 .pl-icon {
-  height: 14px;
+  height: 16px;
   width: auto;
   display: block;
+}
+.pl-icon--shield {
+  height: 12px;
 }
 
 /* Fallback for icons Luisa didn't ship a light variant of (clock/check):

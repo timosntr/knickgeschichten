@@ -68,11 +68,11 @@
             <span class="context-preview-label">Kontext →</span> „…{{ lastContextWords }}"
           </div>
         </sui-form-field>
-        <button type="submit" class="kg-btn kg-btn--solid write-submit"
+        <button type="submit" class="write-btn write-btn--solid"
           :disabled="line.length < 1 || line.length > 250 || wordCount < game.minWords">
           {{player.isLastLink ? 'beenden' : 'weitergeben'}}
         </button>
-        <button v-if="lobby.isAsync" type="button" class="kg-btn kg-btn--outline write-cancel"
+        <button v-if="lobby.isAsync" type="button" class="write-btn write-btn--outline"
           @click="skipTurn">
           abbrechen
         </button>
@@ -175,15 +175,15 @@
 
 .countdown {
   margin: 4px 0 12px;
-  font-size: 0.95em;
+  font-size: 11px;
   font-style: italic;
-  color: var(--kg-muted);
+  color: var(--kg-green);
   text-align: center;
 }
 .countdown-icon {
-  height: 15px;
+  height: 12px;
   width: auto;
-  vertical-align: -2px;
+  vertical-align: -1px;
   margin-right: 4px;
 }
 
@@ -192,22 +192,25 @@
   font-weight: bold;
 }
 
-/* Writing view — new design ---------------------------------------------- */
+/* Writing view — new design (sizes from the XD "Schreiben" artboard) ------- */
 .write-label {
   display: block;
   text-align: center;
-  font-style: italic;
+  font-family: var(--font-sans);
+  font-size: 13px;
   color: var(--kg-green);
   margin-bottom: 8px;
 }
 
-/* Higher specificity than Semantic UI's `.ui.form textarea`. */
+/* Textarea: 307×99, radius 23, white fill, 2px green outline (higher
+   specificity than Semantic UI's `.ui.form textarea`). */
 .ui.form textarea.kg-textarea {
   width: 100%;
   box-sizing: border-box;
-  border: 1.5px solid var(--kg-green);
+  min-height: 99px;
+  border: 2px solid var(--kg-green);
   border-radius: var(--kg-radius-card);
-  background: transparent;
+  background: #fff;
   padding: 14px 16px;
   font-family: var(--font-sans);
   font-size: 15px;
@@ -220,23 +223,30 @@
   box-shadow: 0 0 0 2px rgba(25, 66, 30, 0.12);
 }
 
-.write-submit,
-.write-cancel {
-  width: auto;
-  min-width: 190px;
+/* Compact pill button: 112×26, radius 15, 9px label (XD). */
+.write-btn {
   display: block;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 10px auto 0;
+  min-width: 112px;
+  height: 26px;
+  padding: 0 22px;
+  border-radius: 15px;
+  border: 1.5px solid var(--kg-green);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
 }
-.write-cancel {
-  margin-top: 2px;
-}
+.write-btn--solid { background: var(--kg-green); color: var(--kg-cream); }
+.write-btn--outline { background: transparent; color: var(--kg-green); margin-top: 6px; }
+.write-btn:hover { opacity: 0.88; }
+.write-btn:disabled { opacity: 0.45; cursor: default; }
 
 .word-count {
   margin-top: 6px;
-  font-size: 0.85em;
+  font-size: 11px;
   font-style: italic;
-  color: var(--kg-muted);
+  color: var(--kg-green);
   text-align: center;
 }
 
