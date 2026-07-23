@@ -301,6 +301,20 @@
   opacity: 1;
 }
 .write-btn--outline:hover:not(:disabled) { opacity: 0.88; }
+/* Cream pill for use on a green surface (XD component "lesen", Archive cards):
+   cream fill + green text with a cream 1.5px border. Its Hover-Zustand mirrors
+   the solid flip — transparent fill, cream border, cream text — over 0.3s. The
+   cream border is present in both states, so the flip causes no layout shift. */
+.write-btn--read {
+  background: var(--kg-cream);
+  color: var(--kg-green);
+  border-color: var(--kg-cream);
+}
+.write-btn--read:hover:not(:disabled) {
+  background: transparent;
+  color: var(--kg-cream);
+  opacity: 1;
+}
 .write-btn:disabled { opacity: 0.45; cursor: default; }
 
 .word-count {
