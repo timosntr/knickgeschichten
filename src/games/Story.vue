@@ -87,67 +87,54 @@
       <sui-loader active centered inline size="huge"  v-if="!stories.length">
         lädt Geschichten
       </sui-loader>
-      <div style="text-align: left">
-        <div style="text-align: right; margin-bottom: 8px">
+      <div class="read-view">
+        <div class="read-toggle-row">
           <div class="view-switch">
             <button type="button" :class="{ active: flowView }" @click="flowView = true">Fließtext</button>
             <button type="button" :class="{ active: !flowView }" @click="flowView = false">Abschnitte</button>
           </div>
         </div>
-        <div v-for="(story, i) in stories" :key="i">
-          <sui-divider horizonal v-if="i > 0" ></sui-divider>
-          <sui-card >
-            <div class="like-bar" v-if="lobby.isAsync">
-              <div :is="player.state ? 'sui-button' : 'sui-label'"
-                :color="player.state && !player.liked[i] ? 'grey' : 'red'"
-                @click="player.state && $socket.emit('game:message', 'chain:like', i)"
-                icon="heart"
-                size="tiny">
-                {{game.likes[i]}}
+        <div v-for="(story, i) in stories" :key="i" class="read-story">
+          <div class="read-card">
+            <!-- Public stories show their authors at the top-right of the card. -->
+            <div v-if="lobby.isAsync && storyAuthors(story)" class="read-card__authors">
+              {{ storyAuthors(story) }}
+            </div>
+            <!-- Fließtext: one continuous text -->
+            <p v-if="flowView" class="read-text">
+              {{ story.map(e => e.link).join(' ') }}
+            </p>
+            <!-- Abschnitte: each section followed by its author -->
+            <div v-else class="read-sections">
+              <div v-for="(entry, j) in story" :key="j" class="read-section">
+                <p class="read-text">{{ entry.link }}</p>
+                <p v-if="entryAuthor(entry)" class="read-section__author">&ndash; {{ entryAuthor(entry) }}</p>
               </div>
             </div>
-            <sui-card-content>
-              <div v-if="storyAuthors(story)" class="story-authors">
-                {{storyAuthors(story)}}
-              </div>
-              <!-- Fließtext-Ansicht -->
-              <p v-if="flowView" class="flow-text">
-                {{ story.map(e => e.link).join(' ') }}
-              </p>
-              <!-- Beitrags-Ansicht -->
-              <sui-comment-group v-else>
-                <sui-comment v-for="(entry, j) in story" :key="j">
-                  <sui-comment-content>
-                    <sui-comment-text>
-                      <p style="font-family: 'Lora', serif;">
-                        {{entry.link}}
-                      </p>
-                    </sui-comment-text>
-                    <sui-comment-author v-if="entryAuthor(entry)"
-                      style="text-align: right;">
-                      &mdash;{{entryAuthor(entry)}}
-                    </sui-comment-author>
-                  </sui-comment-content>
-                </sui-comment>
-              </sui-comment-group>
-            </sui-card-content>
-          </sui-card>
+          </div>
+          <!-- Public stories: a small heart like pill under the card, bottom-left. -->
+          <div v-if="lobby.isAsync" class="read-like">
+            <button type="button" class="like-pill"
+              :class="{ 'is-liked': player.liked && player.liked[i] }"
+              @click="player.state && $socket.emit('game:message', 'chain:like', i)">
+              <span class="like-pill__heart">&#9829;</span><span
+                v-if="game.likes[i]" class="like-pill__count">{{ game.likes[i] }}</span>
+            </button>
+          </div>
         </div>
       </div>
-      <div style="margin-top: 16px">
-        <sui-button v-if="player.state === 'READING' && !lobby.isAsync"
-          @click="$socket.emit('game:message', 'story:done', game.icons[player.id] !== 'check')"
-          color="blue"
-          :basic="game.icons[player.id] === 'check'">
-          {{game.icons[player.id] === 'check' ? 'lese noch' : 'durchgelesen'}}
-        </sui-button>
-        <sui-button
-          v-if="lobby.isAsync"
-          basic
-          size="small"
+      <div class="read-actions">
+        <button v-if="player.state === 'READING' && !lobby.isAsync"
+          type="button" class="write-btn"
+          :class="game.icons[player.id] === 'check' ? 'write-btn--outline' : 'write-btn--solid'"
+          @click="$socket.emit('game:message', 'story:done', game.icons[player.id] !== 'check')">
+          {{ game.icons[player.id] === 'check' ? 'lese noch' : 'durchgelesen' }}
+        </button>
+        <button v-if="lobby.isAsync"
+          type="button" class="read-back"
           @click="leaveToArchive">
-          zurück
-        </sui-button>
+          zurück zu den Geschichten
+        </button>
       </div>
     </div>
     <div v-else style="margin: 16px">
@@ -330,55 +317,130 @@
   color: #db2828;
 }
 
-.like-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 10px 0;
+/* --- Reading view (XD: 87c69ec3 public / cf77b714 private) ------------------
+   One big story card, a Fließtext/Abschnitte toggle above it, per-section
+   author credits in the Abschnitte view, and (public only) a heart like pill
+   under the card. Content column capped at the XD's 307. */
+.read-view {
+  width: 307px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: left;
 }
+.read-toggle-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+.read-story { margin-bottom: 8px; }
 
+/* Fließtext/Abschnitte toggle: two 66x26 r15 pills (XD 9px label). Active pill
+   is filled green with cream text; the inactive one is the cream outline. */
 .view-switch {
   display: inline-flex;
-  border: 1px solid rgba(25, 66, 30, 0.25);
-  border-radius: 999px;
-  overflow: hidden;
+  gap: 6px;
+}
+.view-switch button {
+  height: 26px;
+  min-width: 66px;
+  padding: 0 10px;
+  border: 1.5px solid var(--kg-green);
+  border-radius: 15px;
+  background: var(--kg-cream);
+  color: var(--kg-green);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 9px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.view-switch button.active {
+  background: var(--kg-green);
+  color: var(--kg-cream);
 }
 
-.view-switch button {
+/* Big story card: r23, cream fill, 2px green border. */
+.read-card {
+  box-sizing: border-box;
+  border: 2px solid var(--kg-green);
+  border-radius: var(--kg-radius-card);
+  background: var(--kg-cream);
+  padding: 22px;
+  color: var(--kg-green);
+  text-align: left;
+}
+.read-card__authors {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--kg-green);
+  text-align: right;
+  margin-bottom: 12px;
+}
+.read-text {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--kg-green);
+  margin: 0;
+  white-space: pre-wrap;
+}
+.read-section { margin-bottom: 18px; }
+.read-section:last-child { margin-bottom: 0; }
+.read-section__author {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--kg-green);
+  text-align: right;
+  margin: 6px 0 0;
+}
+
+/* Heart like pill under the card, left-aligned (public/archive stories). */
+.read-like { margin: 8px 0 0 6px; }
+.like-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 13px;
+  border: 1.5px solid var(--kg-green);
+  border-radius: var(--kg-radius-pill);
+  background: var(--kg-cream);
+  color: var(--kg-green);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.like-pill__heart { font-size: 12px; line-height: 1; }
+.like-pill.is-liked {
+  background: var(--kg-green);
+  color: var(--kg-cream);
+}
+
+/* Bottom actions: solid "durchgelesen" (private) / underlined back link. */
+.read-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+.read-actions .write-btn { margin: 0; }
+.read-back {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.72em;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #8a8a83;
-  padding: 4px 12px;
-  transition: background 0.15s, color 0.15s;
-}
-
-.view-switch button:hover:not(.active) {
-  color: #555;
-}
-
-.view-switch button.active {
-  background: #19421e;
-  color: #fff;
-  font-weight: 700;
-}
-
-.flow-text {
-  font-family: 'Lora', serif;
-  font-size: 0.97em;
-  line-height: 1.7;
-  color: #333;
-  text-align: left;
-}
-
-.story-authors {
-  font-size: 0.85em;
-  color: #888;
-  text-align: right;
-  margin-bottom: 8px;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  color: var(--kg-green);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .share-contribution {
