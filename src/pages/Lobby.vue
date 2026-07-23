@@ -62,6 +62,22 @@
           <div class="lobby-code">{{ codeDisplay }}</div>
         </div>
 
+        <!-- Buttons are absent from the XD; added in the name-screen style:
+             outline "verlassen" (like "zurück") + solid "Geschichten starten"
+             (like "mitschreiben"). Non-admins only see "verlassen". Sit between
+             the Code and the previous round. -->
+        <div v-if="!lobbyInfo.isAsync && currGame" class="lobby-buttons">
+          <button type="button" class="write-btn write-btn--outline" @click="leaveLobby">
+            verlassen
+          </button>
+          <button v-if="lobbyInfo.admin === $root.playerId"
+            type="button" class="write-btn write-btn--solid"
+            :disabled="invalidConfig"
+            @click="$socket.emit('game:start')">
+            Geschichten starten
+          </button>
+        </div>
+
         <div v-if="!lobbyInfo.isAsync && lobbyInfo.completedStories && lobbyInfo.completedStories.length">
           <div class="kg-divider"><span>letzte Runde</span></div>
           <div class="story-accordion">
@@ -84,20 +100,6 @@
         :gameState="gameState"
         :lobbyState="state">
       </ooc-player-list>
-      <!-- Buttons are absent from the XD; added in the name-screen style:
-           outline "verlassen" (like "zurück") + solid "Geschichten starten"
-           (like "mitschreiben"). Non-admins only see "verlassen". -->
-      <div v-if="!lobbyInfo.isAsync && currGame" class="lobby-buttons">
-        <button type="button" class="write-btn write-btn--outline" @click="leaveLobby">
-          verlassen
-        </button>
-        <button v-if="lobbyInfo.admin === $root.playerId"
-          type="button" class="write-btn write-btn--solid"
-          :disabled="invalidConfig"
-          @click="$socket.emit('game:start')">
-          Geschichten starten
-        </button>
-      </div>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'PLAYING'"
       :title="lobbyInfo.title || (currGame ? currGame.title : 'Knickgeschichten')"
@@ -245,7 +247,13 @@
 }
 
 /* --- Private lobby / waiting room (XD artboard 078aeb6f) -------------------- */
-.lobby-waiting { text-align: center; }
+/* XD content column is 307 wide, centred (pills, dividers, code, buttons). */
+.lobby-waiting {
+  width: 307px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
 
 /* Section divider (XD): a 10px Metropolis-Light label flanked by thin 0.5px
    green rules. Replaces Semantic's large uppercase divider. */
@@ -326,7 +334,7 @@
   display: flex;
   gap: 14px;
   justify-content: center;
-  margin-top: 24px;
+  margin: 24px 0 4px;
 }
 .lobby-buttons .write-btn { margin: 0; }
 

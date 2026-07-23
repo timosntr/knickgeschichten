@@ -54,6 +54,13 @@
   opacity: 0.55;
 }
 
+/* XD content column is 307 wide, centred. */
+.player-list-widget {
+  width: 307px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
 .player-pills {
   margin: 4px 0 12px;
 }
@@ -70,6 +77,7 @@
   margin-bottom: 7px;
   border: 1.5px solid var(--kg-green);
   border-radius: var(--kg-radius-pill);
+  background: #fff;            /* XD fill #FFFFFF (self row overrides to blue) */
   color: var(--kg-green);
   font-style: italic;
   font-size: 11px;
