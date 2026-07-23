@@ -9,34 +9,23 @@
           : 'Du warst zu lange inaktiv. Du wirst weitergeleitet…' }}
       </p>
     </div>
-    <div v-else-if="submitted" style="margin: 16px 0">
+    <div v-else-if="submitted" class="share-screen">
       <div ref="confetti" class="paper-confetti"></div>
-      <p style="margin-top: 8px; font-size: 1.05em; font-weight: bold;">erfolgreich weitergegeben</p>
+      <p class="share-status"><span class="share-check">&#10003;</span> erfolgreich weitergegeben</p>
 
-      <div class="share-contribution">
-        <div class="share-contribution-label">dein Text:</div>
-        <p class="share-contribution-text">{{ submittedLine }}</p>
+      <p class="share-label">Dein Text:</p>
+      <div class="preview-snippet share-snippet">
+        <p class="preview-text">&hellip;{{ submittedLine }}</p>
       </div>
 
-      <p style="font-size: 0.9em; color: #555; margin-bottom: 10px">
-        Lade andere ein, die Geschichte weiterzuschreiben:
-      </p>
-      <div class="share-buttons">
-        <sui-button color="green" @click="shareLink">
-          <sui-icon name="share alternate"/> Teilen
-        </sui-button>
-        <sui-button basic icon @click="copyLink" :title="linkCopied ? 'Kopiert!' : 'Link kopieren'">
-          <sui-icon :name="linkCopied ? 'check' : 'copy outline'"/>
-        </sui-button>
-      </div>
-      <div v-if="linkCopied" style="font-size:0.82em; color:#21ba45; margin-top:6px">
-        Link kopiert!
-      </div>
-      <div style="margin-top: 20px;">
-        <sui-button basic size="small" @click="$router.push('/sessions')">
-          <sui-icon name="arrow left"/> zu den Geschichten
-        </sui-button>
-      </div>
+      <p class="share-invite">Lade andere ein, die Geschichte weiterzuschreiben:</p>
+      <button type="button" class="write-btn write-btn--solid share-teilen" @click="shareLink">
+        teilen
+      </button>
+      <div v-if="linkCopied" class="share-copied">Link kopiert!</div>
+      <button type="button" class="read-back share-back" @click="$router.push('/sessions')">
+        zurück zu den Geschichten
+      </button>
     </div>
     <div v-else-if="player.state === 'EDITING'"
       style="margin: 16px 0">
@@ -448,36 +437,54 @@
   color: var(--kg-blue);
 }
 
-.share-contribution {
-  border-left: 3px solid #21ba45;
-  background: rgba(33,186,69,0.05);
-  border-radius: 0 4px 4px 0;
-  padding: 10px 14px;
-  margin: 14px 0;
-  text-align: left;
+/* --- Teilen / share screen (XD artboard b3fe0be0) -------------------------- */
+.share-screen { text-align: center; }
+/* "✓ erfolgreich weitergegeben" reads like a subtitle under the menu title. */
+.share-status {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  color: var(--kg-green);
+  margin: 2px 0 0;
 }
-.share-contribution-label {
-  font-size: 0.78em;
-  color: #aaa;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 4px;
+.share-check { margin-right: 5px; }
+.share-label {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  color: var(--kg-green);
+  margin: 44px 0 0;
 }
-.share-buttons {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
+/* Your contribution on a torn-paper scrap (reuses .preview-snippet). */
+.share-snippet { margin-top: 14px; }
+.share-invite {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  color: var(--kg-green);
+  margin: 44px 0 16px;
 }
-.share-buttons .button:first-child {
-  flex: 1;
+/* "teilen" pill: XD 163x26, solid green. XD hover state turns it blue (not the
+   default solid->outline flip), matching the blue back-link hover. */
+.share-teilen.write-btn {
+  width: 163px;
+  min-width: 0;
+  margin: 0 auto;
 }
-.share-contribution-text {
-  font-family: 'Lora', serif;
+.share-teilen.write-btn--solid:hover:not(:disabled) {
+  background: var(--kg-blue);
+  border-color: var(--kg-blue);
+  color: var(--kg-cream);
+}
+.share-copied {
+  font-family: var(--font-sans);
   font-style: italic;
-  font-size: 0.97em;
-  color: #333;
-  margin: 0;
+  font-size: 11px;
+  color: var(--kg-green);
+  margin-top: 8px;
 }
+/* Back link reuses .read-back (green, underline, blue on hover). */
+.share-back { margin-top: 14px; }
 
 /* Paper-snippet confetti on the share screen (bursts from this origin point). */
 .paper-confetti {
