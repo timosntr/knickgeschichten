@@ -51,14 +51,16 @@
           </div>
         </div>
 
-        <div v-if="totalPages > 1" class="pagination">
-          <sui-button icon size="small" :disabled="page === 1" @click="page--">
-            <sui-icon name="chevron left"/>
-          </sui-button>
-          <span class="page-info">{{ page }} / {{ totalPages }}</span>
-          <sui-button icon size="small" :disabled="page === totalPages" @click="page++">
-            <sui-icon name="chevron right"/>
-          </sui-button>
+        <div v-if="totalPages > 1" class="sessions-pager">
+          <button class="pg-arrow" :disabled="page === 1"
+            aria-label="vorherige Seite" @click="page = Math.max(1, page - 1)">‹</button>
+          <template v-for="(p, i) in pageWindow">
+            <button v-if="typeof p === 'number'" :key="'p' + i"
+              class="pg-num" :class="{ active: p === page }" @click="page = p">{{ p }}</button>
+            <span v-else :key="'e' + i" class="pg-ellipsis">…</span>
+          </template>
+          <button class="pg-arrow" :disabled="page === totalPages"
+            aria-label="nächste Seite" @click="page = Math.min(totalPages, page + 1)">›</button>
         </div>
       </div>
     </ooc-menu>
@@ -67,16 +69,46 @@
 </template>
 
 <style>
-.pagination {
+/* Numbered pager (XD): 15px green numbers, current one Metropolis Medium,
+   flanked by ‹ › chevrons. Windowed to at most 5 numbers (+ … ellipsis) so it
+   never wraps in the 310px column. */
+.sessions-pager {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 4px;
+  margin: 10px 0 4px;
 }
-.page-info {
-  font-size: 0.9em;
-  color: #888;
+.sessions-pager .pg-num,
+.sessions-pager .pg-arrow {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  color: var(--kg-green);
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1;
+  padding: 4px 6px;
+}
+.sessions-pager .pg-num {
+  min-width: 24px;
+}
+.sessions-pager .pg-num.active {
+  font-weight: 500;
+}
+.sessions-pager .pg-arrow {
+  font-size: 20px;
+  padding: 4px 8px;
+}
+.sessions-pager .pg-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.sessions-pager .pg-ellipsis {
+  color: var(--kg-green);
+  font-size: 15px;
+  padding: 0 2px;
 }
 
 /* --- Session cards (XD artboard 7e09c9f6) -----------------------------------
@@ -282,6 +314,28 @@ export default {
     pagedSessions() {
       const start = (this.page - 1) * this.perPage;
       return this.sortedSessions.slice(start, start + this.perPage);
+    },
+    // Page numbers to show in the pager: all if few, otherwise a windowed
+    // "1 … 9 10 11 … 20" (current ±1 + first/last) with '…' gaps. Caps the
+    // visible numbers at 5 so the bar never wraps in the narrow column.
+    pageWindow() {
+      const total = this.totalPages;
+      const cur = this.page;
+      const MAX = 5;
+      if (total <= MAX) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+      }
+      const nums = new Set([1, total, cur,
+        Math.max(1, cur - 1), Math.min(total, cur + 1)]);
+      const sorted = [...nums].sort((a, b) => a - b);
+      const out = [];
+      let prev = 0;
+      for (const n of sorted) {
+        if (n - prev > 1) out.push('…');
+        out.push(n);
+        prev = n;
+      }
+      return out;
     },
   },
   watch: {
