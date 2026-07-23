@@ -6,12 +6,12 @@
       <div>
 
         <!-- Akkordeon -->
-        <div class="accordion">
-          <button class="accordion-toggle" @click="showInfo = !showInfo">
+        <div class="home-howto">
+          <button class="home-howto__toggle" @click="showInfo = !showInfo">
             <span>So funktioniert's</span>
-            <span class="accordion-icon">{{ showInfo ? '⌃' : '⌄' }}</span>
+            <span class="home-howto__caret">{{ showInfo ? '⌃' : '⌄' }}</span>
           </button>
-          <div v-if="showInfo" class="accordion-body">
+          <div v-if="showInfo" class="home-howto__body">
             <ul class="info-list">
               <li>Der bisher geschriebene Text wird wie beim klassischen Spiel „umgeknickt". Du siehst also nur einen kleinen Teil vom vorherigen Abschnitt.</li>
               <li>Du liest den sichtbaren Teil und schreibst darauf basierend einen neuen Abschnitt – mindestens <strong>15 Wörter</strong>, maximal <strong>250 Zeichen</strong>.</li>
@@ -245,24 +245,25 @@
   height: 1px;
 }
 
-/* "So funktioniert's" accordion ----------------------------------------- */
-.accordion { margin-bottom: 18px; text-align: center; }
-.accordion-toggle {
+/* "So funktioniert's" toggle (XD: plain centred text + caret, no box).
+   Uniquely named to avoid the global .accordion box from Einladen.vue. */
+.home-howto { margin-bottom: 18px; text-align: center; }
+.home-howto__toggle {
   background: none;
   border: none;
   cursor: pointer;
   color: var(--kg-green);
   font-family: var(--font-sans);
+  font-weight: 300;
   font-size: 15px;
-  font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 4px;
 }
-.accordion-toggle:hover { opacity: 0.8; }
-.accordion-icon { font-size: 0.9em; }
-.accordion-body {
+.home-howto__toggle:hover { opacity: 0.7; }
+.home-howto__caret { font-size: 0.8em; }
+.home-howto__body {
   padding: 10px 4px 4px;
   text-align: left;
 }
@@ -305,17 +306,22 @@
 .qotd-label {
   font-family: var(--font-serif);
   font-weight: 700;
-  font-size: 24px;
-  margin-bottom: 12px;
+  font-size: 30px;               /* XD: Boska-Black ~33 */
+  margin-bottom: 14px;
 }
 .qotd-text {
-  font-size: 14px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-style: italic;            /* XD: Metropolis-MediumItalic */
+  font-size: 13px;
   line-height: 1.5;
 }
 .qotd-author {
   margin-top: 8px;
-  font-size: 13px;
+  font-family: var(--font-sans);
+  font-weight: 500;
   font-style: italic;
+  font-size: 11px;
 }
 
 /* Section sheet (whole section on one torn-paper sheet) ------------------ */
