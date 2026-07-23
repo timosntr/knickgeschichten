@@ -64,7 +64,7 @@
           <div v-for="session in pagedSessions" :key="session.code" class="archive-card">
             <div class="archive-card__head">
               <span class="archive-card__title">{{ session.title }}</span>
-              <span v-if="storyNumber(session.title)" class="archive-card__number">#{{ storyNumber(session.title) }}</span>
+              <span class="archive-card__number">#{{ session.code }}</span>
             </div>
             <div v-if="session.teaser" class="archive-card__teaser">{{ session.teaser }}</div>
             <div class="archive-card__footer">
@@ -257,12 +257,17 @@
   gap: 10px;
 }
 .archive-list .archive-card__title {
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: var(--font-sans);
   font-weight: 500;
   font-size: 13px;
   color: var(--kg-cream);
 }
+/* #code flush right (aligns with the lesen button's right edge), leaving room
+   for long AI-generated titles that wrap under it. */
 .archive-list .archive-card__number {
+  flex: none;
   font-family: var(--font-sans);
   font-weight: 300;
   font-style: italic;

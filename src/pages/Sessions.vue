@@ -44,8 +44,8 @@
           <div v-for="session in pagedSessions" :key="session.code" class="session-card">
             <div class="session-head">
               <span class="session-title">{{ session.title }}</span>
-              <span v-if="storyNumber(session.title)" class="session-number">#{{ storyNumber(session.title) }}</span>
               <span v-if="session.playersOnline > 0" class="session-online">{{ session.playersOnline }} online</span>
+              <span class="session-number">#{{ session.code }}</span>
             </div>
             <div v-if="session.teaser" class="session-teaser">{{ session.teaser }}</div>
             <div class="session-progress">
@@ -161,12 +161,17 @@
   gap: 10px;
 }
 .sessions-list .session-title {
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: var(--font-sans);
   font-weight: 500;
   font-size: 13px;
   color: var(--kg-green);
 }
+/* #code flush right (aligns with the mitschreiben button), leaving room for
+   long AI-generated titles that wrap under it. */
 .sessions-list .session-number {
+  flex: none;
   font-family: var(--font-sans);
   font-weight: 300;
   font-style: italic;
@@ -174,7 +179,7 @@
   color: var(--kg-muted);
 }
 .sessions-list .session-online {
-  margin-left: auto;
+  flex: none;
   font-family: var(--font-sans);
   font-weight: 300;
   font-style: italic;
