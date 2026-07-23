@@ -20,7 +20,8 @@
   color: var(--kg-green);
   font-family: var(--font-sans);
   font-weight: 300;
-  font-size: 15px;
+  /* XD: Metropolis-Light 13px on every artboard. */
+  font-size: 13px;
   line-height: 1.5;
   opacity: 0.92;
 }
@@ -29,10 +30,11 @@
   font-family: var(--font-serif);
   font-weight: 700;
   color: var(--kg-green);
-  /* Scale with the viewport but cap the size. No white-space:nowrap — a long
+  /* XD: Boska-Black 33px on every artboard. Cap at 33 and scale down only on
+     viewports narrower than the 393px artboard. No white-space:nowrap — a long
      title that can't fit its column must wrap (and stay centred) rather than
      overflow the box, which de-centres it on wider/desktop viewports. */
-  font-size: clamp(22px, 6.5vw, 32px);
+  font-size: clamp(24px, 8.4vw, 33px);
   letter-spacing: 0.3px;
   line-height: 1.15;
   margin: 8px 0 12px;
