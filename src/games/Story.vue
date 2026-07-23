@@ -447,7 +447,7 @@
   font-weight: 300;
   font-size: 13px;
   color: var(--kg-green);
-  margin: 2px 0 0;
+  margin: 0;
 }
 .share-check { margin-right: 5px; }
 .share-label {
@@ -463,7 +463,7 @@
    downward after the rotation. */
 .share-snippet {
   position: relative;
-  margin-top: 14px;
+  margin-top: 8px;
   background-image: none;
   filter: none;
 }
@@ -510,12 +510,13 @@
 /* Back link reuses .read-back (green, underline, blue on hover). */
 .share-back { margin-top: 14px; }
 
-/* Paper-snippet confetti on the share screen (bursts from this origin point). */
+/* Paper-snippet confetti on the share screen (bursts from this origin point).
+   Zero-size, no margin — it must not add vertical spacing above the status. */
 .paper-confetti {
   position: relative;
   width: 0;
   height: 0;
-  margin: 10px auto 0;
+  margin: 0 auto;
 }
 .confetti-piece {
   position: absolute;
