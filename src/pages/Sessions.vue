@@ -4,7 +4,19 @@
       <div class="sessions-col">
         <div class="accordion sessions-sort">
           <button class="accordion-toggle" @click="showSort = !showSort">
-            <span><span class="sort-icon">⇅</span> {{ currentSortLabel }}</span>
+            <span>
+              <!-- XD sort glyph (exact geometry): two bars, left arrow down +
+                   right arrow up. 0.7px stroke, matching the XD lines. -->
+              <svg viewBox="0 0 14 8" class="sort-svg" aria-hidden="true">
+                <line x1="3.5" y1="1" x2="3.5" y2="7"/>
+                <line x1="0.5" y1="4.5" x2="3.5" y2="7.5"/>
+                <line x1="6.5" y1="4.5" x2="3.5" y2="7.5"/>
+                <line x1="10.5" y1="1" x2="10.5" y2="7"/>
+                <line x1="7.5" y1="3.5" x2="10.5" y2="0.5"/>
+                <line x1="13.5" y1="3.5" x2="10.5" y2="0.5"/>
+              </svg>
+              {{ currentSortLabel }}
+            </span>
             <span class="accordion-icon">{{ showSort ? '▲' : '▼' }}</span>
           </button>
           <div v-if="showSort" class="accordion-body sort-options">
@@ -252,11 +264,17 @@
   font-style: normal;
   color: var(--kg-green);
 }
-.sessions-sort .sort-icon {
-  color: var(--kg-green);
-  font-style: normal;
-  font-size: 1.15em;
-  margin-right: 2px;
+/* XD sort glyph (two bars: left arrow down, right arrow up). viewBox 14x8 at
+   14x8px keeps a 1:1 scale so stroke-width maps straight to the XD 0.7px. */
+.sort-svg {
+  width: 14px;
+  height: 8px;
+  flex: none;
+  stroke: var(--kg-green);
+  stroke-width: 0.7;
+  stroke-linecap: round;
+  vertical-align: -1px;
+  margin-right: 3px;
 }
 .sessions-sort .accordion-body.sort-options {
   display: flex;

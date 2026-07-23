@@ -5,14 +5,15 @@
         <!-- Toolbar: sort label (left) + compact search pill (right), matching XD -->
         <div class="archive-toolbar">
           <button class="archive-sort__toggle" @click="showSort = !showSort">
-            <!-- XD sort glyph: two bars, left arrow down + right arrow up -->
-            <svg viewBox="0 0 13 7" class="sort-svg" aria-hidden="true">
-              <line x1="3" y1="0.5" x2="3" y2="6.5"/>
-              <line x1="0.6" y1="4" x2="3" y2="6.7"/>
-              <line x1="5.4" y1="4" x2="3" y2="6.7"/>
-              <line x1="10" y1="0.5" x2="10" y2="6.5"/>
-              <line x1="7.6" y1="3" x2="10" y2="0.3"/>
-              <line x1="12.4" y1="3" x2="10" y2="0.3"/>
+            <!-- XD sort glyph (exact geometry): two bars, left arrow down +
+                 right arrow up. 0.7px stroke, matching the XD lines. -->
+            <svg viewBox="0 0 14 8" class="sort-svg" aria-hidden="true">
+              <line x1="3.5" y1="1" x2="3.5" y2="7"/>
+              <line x1="0.5" y1="4.5" x2="3.5" y2="7.5"/>
+              <line x1="6.5" y1="4.5" x2="3.5" y2="7.5"/>
+              <line x1="10.5" y1="1" x2="10.5" y2="7"/>
+              <line x1="7.5" y1="3.5" x2="10.5" y2="0.5"/>
+              <line x1="13.5" y1="3.5" x2="10.5" y2="0.5"/>
             </svg>
             {{ currentSortLabel }}
             <span class="archive-sort__caret">{{ showSort ? '▲' : '▼' }}</span>
@@ -134,13 +135,14 @@
   font-size: 0.7em;
   font-style: normal;
 }
-/* XD sort glyph (two bars: left arrow down, right arrow up). */
+/* XD sort glyph (two bars: left arrow down, right arrow up). viewBox 14x8 at
+   14x8px keeps a 1:1 scale so stroke-width maps straight to the XD 0.7px. */
 .sort-svg {
-  width: 12px;
+  width: 14px;
   height: 8px;
   flex: none;
   stroke: var(--kg-green);
-  stroke-width: 1;
+  stroke-width: 0.7;
   stroke-linecap: round;
 }
 
