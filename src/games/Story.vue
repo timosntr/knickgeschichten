@@ -22,7 +22,9 @@
       <button type="button" class="write-btn write-btn--solid share-teilen" @click="shareLink">
         teilen
       </button>
-      <div v-if="linkCopied" class="share-copied">Link kopiert!</div>
+      <button type="button" class="write-btn write-btn--outline share-copy" @click="copyLink">
+        {{ linkCopied ? 'Link kopiert!' : 'Link kopieren' }}
+      </button>
       <button type="button" class="read-back share-back" @click="$router.push('/sessions')">
         zurück zu den Geschichten
       </button>
@@ -455,8 +457,31 @@
   color: var(--kg-green);
   margin: 44px 0 0;
 }
-/* Your contribution on a torn-paper scrap (reuses .preview-snippet). */
-.share-snippet { margin-top: 14px; }
+/* Your contribution on a torn-paper scrap (reuses .preview-snippet), but with
+   the paper texture rotated 180°. The paper moves to a rotated ::before so the
+   text stays upright; the drop-shadow is pre-flipped (0 -3px) so it still falls
+   downward after the rotation. */
+.share-snippet {
+  position: relative;
+  margin-top: 14px;
+  background-image: none;
+  filter: none;
+}
+.share-snippet::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url('../assets/paper-snippet.webp');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  transform: rotate(180deg);
+  filter: drop-shadow(0 -3px 4px rgba(25, 66, 30, 0.28));
+}
+.share-snippet .preview-text {
+  position: relative;
+  z-index: 1;
+}
 .share-invite {
   font-family: var(--font-sans);
   font-weight: 300;
@@ -476,12 +501,11 @@
   border-color: var(--kg-blue);
   color: var(--kg-cream);
 }
-.share-copied {
-  font-family: var(--font-sans);
-  font-style: italic;
-  font-size: 11px;
-  color: var(--kg-green);
-  margin-top: 8px;
+/* "Link kopieren": outline pill under "teilen", same width. */
+.share-copy.write-btn {
+  width: 163px;
+  min-width: 0;
+  margin: 10px auto 0;
 }
 /* Back link reuses .read-back (green, underline, blue on hover). */
 .share-back { margin-top: 14px; }
