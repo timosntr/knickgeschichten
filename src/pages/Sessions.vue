@@ -1,7 +1,7 @@
 <template>
   <ooc-page>
     <ooc-menu title="angefangene Geschichten" subtitle="schreib mit">
-      <div>
+      <div class="sessions-col">
         <div class="accordion sessions-sort">
           <button class="accordion-toggle" @click="showSort = !showSort">
             <span><span class="sort-icon">⇅</span> {{ currentSortLabel }}</span>
@@ -83,12 +83,20 @@
    Card: 310x152 r23, white fill, #19421E 2px border. Title Metropolis Medium
    13px, #number italic 11px muted, teaser Metropolis Light 13px, a 2px
    progress bar (#19421E 25% track + solid fill), age italic 11px + green pill. */
+/* Content column: XD cards are 310 wide (centred), so cap the sort control and
+   the card list at 310 instead of filling the ~352 menu container. */
+.sessions-col {
+  width: 310px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
 /* Scoped under .sessions-list so these beat the global .session-* rules that
    Archive.vue also defines (both pages share the class names). */
 .sessions-list .session-card {
   border: 2px solid var(--kg-green);
   border-radius: 23px;
-  background: #fff;
+  background: var(--kg-cream);   /* same cream as the page background */
   padding: 18px 20px 16px;
   margin-bottom: 20px;
   text-align: left;
@@ -159,10 +167,13 @@
   font-size: 11px;
   color: var(--kg-green);
 }
-/* Compact green pill sized to "mitschreiben" (.write-btn is global, Story.vue). */
+/* Compact green pill sized to "mitschreiben" (.write-btn is global, Story.vue).
+   Zero the global button margins so space-between flushes it to the card's
+   right padding edge. */
 .sessions-list .session-join.write-btn {
   min-width: 0;
   width: auto;
+  margin: 0;
   padding: 0 18px;
   height: 26px;
 }
