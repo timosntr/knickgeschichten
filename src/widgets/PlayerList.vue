@@ -77,7 +77,7 @@
   margin-bottom: 7px;
   border: 1.5px solid var(--kg-green);
   border-radius: var(--kg-radius-pill);
-  background: #fff;            /* XD fill #FFFFFF (self row overrides to blue) */
+  background: var(--kg-cream); /* unfilled = same cream as the page (self row overrides to blue) */
   color: var(--kg-green);
   font-style: italic;
   font-size: 11px;

@@ -255,15 +255,16 @@
   margin-bottom: 4px;
 }
 
-/* Textarea: 307×99, radius 23, white fill, 2px green outline (higher
-   specificity than Semantic UI's `.ui.form textarea`). */
+/* Textarea: 307×99, radius 23, cream fill (same as the page — unfilled
+   fields blend in), 2px green outline (higher specificity than Semantic UI's
+   `.ui.form textarea`). */
 .ui.form textarea.kg-textarea {
   width: 100%;
   box-sizing: border-box;
   min-height: 99px;
   border: 2px solid var(--kg-green);
   border-radius: var(--kg-radius-card);
-  background: #fff;
+  background: var(--kg-cream);
   padding: 14px 16px;
   font-family: var(--font-sans);
   font-size: 15px;

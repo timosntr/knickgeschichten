@@ -161,7 +161,7 @@
   box-sizing: border-box;
   border: 1.5px solid var(--kg-green);
   border-radius: 17px;
-  background: #fff;              /* XD fill is #FFFFFF */
+  background: var(--kg-cream);   /* unfilled = same cream as the page */
   padding: 0 20px;
   font-family: var(--font-sans);
   font-size: 13px;
@@ -173,7 +173,7 @@
 .ui.form input.name-input:focus,
 .ui.form .field.error input.name-input {
   border-radius: 17px;
-  background: #fff;
+  background: var(--kg-cream);
   outline: none;
 }
 .ui.form input.name-input:focus {
@@ -305,7 +305,7 @@
   padding: 0 18px;
   border: 1.5px solid var(--kg-green);
   border-radius: 17px;
-  background: #fff;
+  background: var(--kg-cream);
   color: var(--kg-green);
   font-family: var(--font-sans);
   font-weight: 300;
