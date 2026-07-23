@@ -28,9 +28,11 @@
             <button v-if="hasSearch" type="button" class="archive-search__clear"
               aria-label="Suche zurücksetzen" @click="clearSearch">✕</button>
             <button type="submit" class="archive-search__go" aria-label="suchen" :disabled="searching">
-              <svg viewBox="0 0 14 14" class="archive-search__mag" aria-hidden="true">
-                <circle cx="5.6" cy="5.6" r="4.2" fill="none" stroke="currentColor" stroke-width="1"/>
-                <line x1="8.7" y1="8.7" x2="12.5" y2="12.5" stroke="currentColor" stroke-width="1"/>
+              <!-- XD magnifier (exact): lens r2.5 top-right, handle pointing
+                   down-left, 0.7px stroke. -->
+              <svg viewBox="0 0 8 8" class="archive-search__mag" aria-hidden="true">
+                <circle cx="5" cy="3" r="2.5" fill="none" stroke="currentColor" stroke-width="0.7"/>
+                <line x1="0.5" y1="7.5" x2="3.5" y2="4.5" stroke="currentColor" stroke-width="0.7"/>
               </svg>
             </button>
           </form>
@@ -168,7 +170,7 @@
 }
 .archive-search__go {
   position: absolute;
-  right: 7px;
+  right: 11px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
@@ -179,7 +181,13 @@
   color: var(--kg-green);
 }
 .archive-search__go:disabled { opacity: 0.5; cursor: default; }
-.archive-search__mag { width: 13px; height: 13px; display: block; }
+/* XD magnifier: ~7px content in an 8x8 viewBox at 8px → 1:1, stroke 0.7px. */
+.archive-search__mag {
+  width: 8px;
+  height: 8px;
+  display: block;
+  stroke-linecap: round;
+}
 .archive-search__clear {
   position: absolute;
   right: 22px;
