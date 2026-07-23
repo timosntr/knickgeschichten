@@ -1,11 +1,20 @@
 <template>
   <ooc-page>
-    <ooc-menu title="Archiv" subtitle="Durchstöbere fertiggestellte Geschichten">
+    <ooc-menu title="Archiv" subtitle="abgeschlossene Geschichten">
       <div class="archive-col">
         <!-- Toolbar: sort label (left) + compact search pill (right), matching XD -->
         <div class="archive-toolbar">
           <button class="archive-sort__toggle" @click="showSort = !showSort">
-            <span class="sort-icon">⇅</span> {{ currentSortLabel }}
+            <!-- XD sort glyph: two bars, left arrow down + right arrow up -->
+            <svg viewBox="0 0 13 7" class="sort-svg" aria-hidden="true">
+              <line x1="3" y1="0.5" x2="3" y2="6.5"/>
+              <line x1="0.6" y1="4" x2="3" y2="6.7"/>
+              <line x1="5.4" y1="4" x2="3" y2="6.7"/>
+              <line x1="10" y1="0.5" x2="10" y2="6.5"/>
+              <line x1="7.6" y1="3" x2="10" y2="0.3"/>
+              <line x1="12.4" y1="3" x2="10" y2="0.3"/>
+            </svg>
+            {{ currentSortLabel }}
             <span class="archive-sort__caret">{{ showSort ? '▲' : '▼' }}</span>
           </button>
           <form class="archive-search" @submit.prevent="submitSearch">
@@ -13,7 +22,7 @@
               v-model="searchQuery"
               class="archive-search__input"
               type="text"
-              placeholder="suchen"
+              aria-label="Geschichten durchsuchen"
               @input="onSearchInput"
             />
             <button v-if="hasSearch" type="button" class="archive-search__clear"
@@ -57,7 +66,12 @@
             </div>
             <div v-if="session.teaser" class="archive-card__teaser">{{ session.teaser }}</div>
             <div class="archive-card__footer">
-              <span class="archive-card__date">{{ dateSpan(session.createdAt, session.completedAt) }}</span>
+              <span class="archive-card__meta">
+                <span class="archive-card__date">{{ dateSpan(session.createdAt, session.completedAt) }}</span>
+                <span v-if="session.totalLikes > 0" class="archive-card__likes">
+                  <span class="archive-card__heart">♥</span> {{ session.totalLikes }}
+                </span>
+              </span>
               <button class="write-btn write-btn--read archive-read"
                 @click="joinSession(session.code)">
                 lesen
@@ -120,10 +134,14 @@
   font-size: 0.7em;
   font-style: normal;
 }
-.sort-icon {
-  font-style: normal;
-  font-size: 1.15em;
-  color: var(--kg-green);
+/* XD sort glyph (two bars: left arrow down, right arrow up). */
+.sort-svg {
+  width: 12px;
+  height: 8px;
+  flex: none;
+  stroke: var(--kg-green);
+  stroke-width: 1;
+  stroke-linecap: round;
 }
 
 .archive-search {
@@ -139,7 +157,7 @@
   padding: 0 24px 0 12px;
   border: 0.7px solid var(--kg-green);
   border-radius: 13px;
-  background: #fff;
+  background: var(--kg-cream);
   font-family: var(--font-sans);
   font-weight: 300;
   font-size: 11px;
@@ -188,10 +206,11 @@
   text-align: left;
 }
 
-/* Expanded sort options (drops below the toolbar). Same look as Sessions. */
+/* Expanded sort options (drops below the toolbar). Kept on a single row (the
+   short labels fit the 310px column). Same pill look as Sessions. */
 .archive-sort__options {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   margin: -8px 0 16px;
 }
@@ -260,12 +279,27 @@
   margin-top: auto;
   padding-top: 14px;
 }
+.archive-list .archive-card__meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+}
 .archive-list .archive-card__date {
   font-family: var(--font-sans);
   font-weight: 300;
   font-style: italic;
   font-size: 11px;
   color: var(--kg-cream);
+}
+.archive-list .archive-card__likes {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 11px;
+  color: var(--kg-cream);
+  white-space: nowrap;
+}
+.archive-list .archive-card__heart {
+  font-style: normal;
 }
 /* Cream "lesen" pill (XD component "lesen"): cream fill, green text, sized snug
    to the short word. Zero the global .write-btn margins so space-between flushes
@@ -327,8 +361,8 @@ export default {
       sortBy: 'completedAt',
       sortDesc: true,
       sortOptions: [
-        { value: 'completedAt', label: 'beendet am' },
-        { value: 'createdAt',   label: 'erstellt am' },
+        { value: 'completedAt', label: 'beendet' },
+        { value: 'createdAt',   label: 'erstellt' },
         { value: 'number',      label: '#' },
         { value: 'title',       label: 'Titel' },
         { value: 'totalLikes',  label: '♥' },
