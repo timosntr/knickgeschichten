@@ -64,7 +64,7 @@
           <div v-for="session in pagedSessions" :key="session.code" class="archive-card">
             <div class="archive-card__head">
               <span class="archive-card__title">{{ session.title }}</span>
-              <span class="archive-card__number">#{{ session.code }}</span>
+              <span v-if="session.number" class="archive-card__number">#{{ session.number }}</span>
             </div>
             <div v-if="session.teaser" class="archive-card__teaser">{{ session.teaser }}</div>
             <div class="archive-card__footer">

@@ -100,7 +100,11 @@ io.on('connection', socket => {
     const lobby = new Lobby();
     lobby.code = code;
     lobby.isAsync = true;
-    lobby.title = `Knickgeschichte ${++asyncSessionCounter}`;
+    // Story number: a stable, monotonic id kept independent of the title so it
+    // survives renames (e.g. AI-generated titles). The default title just shows
+    // this number until the story is renamed.
+    lobby.number = ++asyncSessionCounter;
+    lobby.title = `Knickgeschichte ${lobby.number}`;
     lobby.persist = true;
     lobby.selectedGame = 'story';
 
@@ -472,8 +476,14 @@ try {
   asyncSessionCounter = Object.values(Lobby.lobbies)
     .filter(l => l && l.isAsync)
     .reduce((max, l) => {
-      const m = /(\d+)\s*$/.exec(l.title || '');
-      return m ? Math.max(max, Number(m[1])) : max;
+      // Prefer the stored number; fall back to a trailing number in the title
+      // for legacy saves written before `number` existed.
+      let n = l.number;
+      if (typeof n !== 'number') {
+        const m = /(\d+)\s*$/.exec(l.title || '');
+        n = m ? Number(m[1]) : 0;
+      }
+      return Math.max(max, n || 0);
     }, 0);
   if (restored > 0)
     console.log(new Date(), `-- restored ${restored} async session(s), counter at ${asyncSessionCounter}`);

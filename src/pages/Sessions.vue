@@ -45,7 +45,7 @@
             <div class="session-head">
               <span class="session-title">{{ session.title }}</span>
               <span v-if="session.playersOnline > 0" class="session-online">{{ session.playersOnline }} online</span>
-              <span class="session-number">#{{ session.code }}</span>
+              <span v-if="session.number" class="session-number">#{{ session.number }}</span>
             </div>
             <div v-if="session.teaser" class="session-teaser">{{ session.teaser }}</div>
             <div class="session-progress">

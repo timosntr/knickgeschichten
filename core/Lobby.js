@@ -112,6 +112,7 @@ class Lobby {
         return {
           code: l.code,
           title: l.title,
+          number: l.number ?? null,
           progress,
           isComplete,
           numStories: typeof config.numStories === 'number' ? config.numStories : l.players.length,
@@ -206,6 +207,7 @@ class Lobby {
     this.game = null;
     this.isAsync = false;
     this.title = '';
+    this.number = null;
     this.disconnectTimers = {};
     this.completedStories = null;
     this.completedAuthors = 0;
@@ -233,6 +235,7 @@ class Lobby {
       } : null,
       isAsync: this.isAsync,
       title: this.title,
+      number: this.number || null,
       completedStories: this.completedStories || null,
       completedAuthors: this.completedAuthors || 0,
       completedAt: this.completedAt || null,
@@ -272,6 +275,14 @@ class Lobby {
     this.lobbyState = lobbyState.lobbyState || 'WAITING';
     this.isAsync = lobbyState.isAsync || false;
     this.title = lobbyState.title || '';
+    // Story number: prefer the stored field; fall back to a trailing number in
+    // the title for legacy saves written before `number` existed.
+    if (typeof lobbyState.number === 'number') {
+      this.number = lobbyState.number;
+    } else {
+      const m = /(\d+)\s*$/.exec(this.title);
+      this.number = m ? Number(m[1]) : null;
+    }
     this.disconnectTimers = {};
     this.completedStories = lobbyState.completedStories || null;
     this.completedAuthors = lobbyState.completedAuthors || 0;
