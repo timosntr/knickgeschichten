@@ -441,6 +441,11 @@
   color: var(--kg-green);
   text-decoration: underline;
   text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+/* XD hover state: text (and its underline) turn blue. */
+.read-back:hover {
+  color: var(--kg-blue);
 }
 
 .share-contribution {
