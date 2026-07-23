@@ -29,11 +29,12 @@
   font-family: var(--font-serif);
   font-weight: 700;
   color: var(--kg-green);
-  /* Keep the title (incl. its number) on one line; scale down on narrow
-     screens instead of breaking between the word and the number. */
+  /* Scale with the viewport but cap the size. No white-space:nowrap — a long
+     title that can't fit its column must wrap (and stay centred) rather than
+     overflow the box, which de-centres it on wider/desktop viewports. */
   font-size: clamp(22px, 6.5vw, 32px);
-  white-space: nowrap;
   letter-spacing: 0.3px;
+  line-height: 1.15;
   margin: 8px 0 12px;
 }
 
