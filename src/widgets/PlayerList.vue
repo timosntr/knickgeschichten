@@ -1,10 +1,10 @@
 <template>
   <div class="player-list-widget">
-    <sui-divider horizontal >
-      Schreibraum<span
+    <div class="kg-divider">
+      <span>Schreibraum<span
         v-if="lobbyState === 'PLAYING' && $route.params.code"
-        class="lobby-code-inline">{{ $route.params.code.toUpperCase() }}</span>
-    </sui-divider>
+        class="lobby-code-inline">{{ $route.params.code.toUpperCase() }}</span></span>
+    </div>
 
     <div class="player-pills">
       <div v-for="p in sortedPlayers"
@@ -43,16 +43,8 @@
 
 <style>
 
-/* "Schreibraum" divider: XD specs Metropolis Light 10px, not Semantic's
-   large uppercase bold. */
-.player-list-widget .ui.horizontal.divider {
-  font-family: var(--font-sans);
-  font-weight: 300;
-  font-size: 10px;
-  text-transform: none;
-  color: var(--kg-green);
-}
-
+/* The "Schreibraum" divider now uses the shared .kg-divider (defined in
+   Lobby.vue) so all three lobby dividers match the XD exactly. */
 .lobby-code-inline {
   margin-left: 8px;
   font-family: monospace;

@@ -56,53 +56,21 @@
     <ooc-menu v-else-if="state === 'LOBBY_WAITING'"
       :title="lobbyInfo.title || (currGame ? currGame.title : 'Knickgeschichten')"
       :subtitle="currGame ? currGame.subtitle : ''">
-      <div>
+      <div class="lobby-waiting">
         <div v-if="!lobbyInfo.isAsync">
-          <sui-divider horizontal >
-            Code
-          </sui-divider>
-          <sui-statistic  style="margin-bottom: 14px; margin-top: 0;">
-            <sui-statistic-value>
-              {{$route.params.code}}
-            </sui-statistic-value>
-          </sui-statistic>
-        </div>
-        <div v-if="lobbyInfo.admin === $root.playerId && !lobbyInfo.isAsync">
-          <div v-if="currGame" style="margin: 1em 0; text-align: center">
-            <sui-button
-              type="button"
-              :disabled="invalidConfig"
-              @click="$socket.emit('game:start')"
-              color="blue">
-              Geschichten starten
-            </sui-button>
-            <sui-button
-              type="button"
-              basic
-              @click="leaveLobby">
-              verlassen
-            </sui-button>
-          </div>
-        </div>
-        <div v-else-if="currGame && !lobbyInfo.isAsync">
-          <div style="margin-top: 1em; text-align: center">
-            <sui-button basic @click="leaveLobby">verlassen</sui-button>
-          </div>
+          <div class="kg-divider"><span>Code</span></div>
+          <div class="lobby-code">{{ codeDisplay }}</div>
         </div>
 
-        <div v-if="!lobbyInfo.isAsync && lobbyInfo.completedStories && lobbyInfo.completedStories.length"
-          style="margin-top: 8px;">
-          <sui-divider horizontal >
-            letzte Runde
-          </sui-divider>
+        <div v-if="!lobbyInfo.isAsync && lobbyInfo.completedStories && lobbyInfo.completedStories.length">
+          <div class="kg-divider"><span>letzte Runde</span></div>
           <div class="story-accordion">
             <div v-for="(story, i) in lobbyInfo.completedStories" :key="i" class="story-acc-item">
-              <button type="button" class="story-acc-toggle" @click="toggleStory(i)">
-                <span class="story-acc-title">{{ storyTitle(story, i) }}</span>
-                <span class="story-acc-preview" v-if="!openStories[i]">{{ storyPreview(story) }}</span>
-                <span class="story-acc-icon">{{ openStories[i] ? '▲' : '▼' }}</span>
+              <button type="button" class="story-pill" :class="{ 'is-open': openStories[i] }"
+                @click="toggleStory(i)">
+                {{ storyTitle(story, i) }}
               </button>
-              <div v-if="openStories[i]" class="story-acc-body">
+              <div v-if="openStories[i]" class="story-body">
                 <p>{{ story.map(e => e.link).join(' ') }}</p>
               </div>
             </div>
@@ -116,6 +84,20 @@
         :gameState="gameState"
         :lobbyState="state">
       </ooc-player-list>
+      <!-- Buttons are absent from the XD; added in the name-screen style:
+           outline "verlassen" (like "zurück") + solid "Geschichten starten"
+           (like "mitschreiben"). Non-admins only see "verlassen". -->
+      <div v-if="!lobbyInfo.isAsync && currGame" class="lobby-buttons">
+        <button type="button" class="write-btn write-btn--outline" @click="leaveLobby">
+          verlassen
+        </button>
+        <button v-if="lobbyInfo.admin === $root.playerId"
+          type="button" class="write-btn write-btn--solid"
+          :disabled="invalidConfig"
+          @click="$socket.emit('game:start')">
+          Geschichten starten
+        </button>
+      </div>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'PLAYING'"
       :title="lobbyInfo.title || (currGame ? currGame.title : 'Knickgeschichten')"
@@ -262,64 +244,91 @@
   font-weight: normal !important;
 }
 
-.story-accordion {
-  text-align: left;
-}
+/* --- Private lobby / waiting room (XD artboard 078aeb6f) -------------------- */
+.lobby-waiting { text-align: center; }
 
-.story-acc-item {
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
-  margin-bottom: 6px;
-  overflow: hidden;
-}
-
-.story-acc-toggle {
+/* Section divider (XD): a 10px Metropolis-Light label flanked by thin 0.5px
+   green rules. Replaces Semantic's large uppercase divider. */
+.kg-divider {
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px 12px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  font-size: 0.95em;
+  gap: 12px;
+  margin: 24px 0 0;
 }
-
-.story-acc-toggle:hover {
-  background: rgba(0, 0, 0, 0.03);
-}
-
-.story-acc-title {
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-.story-acc-preview {
+.kg-divider::before,
+.kg-divider::after {
+  content: '';
   flex: 1;
-  color: #999;
-  font-style: italic;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  border-top: 0.5px solid var(--kg-green);
+}
+.kg-divider > span {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 10px;
+  color: var(--kg-green);
   white-space: nowrap;
 }
 
-.story-acc-icon {
-  margin-left: auto;
-  font-size: 0.7em;
-  color: #aaa;
+/* Room code, big: Boska-Black 45px green, middle dots between characters. */
+.lobby-code {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 45px;
+  line-height: 1.1;
+  color: var(--kg-green);
+  text-align: center;
+  margin: 14px 0 4px;
+  letter-spacing: 2px;
 }
 
-.story-acc-body {
-  padding: 4px 14px 14px;
+/* "letzte Runde" stories: outlined white pills (307x33 r17), named after the
+   first author, italic Metropolis-Light 11. Click a pill to expand its full
+   text underneath. */
+.story-accordion {
+  text-align: left;
+  margin: 12px 0 0;
 }
-
-.story-acc-body p {
-  font-family: 'Lora', serif;
-  line-height: 1.7;
+.story-acc-item { margin-bottom: 7px; }
+.story-pill {
+  display: block;
+  width: 100%;
+  height: 33px;
+  box-sizing: border-box;
+  padding: 0 18px;
+  border: 1.5px solid var(--kg-green);
+  border-radius: 17px;
+  background: #fff;
+  color: var(--kg-green);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+.story-body {
+  padding: 10px 18px 4px;
+}
+.story-body p {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--kg-green);
   white-space: pre-wrap;
   margin: 0;
+  text-align: left;
 }
+
+/* Bottom action row, styled like the name screen (outline "verlassen" +
+   solid "Geschichten starten"). */
+.lobby-buttons {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 24px;
+}
+.lobby-buttons .write-btn { margin: 0; }
 
 </style>
 
@@ -375,7 +384,11 @@ export default {
     },
     currGame() {
       return gameInfo[this.lobbyInfo.game];
-    }
+    },
+    // Room code shown big as "A·B·C·D" (XD: Boska-Black 45, middle dots).
+    codeDisplay() {
+      return (this.$route.params.code || '').toUpperCase().split('').join('·');
+    },
   },
   methods: {
     update() { this.$forceUpdate(); },
