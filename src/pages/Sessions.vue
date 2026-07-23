@@ -1,6 +1,6 @@
 <template>
   <ooc-page>
-    <ooc-menu title="angefangene Geschichten" subtitle="schreib mit">
+    <ooc-menu title="angefangene Geschichten" subtitle="schreib mit" title-class="sessions-title">
       <div class="sessions-col">
         <div class="accordion sessions-sort">
           <button class="accordion-toggle" @click="showSort = !showSort">
@@ -69,6 +69,15 @@
 </template>
 
 <style>
+/* Keep "angefangene Geschichten" on a single centred line. The global .title
+   allows wrapping (desktop-centering fix); here we override with nowrap and a
+   font-size scaled down so the long two-word title still fits the narrow
+   column at 393px without overflowing. */
+.menu .title.sessions-title {
+  white-space: nowrap;
+  font-size: clamp(18px, 6.2vw, 28px);
+}
+
 /* Numbered pager (XD): 15px green numbers, current one Metropolis Medium,
    flanked by ‹ › chevrons. Windowed to at most 5 numbers (+ … ellipsis) so it
    never wraps in the 310px column. */
@@ -315,9 +324,11 @@ export default {
       const start = (this.page - 1) * this.perPage;
       return this.sortedSessions.slice(start, start + this.perPage);
     },
-    // Page numbers to show in the pager: all if few, otherwise a windowed
-    // "1 … 9 10 11 … 20" (current ±1 + first/last) with '…' gaps. Caps the
-    // visible numbers at 5 so the bar never wraps in the narrow column.
+    // Page numbers to show in the pager. Always exactly MAX numbers when there
+    // are that many pages: first, last, and a 3-wide window around the current
+    // page (current ±1). At the edges the window shifts inward so the count
+    // stays at MAX, e.g. "1 2 3 4 … 6" on page 1 or "1 … 3 4 5 6" on the last.
+    // '…' fills any gap between the shown numbers.
     pageWindow() {
       const total = this.totalPages;
       const cur = this.page;
@@ -325,9 +336,12 @@ export default {
       if (total <= MAX) {
         return Array.from({ length: total }, (_, i) => i + 1);
       }
-      const nums = new Set([1, total, cur,
-        Math.max(1, cur - 1), Math.min(total, cur + 1)]);
-      const sorted = [...nums].sort((a, b) => a - b);
+      // 3-wide middle block within [2, total-1], centred on cur, shifted to
+      // stay in range; combined with first (1) and last (total) → 5 numbers.
+      let mid = cur - 1;
+      mid = Math.max(2, Math.min(mid, total - 3));
+      const middle = [mid, mid + 1, mid + 2];
+      const sorted = [1, ...middle, total];
       const out = [];
       let prev = 0;
       for (const n of sorted) {

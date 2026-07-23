@@ -45,7 +45,7 @@
   <div>
     <div class="menu">
       <header>
-        <div class="title" v-if="title">
+        <div class="title" :class="titleClass" v-if="title">
           {{title}}
         </div>
         <div class="subtitle" v-if="subtitle">
@@ -61,6 +61,6 @@
 
 <script>
 export default {
-  props: ['title', 'subtitle', 'left'],
+  props: ['title', 'subtitle', 'left', 'titleClass'],
 };
 </script>
