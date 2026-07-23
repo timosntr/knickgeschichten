@@ -17,7 +17,6 @@
               </svg>
               {{ currentSortLabel }}
             </span>
-            <span class="accordion-icon">{{ showSort ? '▲' : '▼' }}</span>
           </button>
           <div v-if="showSort" class="accordion-body sort-options">
             <button
@@ -259,11 +258,6 @@
   text-align: left;
 }
 .sessions-sort .accordion-toggle:hover { background: none; }
-.sessions-sort .accordion-icon {
-  font-size: 0.7em;
-  font-style: normal;
-  color: var(--kg-green);
-}
 /* XD sort glyph (two bars: left arrow down, right arrow up). viewBox 14x8 at
    14x8px keeps a 1:1 scale so stroke-width maps straight to the XD 0.7px. */
 .sort-svg {

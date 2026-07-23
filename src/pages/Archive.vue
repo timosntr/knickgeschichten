@@ -16,7 +16,6 @@
               <line x1="13.5" y1="3.5" x2="10.5" y2="0.5"/>
             </svg>
             {{ currentSortLabel }}
-            <span class="archive-sort__caret">{{ showSort ? '▲' : '▼' }}</span>
           </button>
           <form class="archive-search" @submit.prevent="submitSearch">
             <input
@@ -130,10 +129,6 @@
   font-size: 11px;
   color: var(--kg-green);
   white-space: nowrap;
-}
-.archive-sort__caret {
-  font-size: 0.7em;
-  font-style: normal;
 }
 /* XD sort glyph (two bars: left arrow down, right arrow up). viewBox 14x8 at
    14x8px keeps a 1:1 scale so stroke-width maps straight to the XD 0.7px. */
