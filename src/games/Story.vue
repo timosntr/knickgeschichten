@@ -288,11 +288,19 @@
   font-family: var(--font-sans);
   font-size: 11px;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: background 0.3s ease-in-out, color 0.3s ease-in-out, opacity 0.15s ease;
 }
 .write-btn--solid { background: var(--kg-green); color: var(--kg-cream); }
 .write-btn--outline { background: transparent; color: var(--kg-green); margin-top: 6px; }
-.write-btn:hover { opacity: 0.88; }
+/* XD hover (component "beitreten", Hover-Zustand): the solid green button flips
+   to its outline look — transparent fill, green text — over 0.3s ease-in-out.
+   The 1.5px green border is already present in both states, so no layout shift. */
+.write-btn--solid:hover:not(:disabled) {
+  background: transparent;
+  color: var(--kg-green);
+  opacity: 1;
+}
+.write-btn--outline:hover:not(:disabled) { opacity: 0.88; }
 .write-btn:disabled { opacity: 0.45; cursor: default; }
 
 .word-count {
