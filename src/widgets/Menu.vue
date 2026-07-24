@@ -29,7 +29,10 @@
   font-family: var(--font-serif);
   font-weight: 700;
   color: var(--kg-green);
-  font-size: 32px;
+  /* Keep the title (incl. its number) on one line; scale down on narrow
+     screens instead of breaking between the word and the number. */
+  font-size: clamp(22px, 6.5vw, 32px);
+  white-space: nowrap;
   letter-spacing: 0.3px;
   margin: 8px 0 12px;
 }

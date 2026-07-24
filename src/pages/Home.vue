@@ -148,9 +148,13 @@
                     „{{ recentCompleted[archiveIndex].teaser }}"
                   </p>
                   <div class="kg-card__foot">
-                    <span class="kg-card__time">
-                      {{ timeAgo(recentCompleted[archiveIndex].createdAt) }}
-                      · {{ recentCompleted[archiveIndex].numAuthors }} {{ recentCompleted[archiveIndex].numAuthors === 1 ? 'Autor' : 'Autoren' }}
+                    <span class="kg-card__meta">
+                      <span class="kg-card__time">
+                        {{ dateSpan(recentCompleted[archiveIndex].createdAt, recentCompleted[archiveIndex].completedAt) }}
+                      </span>
+                      <span v-if="recentCompleted[archiveIndex].totalLikes > 0" class="kg-card__likes">
+                        ♥ {{ recentCompleted[archiveIndex].totalLikes }}
+                      </span>
                     </span>
                     <span class="kg-pill kg-pill--cream">Lesen</span>
                   </div>
@@ -451,6 +455,16 @@
   margin-top: 14px;
 }
 .kg-card__time { font-size: 11px; font-style: italic; opacity: 0.85; }
+.kg-card__meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.kg-card__likes {
+  font-size: 11px;
+  opacity: 0.85;
+  white-space: nowrap;
+}
 
 .kg-pill {
   border-radius: var(--kg-radius-pill);
@@ -533,6 +547,24 @@ export default {
       if (hrs < 24) return `vor ${hrs} Std.`;
       const days = Math.floor(hrs / 24);
       return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
+    },
+    // Format a timestamp as DD.MM.YYYY
+    formatDate(ts) {
+      const d = new Date(ts);
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+    },
+    // Creation span of a completed story: "19.06.2026 – 21.06.2026",
+    // collapsed to a single date when start and end fall on the same day
+    // or completedAt is missing (old data).
+    dateSpan(createdAt, completedAt) {
+      if (!completedAt) return this.formatDate(createdAt);
+      // Legacy data can lack a real createdAt (falls back to "today") — if it's
+      // missing or after completion, just show the reliable completion date.
+      if (!createdAt || createdAt > completedAt) return this.formatDate(completedAt);
+      const start = this.formatDate(createdAt);
+      const end = this.formatDate(completedAt);
+      return start === end ? end : `${start} – ${end}`;
     },
     // Shortest circular direction from cur to next: 'slide-left' = forward.
     slideDirection(cur, next, len) {
