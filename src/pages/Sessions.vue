@@ -1,6 +1,6 @@
 <template>
   <ooc-page>
-    <ooc-menu title="angefangene Geschichten" subtitle="schreib mit" title-class="sessions-title">
+    <ooc-menu title="begonnene Geschichten" subtitle="schreib mit" title-class="sessions-title">
       <div class="sessions-col">
         <div class="accordion sessions-sort">
           <button class="accordion-toggle" @click="showSort = !showSort">
@@ -80,7 +80,7 @@
 </template>
 
 <style>
-/* Keep "angefangene Geschichten" on a single centred line. The global .title
+/* Keep "begonnene Geschichten" on a single centred line. The global .title
    allows wrapping (desktop-centering fix); here we override with nowrap and a
    font-size scaled down so the long two-word title still fits the narrow
    column at 393px without overflowing. */

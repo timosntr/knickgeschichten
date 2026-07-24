@@ -83,7 +83,7 @@
 
         <!-- Öffentliche Geschichten Karussell -->
         <section v-if="recentSessions.length > 0" class="kg-sheet">
-          <h2 class="kg-sheet__title">angefangene Geschichten</h2>
+          <h2 class="kg-sheet__title">begonnene Geschichten</h2>
           <div class="carousel"
             @touchstart="onTouchStart"
             @touchend="onTouchEnd"
@@ -403,7 +403,7 @@
   font-family: var(--font-serif);
   font-weight: 700;
   /* XD is Boska-Black 33; capped a touch lower so the longer wording
-     ("angefangene Geschichten") still fits on one line like the XD. */
+     ("begonnene Geschichten") still fits on one line like the XD. */
   font-size: clamp(25px, 8vw, 31px);
   color: var(--kg-green);
   letter-spacing: 0.3px;
