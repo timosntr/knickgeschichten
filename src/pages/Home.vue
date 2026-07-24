@@ -318,9 +318,11 @@
 .qotd-card {
   aspect-ratio: 700 / 470;
   background-image: url('../assets/quote-card.webp');
-  background-size: 200% 170%;
-  background-position-x: 50%;
-  background-position-y: 50%;
+  /* Frame the torn scrap (it sits inset and slightly left in the image) so all
+     its torn edges — including the bottom-right — stay inside the card. */
+  background-size: 150% 140%;
+  background-position-x: 54%;
+  background-position-y: 46%;
   background-repeat: no-repeat;
   display: flex;
   flex-direction: column;
