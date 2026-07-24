@@ -9,11 +9,11 @@
 <template>
   <ooc-page>
     <ooc-menu
-      title="Page Not Found"
-      subtitle="It appears this page does not exist!">
+      title="Seite nicht gefunden"
+      subtitle="Diese Seite scheint es nicht zu geben.">
       <div class="not-found-actions">
         <router-link to="/" class="write-btn write-btn--solid">
-          Home
+          zur Startseite
         </router-link>
       </div>
     </ooc-menu>

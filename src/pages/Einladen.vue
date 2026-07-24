@@ -4,19 +4,20 @@
       <div v-if="loading" style="text-align:center; padding: 24px">
         <sui-loader active inline centered>lädt</sui-loader>
       </div>
-      <div v-else-if="notFound" style="text-align:center; padding: 24px; color: #888">
+      <div v-else-if="notFound" class="einladen-empty">
         Diese Geschichte existiert nicht mehr.
-        <br><router-link to="/">Zurück zur Startseite</router-link>
+        <router-link to="/" class="kg-link">Zurück zur Startseite</router-link>
       </div>
       <div v-else>
 
-        <!-- So funktioniert's -->
-        <div class="accordion">
-          <button class="accordion-toggle" @click="showInfo = !showInfo">
+        <!-- So funktioniert's: reuses Home.vue's un-boxed toggle + info-list
+             (both globally defined, unscoped SFC styles). -->
+        <div class="home-howto">
+          <button class="home-howto__toggle" @click="showInfo = !showInfo">
             <span>So funktioniert's</span>
-            <span class="accordion-icon">{{ showInfo ? '▲' : '▼' }}</span>
+            <span class="home-howto__caret">{{ showInfo ? '⌃' : '⌄' }}</span>
           </button>
-          <div v-if="showInfo" class="accordion-body">
+          <div v-if="showInfo" class="home-howto__body">
             <ul class="info-list">
               <li>Der bisher geschriebene Text wird wie beim klassischen Spiel „umgeknickt". Du siehst also nur einen kleinen Teil vom vorherigen Abschnitt.</li>
               <li>Du liest den sichtbaren Teil und schreibst darauf basierend einen neuen Abschnitt – mindestens <strong>15 Wörter</strong>, maximal <strong>250 Zeichen</strong>.</li>
@@ -26,10 +27,13 @@
           </div>
         </div>
 
-        <!-- Kontext -->
-        <div v-if="info.teaser" class="teaser-box">
-          <div class="teaser-label">Die Geschichte endet gerade mit …</div>
-          <div class="teaser-text">„{{ info.teaser }}"</div>
+        <!-- Kontext: same torn-paper snippet used mid-game in Story.vue
+             (.context-block/.write-label/.context-snippet/.context-text). -->
+        <div v-if="info.teaser" class="context-block">
+          <div class="write-label">Die Geschichte endet gerade mit…</div>
+          <div class="context-snippet">
+            <div class="context-text">{{ info.teaser }}</div>
+          </div>
         </div>
 
         <button type="button" class="write-btn write-btn--solid einladen-cta" @click="$router.push(`/lobby/${code}`)">
@@ -42,63 +46,17 @@
 </template>
 
 <style>
-.teaser-box {
-  border-left: 3px solid #21ba45;
-  background: rgba(33,186,69,0.05);
-  border-radius: 0 4px 4px 0;
-  padding: 10px 14px;
-  margin: 16px 0;
-}
-.teaser-label {
-  font-size: 0.78em;
-  color: #aaa;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.teaser-text {
+.einladen-empty {
+  text-align: center;
+  padding: 24px 0 8px;
   font-family: var(--font-sans);
   font-weight: 300;
-  font-style: italic;
-  font-size: 1em;
+  font-size: 13px;
   color: var(--kg-green);
 }
 .einladen-cta.write-btn {
   margin-top: 16px;
 }
-.accordion {
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  overflow: hidden;
-}
-.accordion-toggle {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.88em;
-  color: #555;
-  text-align: left;
-}
-.accordion-toggle:hover { background: #fafafa; }
-.accordion-icon { font-size: 0.75em; color: #aaa; }
-.accordion-body {
-  padding: 10px 14px 12px;
-  border-top: 1px solid #f0f0f0;
-}
-.info-list {
-  margin: 0;
-  padding-left: 18px;
-  font-size: 0.88em;
-  color: #555;
-  line-height: 1.6;
-}
-.info-list li { margin-bottom: 4px; }
 </style>
 
 <script>
