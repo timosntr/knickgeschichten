@@ -319,17 +319,18 @@
   aspect-ratio: 700 / 470;
   background-image: url('../assets/quote-card.webp');
   /* Frame the torn scrap (it sits inset and slightly left in the image) so all
-     its torn edges — including the bottom-right — stay inside the card. */
-  background-size: 150% 140%;
+     its torn edges — including the bottom-right — stay inside the card, while
+     keeping it as large as possible. */
+  background-size: 170% 152%;
   background-position-x: 54%;
-  background-position-y: 46%;
+  background-position-y: 45%;
   background-repeat: no-repeat;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   margin: 0 auto;
-  max-width: 320px;
+  max-width: 360px;
   padding: 17% 15% 15%;
   text-align: center;
   transition: transform 0.15s ease;
