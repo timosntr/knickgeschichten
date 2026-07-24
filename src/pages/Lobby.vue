@@ -18,7 +18,7 @@
           class="name-form">
           <!-- Design's big "Gib dir einen Namen" / "sei kreativ" was dropped in
                favour of a small "Name" label sitting just above the field. -->
-          <label class="name-label" for="playerName">Name</label>
+          <label class="name-label" for="playerName">Gib dir einen Namen</label>
           <sui-form-field :disabled="anonymousJoin" :error="!validName">
             <input class="name-input"
               id="playerName"
@@ -144,7 +144,8 @@
 .name-form {
   text-align: center;
 }
-/* Small "Name" label above the field (replaces the dropped XD title). */
+/* "Gib dir einen Namen" label above the field (replaces the dropped XD
+   title/subtitle combo with a single compact line). */
 .ui.form .name-label,
 .name-label {
   display: block;
