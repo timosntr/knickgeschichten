@@ -102,7 +102,7 @@
       </ooc-player-list>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'PLAYING'"
-      :title="lobbyInfo.title || (currGame ? currGame.title : 'Knickgeschichten')"
+      :title="lobbyInfo.title"
       :subtitle="currGame ? currGame.subtitle : ''">
       <ooc-game :game="lobbyInfo.game">
       </ooc-game>
