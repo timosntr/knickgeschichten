@@ -31,12 +31,12 @@
     </div>
 
     <div>
-      <sui-button :basic="!confirmEndGame"
-               color="red"
+      <button type="button" class="write-btn"
+        :class="confirmEndGame ? 'write-btn--solid' : 'write-btn--outline'"
         @click="tryEndGame"
         v-if="$root.playerId === admin && lobbyState === 'PLAYING' && !gameState.reading">
-        {{confirmEndGame ? 'bist du sicher?' : 'Geschichten beenden'}}
-      </sui-button>
+        {{ confirmEndGame ? 'bist du sicher?' : 'Geschichten beenden' }}
+      </button>
     </div>
   </div>
 </template>
