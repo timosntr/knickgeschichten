@@ -27,6 +27,13 @@ let asyncSessionCounter = 0;
 
 io.on('connection', socket => {
   const player = new Member(socket);
+
+  // Accept the browser's stable client id, if it sent a plausible one.
+  const rawClientId = socket.handshake.query && socket.handshake.query.kgClientId;
+  if (typeof rawClientId === 'string' && /^[a-zA-Z0-9-]{8,64}$/.test(rawClientId)) {
+    player.clientId = rawClientId;
+  }
+
   socket.emit('member:id', player.id);
   socket.emit('version', VERSION);
 
@@ -100,10 +107,9 @@ io.on('connection', socket => {
     const lobby = new Lobby();
     lobby.code = code;
     lobby.isAsync = true;
-    // Story number: a stable, monotonic id kept independent of the title so it
-    // survives renames (e.g. AI-generated titles). The default title just shows
-    // this number until the story is renamed.
     lobby.number = ++asyncSessionCounter;
+    // Default title; replaced by an AI-generated one when the story finishes
+    // (the number lives in lobby.number, so the title text is free to change).
     lobby.title = `Knickgeschichte ${lobby.number}`;
     lobby.persist = true;
     lobby.selectedGame = 'story';
@@ -473,18 +479,12 @@ try {
       }
     } catch {}
   }
+  // Continue numbering from the highest story number seen. Uses lobby.number
+  // (restoreState back-fills it from the old "Knickgeschichte N" titles), so an
+  // AI-generated title can no longer reset the counter.
   asyncSessionCounter = Object.values(Lobby.lobbies)
     .filter(l => l && l.isAsync)
-    .reduce((max, l) => {
-      // Prefer the stored number; fall back to a trailing number in the title
-      // for legacy saves written before `number` existed.
-      let n = l.number;
-      if (typeof n !== 'number') {
-        const m = /(\d+)\s*$/.exec(l.title || '');
-        n = m ? Number(m[1]) : 0;
-      }
-      return Math.max(max, n || 0);
-    }, 0);
+    .reduce((max, l) => Math.max(max, Number(l.number) || 0), 0);
   if (restored > 0)
     console.log(new Date(), `-- restored ${restored} async session(s), counter at ${asyncSessionCounter}`);
 } catch {}

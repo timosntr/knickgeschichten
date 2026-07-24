@@ -323,6 +323,9 @@ module.exports = class Story extends Game {
       this.lobby.completedAuthors = namedAuthors.size + (hasAnonymous ? 1 : 0);
       this.lobby.completedAt = Date.now();
       this.lobby.completedLikes = _.sumBy(this.chains, c => _.size(_.filter(c.likes, v => v)));
+      // Fire-and-forget: the story is complete right now regardless of whether
+      // the model answers. A title, if produced, is pushed out a few seconds later.
+      this.lobby.generateStoryTitle();
     }
 
     this.sendGameInfo();
@@ -475,7 +478,8 @@ module.exports = class Story extends Game {
     case 'chain:like':
       const reading = this.aborted || this.getGameProgress() === 1;
       if(typeof data === 'number' && data >= 0 && data <= this.chains.length && reading) {
-        this.chains[data].likes[pid] = !this.chains[data].likes[pid];
+        const key = this.likeKey(pid);
+        this.chains[data].likes[key] = !this.chains[data].likes[key];
         this.sendGameInfo();
       }
       break;
@@ -509,9 +513,18 @@ module.exports = class Story extends Game {
       deadline: this.deadlines[pid] || null,
     } : {
       id: pid,
-      liked: this.chains.map(s => s.likes[pid]),
+      liked: this.chains.map(s => s.likes[this.likeKey(pid)]),
       state: done ? 'READING' : 'WAITING',
     };
+  }
+
+  // Likes are keyed by the browser's stable client id (survives reloads/
+  // reconnects) rather than the transient playerId, so refreshing the page
+  // can't be used to like a story again. Falls back to pid for clients that
+  // didn't send one.
+  likeKey(pid) {
+    const player = this.lobby.players.find(p => p.playerId === pid);
+    return (player && player.member && player.member.clientId) || pid;
   }
 
   compileStories() {

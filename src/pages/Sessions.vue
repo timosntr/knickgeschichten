@@ -328,8 +328,7 @@ export default {
       const dir = this.sortDesc ? -1 : 1;
       return [...this.activeSessions].sort((a, b) => {
         if (this.sortBy === 'number') {
-          const num = t => { const m = /(\d+)\s*$/.exec(t || ''); return m ? Number(m[1]) : 0; };
-          return dir * (num(a.title) - num(b.title));
+          return dir * ((a.number || 0) - (b.number || 0));
         }
         return dir * ((a.lastActivity || 0) - (b.lastActivity || 0));
       });
@@ -375,10 +374,6 @@ export default {
     },
   },
   methods: {
-    storyNumber(title) {
-      const m = /(\d+)\s*$/.exec(title || '');
-      return m ? m[1] : null;
-    },
     setSort(value) {
       if (this.sortBy === value) {
         this.sortDesc = !this.sortDesc;

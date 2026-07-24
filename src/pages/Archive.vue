@@ -405,8 +405,7 @@ export default {
       result = [...result].sort((a, b) => {
         let av, bv;
         if (this.sortBy === 'number') {
-          const num = t => { const m = /(\d+)\s*$/.exec(t || ''); return m ? Number(m[1]) : 0; };
-          av = num(a.title); bv = num(b.title);
+          av = a.number || 0; bv = b.number || 0;
         } else if (this.sortBy === 'title') {
           av = (a.title || '').toLowerCase(); bv = (b.title || '').toLowerCase();
           return dir * av.localeCompare(bv, 'de');
@@ -453,10 +452,6 @@ export default {
     },
   },
   methods: {
-    storyNumber(title) {
-      const m = /(\d+)\s*$/.exec(title || '');
-      return m ? m[1] : null;
-    },
     setSort(value) {
       if (this.sortBy === value) {
         this.sortDesc = !this.sortDesc;
