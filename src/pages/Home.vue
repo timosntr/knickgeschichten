@@ -51,7 +51,7 @@
         <div v-if="quote" class="qotd" @click="$router.push(`/lobby/${quote.code}`)">
           <div class="qotd-card">
             <div class="qotd-label">Satz des Tages</div>
-            <div class="qotd-text">„{{ quote.text }}"</div>
+            <div class="qotd-text">{{ quote.text }}</div>
             <div class="qotd-author" v-if="quote.authorName !== null">
               – {{ quote.authorName === '' ? 'Anonym' : quote.authorName }}
             </div>
@@ -341,8 +341,7 @@
 }
 .qotd-text {
   font-family: var(--font-sans);
-  font-weight: 500;
-  font-style: italic;            /* XD: Metropolis-MediumItalic */
+  font-weight: 500;              /* upright, no quotation marks (per template) */
   font-size: 13px;
   line-height: 1.5;
 }
