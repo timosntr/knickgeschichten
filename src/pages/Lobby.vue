@@ -54,7 +54,7 @@
       </div>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'LOBBY_WAITING'"
-      :title="lobbyInfo.title || (currGame ? currGame.title : 'Knickgeschichten')"
+      :title="lobbyInfo.title"
       :subtitle="currGame ? currGame.subtitle : ''">
       <div class="lobby-waiting">
         <div v-if="!lobbyInfo.isAsync">
