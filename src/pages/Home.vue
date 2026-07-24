@@ -231,7 +231,11 @@
 /* Action buttons --------------------------------------------------------- */
 .kg-btn {
   appearance: none;
-  width: 100%;
+  display: block;
+  width: 258px;                    /* XD: 258x51 */
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   border: 1.5px solid var(--kg-green);
   border-radius: var(--kg-radius-pill);
   cursor: pointer;
