@@ -52,6 +52,13 @@
           <div v-if="game.minWords > 0" class="word-count" :class="{insufficient: wordCount < game.minWords}">
             {{wordCount}} / {{game.minWords}} Wörter
           </div>
+          <!-- Only surfaces once it matters, so the XD layout stays clean in the
+               normal case. Without it, going over 250 silently disables the
+               submit button while the word count still reads green — leaving no
+               way to tell why the turn can't be passed on. -->
+          <div v-if="line.length > 200" class="char-count" :class="{over: line.length > 250}">
+            {{line.length}} / 250 Zeichen
+          </div>
           <div v-if="wordCount >= game.minWords && lastContextWords" class="preview-snippet">
             <div class="preview-label">Vorschau</div>
             <div class="preview-text">„…{{ lastContextWords }}"</div>
@@ -311,6 +318,18 @@
 }
 
 .word-count.insufficient {
+  color: #db2828;
+}
+
+.char-count {
+  margin-top: 2px;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--kg-green);
+  text-align: center;
+}
+
+.char-count.over {
   color: #db2828;
 }
 
