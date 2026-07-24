@@ -81,12 +81,12 @@
 
 <style>
 /* Keep "begonnene Geschichten" on a single centred line. The global .title
-   allows wrapping (desktop-centering fix); here we override with nowrap and a
-   font-size scaled down so the long two-word title still fits the narrow
-   column at 393px without overflowing. */
+   allows wrapping (desktop-centering fix); here we override with nowrap. This
+   column (320px) is narrower than Home's section title column, so the XD's
+   33px doesn't fit here — 30px is the largest size that stays on one line. */
 .menu .title.sessions-title {
   white-space: nowrap;
-  font-size: clamp(18px, 6.2vw, 28px);
+  font-size: clamp(22px, 7.6vw, 30px);
 }
 
 /* Numbered pager (XD): 15px green numbers, current one Metropolis Medium,

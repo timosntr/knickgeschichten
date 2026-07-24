@@ -402,9 +402,9 @@
 .kg-sheet__title {
   font-family: var(--font-serif);
   font-weight: 700;
-  /* XD is Boska-Black 33; capped a touch lower so the longer wording
-     ("begonnene Geschichten") still fits on one line like the XD. */
-  font-size: clamp(25px, 8vw, 31px);
+  /* XD: Boska-Black 33 (reached at the 393px reference width); scales down
+     on narrower viewports so "begonnene Geschichten" doesn't overflow. */
+  font-size: clamp(26px, 8.4vw, 33px);
   color: var(--kg-green);
   letter-spacing: 0.3px;
   margin: 0 auto 16px;
