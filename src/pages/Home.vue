@@ -67,7 +67,7 @@
         </button>
 
         <!-- Private Geschichten -->
-        <div class="kg-divider"><span>private Geschichten</span></div>
+        <div class="home-divider"><span>private Geschichten</span></div>
         <button
           class="kg-btn kg-btn--outline"
           :disabled="!connected || creatingLobby"
@@ -261,18 +261,23 @@
 }
 .kg-btn[disabled] { cursor: default; opacity: 0.45; }
 
-/* Labelled divider ------------------------------------------------------- */
-.kg-divider {
+/* Labelled divider ("private Geschichten"). Uniquely named — .kg-divider
+   collides with the unrelated divider defined in Lobby.vue/PlayerList.vue
+   (Vue SFC <style> is global, not scoped). */
+.home-divider {
   align-items: center;
   color: var(--kg-green);
   display: flex;
   font-size: 11px;
   font-weight: 500;
   gap: 12px;
-  margin: 6px 0 12px;
+  /* XD: the divider sits equidistant between the button above and below it
+     (~22px each side). Margins collapse with the preceding .kg-btn's 12px
+     margin-bottom, so set 22px on both sides to land on 22px either way. */
+  margin: 22px 0;
 }
-.kg-divider::before,
-.kg-divider::after {
+.home-divider::before,
+.home-divider::after {
   background: var(--kg-line);
   content: '';
   flex: 1;
