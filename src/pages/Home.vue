@@ -236,8 +236,8 @@
   border-radius: var(--kg-radius-pill);
   cursor: pointer;
   font-family: var(--font-sans);
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 13px;                 /* XD: Metropolis-Light 13 */
+  font-weight: 300;
   padding: 14px 20px;
   margin-bottom: 12px;
   text-align: center;
@@ -285,7 +285,7 @@
   color: var(--kg-green);
   font-family: var(--font-sans);
   font-weight: 300;
-  font-size: 15px;
+  font-size: 13px;                 /* XD: Metropolis-Light 13 */
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -462,6 +462,7 @@
   margin: 0;
 }
 .kg-card__id {
+  font-weight: 300;                /* XD: Metropolis LightItalic 11 */
   font-size: 11px;
   font-style: italic;
   opacity: 0.8;
@@ -493,7 +494,7 @@
   gap: 10px;
   margin-top: 14px;
 }
-.kg-card__time { font-size: 11px; font-style: italic; opacity: 0.85; }
+.kg-card__time { font-weight: 300; font-size: 11px; font-style: italic; opacity: 0.85; }
 .kg-card__meta {
   display: inline-flex;
   align-items: baseline;
@@ -508,8 +509,9 @@
 .kg-pill {
   border-radius: var(--kg-radius-pill);
   border: 1.5px solid transparent;
+  font-family: var(--font-sans);
   font-size: 11px;
-  font-weight: 400;
+  font-weight: 300;                /* XD: Light (9px; kept at 11 for consistency) */
   padding: 4px 16px;
   white-space: nowrap;
   transition: background 0.2s ease, color 0.2s ease;
@@ -557,6 +559,8 @@
 .kg-link {
   display: block;
   margin-top: 16px;
+  font-family: var(--font-sans);
+  font-weight: 300;                /* XD: Metropolis-Light 13 */
   font-size: 13px;
   color: var(--kg-green);
   text-align: center;
