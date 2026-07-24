@@ -3,8 +3,8 @@
     <ooc-menu v-if="state === 'NO_LOBBY'"
       title="Diese Lobby gibt es nicht"
       subtitle="Vielleicht ist der Code abgelaufen oder falsch.">
-      <div style="text-align: center; margin-top: 8px">
-        <router-link is="sui-button" to="/" color="blue">
+      <div class="no-lobby-actions">
+        <router-link to="/" class="write-btn write-btn--solid">
           zur Startseite
         </router-link>
       </div>
@@ -255,6 +255,13 @@
   margin: 0 auto;
   text-align: center;
 }
+
+/* "Diese Lobby gibt es nicht" screen: solid pill, matching the rest of the
+   app instead of a raw Semantic UI button. */
+.no-lobby-actions {
+  margin-top: 8px;
+}
+.no-lobby-actions .write-btn { margin: 0 auto; }
 
 /* Section divider (XD): a 10px Metropolis-Light label flanked by thin 0.5px
    green rules. Replaces Semantic's large uppercase divider. */

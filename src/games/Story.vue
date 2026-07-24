@@ -258,6 +258,10 @@
 /* Compact pill button: 112×26, radius 15, 9px label (XD). */
 .write-btn {
   display: block;
+  box-sizing: border-box;
+  /* Buttons shrink-wrap their content by default; a plain <a> (used for the
+     "Diese Lobby gibt es nicht" screen) does not, so it needs this explicit. */
+  width: fit-content;
   margin: 10px auto 0;
   min-width: 112px;
   height: 26px;
@@ -266,6 +270,9 @@
   border: 1.5px solid var(--kg-green);
   font-family: var(--font-sans);
   font-size: 11px;
+  line-height: 24px;               /* height minus the 1.5px border, both sides */
+  text-align: center;
+  text-decoration: none;           /* also used on <router-link>/<a> */
   cursor: pointer;
   transition: background 0.3s ease-in-out, color 0.3s ease-in-out, opacity 0.15s ease;
 }
