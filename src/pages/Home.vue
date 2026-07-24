@@ -50,7 +50,7 @@
         <!-- Satz des Tages -->
         <div v-if="quote" class="qotd" @click="$router.push(`/lobby/${quote.code}`)">
           <div class="qotd-card">
-            <div class="qotd-label">Satz des Tages</div>
+            <div class="qotd-label">Zitat des Tages</div>
             <div class="qotd-text">{{ quote.text }}</div>
             <div class="qotd-author" v-if="quote.authorName !== null">
               – {{ quote.authorName === '' ? 'Anonym' : quote.authorName }}
