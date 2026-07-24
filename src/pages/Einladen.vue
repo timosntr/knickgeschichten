@@ -32,9 +32,9 @@
           <div class="teaser-text">„{{ info.teaser }}"</div>
         </div>
 
-        <sui-button color="green" fluid style="margin-top: 16px" @click="$router.push(`/lobby/${code}`)">
+        <button type="button" class="write-btn write-btn--solid einladen-cta" @click="$router.push(`/lobby/${code}`)">
           weiterschreiben
-        </sui-button>
+        </button>
       </div>
     </ooc-menu>
     <ooc-util></ooc-util>
@@ -57,10 +57,14 @@
   letter-spacing: 0.04em;
 }
 .teaser-text {
-  font-family: 'Lora', serif;
+  font-family: var(--font-sans);
+  font-weight: 300;
   font-style: italic;
   font-size: 1em;
-  color: #333;
+  color: var(--kg-green);
+}
+.einladen-cta.write-btn {
+  margin-top: 16px;
 }
 .accordion {
   border: 1px solid #e0e0e0;

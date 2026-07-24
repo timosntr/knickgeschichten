@@ -1,4 +1,9 @@
-<style scoped>
+<style>
+.not-found-actions {
+  text-align: center;
+  margin-top: 8px;
+}
+.not-found-actions .write-btn { margin: 0 auto; }
 </style>
 
 <template>
@@ -6,12 +11,10 @@
     <ooc-menu
       title="Page Not Found"
       subtitle="It appears this page does not exist!">
-      <div>
-        <sui-button-group vertical basic>
-          <router-link is="sui-button" to="/">
-            Home
-          </router-link>
-        </sui-button-group>
+      <div class="not-found-actions">
+        <router-link to="/" class="write-btn write-btn--solid">
+          Home
+        </router-link>
       </div>
     </ooc-menu>
   </ooc-page>

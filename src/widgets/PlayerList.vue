@@ -13,12 +13,11 @@
         :class="{ 'is-self': $root.playerId === p.id, 'is-off': !p.connected }">
         <span class="player-pill__name">{{ p.name }}</span>
         <span class="player-pill__icons">
-          <sui-button v-if="!p.connected && !isActivePlayer"
-            size="tiny"
-            basic
+          <button type="button" class="write-btn write-btn--outline player-pill__rejoin"
+            v-if="!p.connected && !isActivePlayer"
             @click="$socket.emit('lobby:replace', p.playerId)">
             beitreten
-          </sui-button>
+          </button>
           <img v-if="admin === p.id"
             class="pl-icon pl-icon--shield" :class="{ 'pl-icon--wash': washed('shield', p) }"
             :src="iconFor('shield', p)" alt="Admin">
@@ -105,6 +104,19 @@
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+}
+
+/* Compact "beitreten" (reclaim a disconnected slot), inline in the pill row —
+   the standalone .write-btn sizing (block, auto-centred, 26px) is for
+   full-width CTAs, not a small inline row action. */
+.player-pill__rejoin.write-btn {
+  display: inline-block;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  height: 22px;
+  padding: 0 12px;
+  font-size: 10px;
 }
 
 .pl-icon {

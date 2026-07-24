@@ -4,43 +4,7 @@
    Fonts self-hosted (OFL), no Google Fonts CDN. See src/fonts/README.md
    ========================================================================== */
 
-@font-face {
-  font-family: 'Fraunces';
-  src: url('./fonts/fraunces-700.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Hanken Grotesk';
-  src: url('./fonts/hanken-300.woff2') format('woff2');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Hanken Grotesk';
-  src: url('./fonts/hanken-300-italic.woff2') format('woff2');
-  font-weight: 300;
-  font-style: italic;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Hanken Grotesk';
-  src: url('./fonts/hanken-500.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Hanken Grotesk';
-  src: url('./fonts/hanken-600.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* --- New design system (Luisas Design, 2026-07-22) --------------------------
+/* --- Design system (Luisas Design, 2026-07-22) -------------------------------
    Boska (display serif) for headings, Metropolis (geometric sans) for body.
    Only the weights the design actually uses are self-hosted. Boska ships a
    single Black master; the 700–900 range maps to it so existing
