@@ -6,12 +6,12 @@
       <div>
 
         <!-- Akkordeon -->
-        <div class="accordion">
-          <button class="accordion-toggle" @click="showInfo = !showInfo">
+        <div class="home-howto">
+          <button class="home-howto__toggle" @click="showInfo = !showInfo">
             <span>So funktioniert's</span>
-            <span class="accordion-icon">{{ showInfo ? '⌃' : '⌄' }}</span>
+            <span class="home-howto__caret">{{ showInfo ? '⌃' : '⌄' }}</span>
           </button>
-          <div v-if="showInfo" class="accordion-body">
+          <div v-if="showInfo" class="home-howto__body">
             <ul class="info-list">
               <li>Der bisher geschriebene Text wird wie beim klassischen Spiel „umgeknickt". Du siehst also nur einen kleinen Teil vom vorherigen Abschnitt.</li>
               <li>Du liest den sichtbaren Teil und schreibst darauf basierend einen neuen Abschnitt – mindestens <strong>15 Wörter</strong>, maximal <strong>250 Zeichen</strong>.</li>
@@ -50,8 +50,8 @@
         <!-- Satz des Tages -->
         <div v-if="quote" class="qotd" @click="$router.push(`/lobby/${quote.code}`)">
           <div class="qotd-card">
-            <div class="qotd-label">Satz des Tages</div>
-            <div class="qotd-text">„{{ quote.text }}"</div>
+            <div class="qotd-label">Zitat des Tages</div>
+            <div class="qotd-text">{{ quote.text }}</div>
             <div class="qotd-author" v-if="quote.authorName !== null">
               – {{ quote.authorName === '' ? 'Anonym' : quote.authorName }}
             </div>
@@ -67,7 +67,7 @@
         </button>
 
         <!-- Private Geschichten -->
-        <div class="kg-divider"><span>private Geschichten</span></div>
+        <div class="home-divider"><span>private Geschichten</span></div>
         <button
           class="kg-btn kg-btn--outline"
           :disabled="!connected || creatingLobby"
@@ -83,7 +83,7 @@
 
         <!-- Öffentliche Geschichten Karussell -->
         <section v-if="recentSessions.length > 0" class="kg-sheet">
-          <h2 class="kg-sheet__title">angefangene Geschichten</h2>
+          <h2 class="kg-sheet__title">begonnene Geschichten</h2>
           <div class="carousel"
             @touchstart="onTouchStart"
             @touchend="onTouchEnd"
@@ -179,6 +179,10 @@
         akademischen Jahr 2025/26 an der Ruhr-Universität Bochum von Luisa Bytom,
         Jingtian Dong, Pavlos Gkegkas, Timo Santehanser und Marlen Stuka entwickelt.
       </p>
+      <nav class="site-footer__links">
+        <router-link to="/impressum" class="site-footer__link">Impressum</router-link>
+        <router-link to="/datenschutz" class="site-footer__link">Datenschutz</router-link>
+      </nav>
     </footer>
 
     <ooc-join-lobby :active="showJoinLobby" @close="showJoinLobby = false">
@@ -206,17 +210,38 @@
   line-height: 1.55;
   color: var(--kg-green);
 }
+/* Impressum / Datenschutz links (XD footer). */
+.site-footer__links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 18px;
+}
+.site-footer__link {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  color: var(--kg-green);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+.site-footer__link:hover { color: var(--kg-blue); }
 
 /* Action buttons --------------------------------------------------------- */
 .kg-btn {
   appearance: none;
-  width: 100%;
+  display: block;
+  width: 258px;                    /* XD: 258x51 */
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   border: 1.5px solid var(--kg-green);
   border-radius: var(--kg-radius-pill);
   cursor: pointer;
   font-family: var(--font-sans);
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 13px;                 /* XD: Metropolis-Light 13 */
+  font-weight: 300;
   padding: 14px 20px;
   margin-bottom: 12px;
   text-align: center;
@@ -224,45 +249,60 @@
 }
 .kg-btn--solid { background: var(--kg-green); color: var(--kg-cream); }
 .kg-btn--outline { background: transparent; color: var(--kg-green); }
-.kg-btn:hover { opacity: 0.88; }
+/* XD hover states: the solid button turns blue; the outline buttons switch to
+   a blue border + blue text. */
+.kg-btn--solid:not([disabled]):hover {
+  background: var(--kg-blue);
+  border-color: var(--kg-blue);
+}
+.kg-btn--outline:not([disabled]):hover {
+  border-color: var(--kg-blue);
+  color: var(--kg-blue);
+}
 .kg-btn[disabled] { cursor: default; opacity: 0.45; }
 
-/* Labelled divider ------------------------------------------------------- */
-.kg-divider {
+/* Labelled divider ("private Geschichten"). Uniquely named — .kg-divider
+   collides with the unrelated divider defined in Lobby.vue/PlayerList.vue
+   (Vue SFC <style> is global, not scoped). */
+.home-divider {
   align-items: center;
   color: var(--kg-green);
   display: flex;
   font-size: 11px;
   font-weight: 500;
   gap: 12px;
-  margin: 6px 0 12px;
+  /* XD: the divider sits equidistant between the button above and below it
+     (~22px each side). Margins collapse with the preceding .kg-btn's 12px
+     margin-bottom, so set 22px on both sides to land on 22px either way. */
+  margin: 22px 0;
 }
-.kg-divider::before,
-.kg-divider::after {
+.home-divider::before,
+.home-divider::after {
   background: var(--kg-line);
   content: '';
   flex: 1;
   height: 1px;
 }
 
-/* "So funktioniert's" accordion ----------------------------------------- */
-.accordion { margin-bottom: 18px; text-align: center; }
-.accordion-toggle {
+/* "So funktioniert's" toggle (XD: plain centred text + caret, no box).
+   Uniquely named to avoid the global .accordion box from Einladen.vue. */
+.home-howto { margin-bottom: 18px; text-align: center; }
+.home-howto__toggle {
   background: none;
   border: none;
   cursor: pointer;
   color: var(--kg-green);
   font-family: var(--font-sans);
-  font-size: 15px;
-  font-weight: 500;
+  font-weight: 300;
+  font-size: 13px;                 /* XD: Metropolis-Light 13 */
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 4px;
 }
-.accordion-toggle:hover { opacity: 0.8; }
-.accordion-icon { font-size: 0.9em; }
-.accordion-body {
+.home-howto__toggle:hover { opacity: 0.7; }
+.home-howto__caret { font-size: 0.8em; }
+.home-howto__body {
   padding: 10px 4px 4px;
   text-align: left;
 }
@@ -287,16 +327,19 @@
 .qotd-card {
   aspect-ratio: 700 / 470;
   background-image: url('../assets/quote-card.webp');
-  background-size: 200% 170%;
-  background-position-x: 50%;
-  background-position-y: 50%;
+  /* Frame the torn scrap (it sits inset and slightly left in the image) so all
+     its torn edges — including the bottom-right — stay inside the card, while
+     keeping it as large as possible. */
+  background-size: 170% 152%;
+  background-position-x: 54%;
+  background-position-y: 45%;
   background-repeat: no-repeat;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   margin: 0 auto;
-  max-width: 320px;
+  max-width: 360px;
   padding: 17% 15% 15%;
   text-align: center;
   transition: transform 0.15s ease;
@@ -305,17 +348,21 @@
 .qotd-label {
   font-family: var(--font-serif);
   font-weight: 700;
-  font-size: 24px;
-  margin-bottom: 12px;
+  font-size: 30px;               /* XD: Boska-Black ~33 */
+  margin-bottom: 14px;
 }
 .qotd-text {
-  font-size: 14px;
+  font-family: var(--font-sans);
+  font-weight: 500;              /* upright, no quotation marks (per template) */
+  font-size: 13px;
   line-height: 1.5;
 }
 .qotd-author {
   margin-top: 8px;
-  font-size: 13px;
+  font-family: var(--font-sans);
+  font-weight: 500;
   font-style: italic;
+  font-size: 11px;
 }
 
 /* Section sheet (whole section on one torn-paper sheet) ------------------ */
@@ -355,7 +402,9 @@
 .kg-sheet__title {
   font-family: var(--font-serif);
   font-weight: 700;
-  font-size: 27px;
+  /* XD: Boska-Black 33 (reached at the 393px reference width); scales down
+     on narrower viewports so "begonnene Geschichten" doesn't overflow. */
+  font-size: clamp(26px, 8.4vw, 33px);
   color: var(--kg-green);
   letter-spacing: 0.3px;
   margin: 0 auto 16px;
@@ -418,11 +467,13 @@
   gap: 8px;
 }
 .kg-card__title {
-  font-size: 16px;
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;                /* XD: Metropolis Medium 13 */
   margin: 0;
 }
 .kg-card__id {
+  font-weight: 300;                /* XD: Metropolis LightItalic 11 */
   font-size: 11px;
   font-style: italic;
   opacity: 0.8;
@@ -431,15 +482,15 @@
 .kg-card__body {
   font-family: var(--font-sans);
   font-weight: 300;
-  font-size: 15px;
-  line-height: 1.4;
+  font-size: 13px;                 /* XD: Metropolis Light 13 */
+  line-height: 1.35;
   margin: 8px 0 0;
 }
 .kg-progress {
-  height: 3px;
+  height: 2px;                     /* XD: 2px rule */
   border-radius: 2px;
-  background: rgba(25, 66, 30, 0.18);
-  margin: 14px 0 0;
+  background: rgba(25, 66, 30, 0.25);
+  margin: 16px 0 0;
   overflow: hidden;
 }
 .kg-progress__fill {
@@ -454,7 +505,7 @@
   gap: 10px;
   margin-top: 14px;
 }
-.kg-card__time { font-size: 11px; font-style: italic; opacity: 0.85; }
+.kg-card__time { font-weight: 300; font-size: 11px; font-style: italic; opacity: 0.85; }
 .kg-card__meta {
   display: inline-flex;
   align-items: baseline;
@@ -468,13 +519,34 @@
 
 .kg-pill {
   border-radius: var(--kg-radius-pill);
-  font-size: 13px;
-  font-weight: 500;
-  padding: 5px 18px;
+  border: 1.5px solid transparent;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 300;                /* XD: Light (9px; kept at 11 for consistency) */
+  padding: 4px 16px;
   white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
 }
-.kg-pill--solid { background: var(--kg-green); color: var(--kg-cream); }
-.kg-pill--cream { background: var(--kg-cream); color: var(--kg-green); }
+.kg-pill--solid {
+  background: var(--kg-green);
+  border-color: var(--kg-green);
+  color: var(--kg-cream);
+}
+.kg-pill--cream {
+  background: var(--kg-cream);
+  border-color: var(--kg-cream);
+  color: var(--kg-green);
+}
+/* XD hover: hovering a card flips its action pill to the outline look
+   (beitreten → green outline, lesen → cream outline). */
+.kg-card--outline:hover .kg-pill--solid {
+  background: transparent;
+  color: var(--kg-green);
+}
+.kg-card--dark:hover .kg-pill--cream {
+  background: transparent;
+  color: var(--kg-cream);
+}
 
 /* Carousel slide transitions -------------------------------------------- */
 .slide-left-enter-active,
@@ -498,12 +570,17 @@
 .kg-link {
   display: block;
   margin-top: 16px;
+  font-family: var(--font-sans);
+  font-weight: 300;                /* XD: Metropolis-Light 13 */
   font-size: 13px;
   color: var(--kg-green);
   text-align: center;
   text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
 }
-.kg-link:hover { opacity: 0.75; }
+/* XD hover: link (and its underline) turn blue. */
+.kg-link:hover { color: var(--kg-blue); }
 </style>
 
 <script>

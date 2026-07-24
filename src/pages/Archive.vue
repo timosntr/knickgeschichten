@@ -1,78 +1,97 @@
 <template>
   <ooc-page>
     <ooc-menu title="Archiv" subtitle="abgeschlossene Geschichten">
-      <div>
-        <form class="search-form" @submit.prevent="submitSearch">
-          <input
-            v-model="searchQuery"
-            class="search-input"
-            type="text"
-            placeholder="#, Titel, Autor*in, Stichwort"
-            @input="onSearchInput"
-          />
-          <button type="submit" class="search-btn" :disabled="searching">
-            {{ searching ? '…' : 'suchen' }}
+      <div class="archive-col">
+        <!-- Toolbar: sort label (left) + compact search pill (right), matching XD -->
+        <div class="archive-toolbar">
+          <button class="archive-sort__toggle" @click="showSort = !showSort">
+            <!-- XD sort glyph (exact geometry): two bars, left arrow down +
+                 right arrow up. 0.7px stroke, matching the XD lines. -->
+            <svg viewBox="0 0 14 8" class="sort-svg" aria-hidden="true">
+              <line x1="3.5" y1="1" x2="3.5" y2="7"/>
+              <line x1="0.5" y1="4.5" x2="3.5" y2="7.5"/>
+              <line x1="6.5" y1="4.5" x2="3.5" y2="7.5"/>
+              <line x1="10.5" y1="1" x2="10.5" y2="7"/>
+              <line x1="7.5" y1="3.5" x2="10.5" y2="0.5"/>
+              <line x1="13.5" y1="3.5" x2="10.5" y2="0.5"/>
+            </svg>
+            {{ currentSortLabel }}
           </button>
-          <button v-if="hasSearch" type="button" class="search-clear" @click="clearSearch">✕</button>
-        </form>
-        <div v-if="fulltextSearched && !searching" class="search-hint">
+          <form class="archive-search" @submit.prevent="submitSearch">
+            <input
+              v-model="searchQuery"
+              class="archive-search__input"
+              type="text"
+              aria-label="Geschichten durchsuchen"
+              @input="onSearchInput"
+            />
+            <button v-if="hasSearch" type="button" class="archive-search__clear"
+              aria-label="Suche zurücksetzen" @click="clearSearch">✕</button>
+            <button type="submit" class="archive-search__go" aria-label="suchen" :disabled="searching">
+              <!-- XD magnifier (exact): lens r2.5 top-right, handle pointing
+                   down-left, 0.7px stroke. -->
+              <svg viewBox="0 0 8 8" class="archive-search__mag" aria-hidden="true">
+                <circle cx="5" cy="3" r="2.5" fill="none" stroke="currentColor" stroke-width="0.7"/>
+                <line x1="0.5" y1="7.5" x2="3.5" y2="4.5" stroke="currentColor" stroke-width="0.7"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+        <div v-if="fulltextSearched && !searching" class="archive-search__hint">
           {{ filteredSessions.length }} {{ filteredSessions.length === 1 ? 'Ergebnis' : 'Ergebnisse' }} für „{{ lastQuery }}"
         </div>
 
-        <div class="accordion">
-          <button class="accordion-toggle" @click="showSort = !showSort">
-            <span><span class="sort-icon">⇅</span> {{ currentSortLabel }}</span>
-            <span class="accordion-icon">{{ showSort ? '▲' : '▼' }}</span>
+        <div v-if="showSort" class="archive-sort__options">
+          <button
+            v-for="opt in sortOptions" :key="opt.value"
+            class="sort-btn"
+            :class="{ active: sortBy === opt.value }"
+            @click="setSort(opt.value)">
+            {{ opt.label }}
+            <span v-if="sortBy === opt.value">{{ sortDesc ? '↓' : '↑' }}</span>
           </button>
-          <div v-if="showSort" class="accordion-body sort-options">
-            <button
-              v-for="opt in sortOptions" :key="opt.value"
-              class="sort-btn"
-              :class="{ active: sortBy === opt.value }"
-              @click="setSort(opt.value)">
-              {{ opt.label }}
-              <span v-if="sortBy === opt.value">{{ sortDesc ? '↓' : '↑' }}</span>
-            </button>
-          </div>
         </div>
 
         <div v-if="loading" style="text-align: center; padding: 24px">
           <sui-loader active inline centered>lädt</sui-loader>
         </div>
-        <div v-else>
+        <div v-else class="archive-list">
           <div v-if="filteredSessions.length === 0"
             style="text-align: center; padding: 24px; color: #888;">
             {{ hasSearch ? 'keine Ergebnisse gefunden' : 'noch keine abgeschlossenen Geschichten' }}
           </div>
 
-          <div v-for="session in pagedSessions" :key="session.code" class="session-card">
-            <div class="session-title">
-              <sui-icon name="check circle" color="green"/> {{ session.title }}
-              <span v-if="storyNumber(session.title)" class="session-number">#{{ storyNumber(session.title) }}</span>
+          <div v-for="session in pagedSessions" :key="session.code" class="archive-card">
+            <div class="archive-card__head">
+              <span class="archive-card__title">{{ session.title }}</span>
+              <span v-if="session.number" class="archive-card__number">#{{ session.number }}</span>
             </div>
-            <div v-if="session.teaser" class="session-teaser">„{{ session.teaser }}"</div>
-            <div class="session-footer">
-              <span class="session-meta">
-                <span class="session-age">{{ dateSpan(session.createdAt, session.completedAt) }}</span>
-                <span v-if="session.totalLikes > 0" class="session-likes">
-                  <span class="session-likes__heart">♥</span> {{ session.totalLikes }}
+            <div v-if="session.teaser" class="archive-card__teaser">{{ session.teaser }}</div>
+            <div class="archive-card__footer">
+              <span class="archive-card__meta">
+                <span class="archive-card__date">{{ dateSpan(session.createdAt, session.completedAt) }}</span>
+                <span v-if="session.totalLikes > 0" class="archive-card__likes">
+                  <span class="archive-card__heart">♥</span> {{ session.totalLikes }}
                 </span>
               </span>
-              <sui-button size="tiny" color="teal" @click="joinSession(session.code)">
+              <button class="write-btn write-btn--read archive-read"
+                @click="joinSession(session.code)">
                 lesen
-              </sui-button>
+              </button>
             </div>
           </div>
         </div>
 
-        <div v-if="totalPages > 1" class="pagination">
-          <sui-button icon size="small" :disabled="page === 1" @click="page--">
-            <sui-icon name="chevron left"/>
-          </sui-button>
-          <span class="page-info">{{ page }} / {{ totalPages }}</span>
-          <sui-button icon size="small" :disabled="page === totalPages" @click="page++">
-            <sui-icon name="chevron right"/>
-          </sui-button>
+        <div v-if="totalPages > 1" class="archive-pager">
+          <button class="pg-arrow" :disabled="page === 1"
+            aria-label="vorherige Seite" @click="page = Math.max(1, page - 1)">‹</button>
+          <template v-for="(p, i) in pageWindow">
+            <button v-if="typeof p === 'number'" :key="'p' + i"
+              class="pg-num" :class="{ active: p === page }" @click="page = p">{{ p }}</button>
+            <span v-else :key="'e' + i" class="pg-ellipsis">…</span>
+          </template>
+          <button class="pg-arrow" :disabled="page === totalPages"
+            aria-label="nächste Seite" @click="page = Math.min(totalPages, page + 1)">›</button>
         </div>
       </div>
     </ooc-menu>
@@ -81,135 +100,257 @@
 </template>
 
 <style>
-.session-number {
-  font-weight: normal;
-  font-size: 0.78em;
-  color: #aaa;
-  margin-left: 5px;
+/* Content column: XD cards are 310 wide, centred (like Sessions). */
+.archive-col {
+  width: 310px;
+  max-width: 100%;
+  margin: 0 auto;
 }
-.session-meta {
+
+/* --- Toolbar: sort label + compact search pill on one row --------------------
+   XD: search field 117x22 r13, white fill, #19421E 0.7px border, magnifier at
+   the right. Sort label italic 11px green with a ⇅ icon (matches Sessions). */
+.archive-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.archive-sort__toggle {
   display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-green);
+  white-space: nowrap;
+}
+/* XD sort glyph (two bars: left arrow down, right arrow up). viewBox 14x8 at
+   14x8px keeps a 1:1 scale so stroke-width maps straight to the XD 0.7px. */
+.sort-svg {
+  width: 14px;
+  height: 8px;
+  flex: none;
+  stroke: var(--kg-green);
+  stroke-width: 0.7;
+  stroke-linecap: round;
+}
+
+.archive-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 117px;
+}
+.archive-search__input {
+  width: 100%;
+  height: 22px;
+  box-sizing: border-box;
+  padding: 0 24px 0 12px;
+  border: 0.7px solid var(--kg-green);
+  border-radius: 13px;
+  background: var(--kg-cream);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 11px;
+  color: var(--kg-green);
+  outline: none;
+}
+.archive-search__input::placeholder {
+  color: var(--kg-green);
+  opacity: 0.55;
+  font-style: italic;
+}
+.archive-search__go {
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--kg-green);
+}
+.archive-search__go:disabled { opacity: 0.5; cursor: default; }
+/* XD magnifier: ~7px content in an 8x8 viewBox at 8px → 1:1, stroke 0.7px. */
+.archive-search__mag {
+  width: 8px;
+  height: 8px;
+  display: block;
+  stroke-linecap: round;
+}
+.archive-search__clear {
+  position: absolute;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--kg-green);
+  font-size: 11px;
+  line-height: 1;
+}
+.archive-search__hint {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-green);
+  margin: -8px 0 14px;
+  text-align: left;
+}
+
+/* Expanded sort options (drops below the toolbar). Kept on a single row (the
+   short labels fit the 310px column). Same pill look as Sessions. */
+.archive-sort__options {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: -8px 0 16px;
+}
+.archive-sort__options .sort-btn {
+  padding: 3px 12px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  border: 1.5px solid var(--kg-green);
+  border-radius: var(--kg-radius-pill);
+  background: none;
+  cursor: pointer;
+  color: var(--kg-green);
+}
+.archive-sort__options .sort-btn.active {
+  color: var(--kg-cream);
+  background: var(--kg-green);
+}
+
+/* --- Archive cards (XD artboard 75cfeddb) -----------------------------------
+   Card: 310x140 r23, GREEN fill (#19421E) with a matching 2px border. Title
+   Metropolis Medium 13px cream, #number italic 11px cream, teaser Metropolis
+   Light 13px cream, date span italic 11px cream + a cream "lesen" pill. */
+.archive-list .archive-card {
+  min-height: 140px;
+  box-sizing: border-box;
+  border: 2px solid var(--kg-green);
+  border-radius: 23px;
+  background: var(--kg-green);
+  padding: 22px 20px 16px;
+  margin-bottom: 30px;
+  text-align: left;
+  color: var(--kg-cream);
+  display: flex;
+  flex-direction: column;
+}
+.archive-list .archive-card__head {
+  display: flex;
   align-items: baseline;
   gap: 10px;
 }
-.session-likes {
-  font-size: 0.82em;
-  color: #999;
+.archive-list .archive-card__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--kg-cream);
+}
+/* #code flush right (aligns with the lesen button's right edge), leaving room
+   for long AI-generated titles that wrap under it. */
+.archive-list .archive-card__number {
+  flex: none;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-cream);
+}
+.archive-list .archive-card__teaser {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--kg-cream);
+  margin: 8px 0 0;
+}
+.archive-list .archive-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 14px;
+}
+.archive-list .archive-card__meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.archive-list .archive-card__date {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-cream);
+}
+.archive-list .archive-card__likes {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 11px;
+  color: var(--kg-cream);
   white-space: nowrap;
 }
-.session-likes__heart {
-  color: #d66;
+.archive-list .archive-card__heart {
+  font-style: normal;
 }
-.session-teaser {
-  font-family: 'Lora', serif;
-  font-style: italic;
-  font-size: 0.92em;
-  color: #444;
-  margin: 4px 0;
+/* Cream "lesen" pill (XD component "lesen"): cream fill, green text, sized snug
+   to the short word. Zero the global .write-btn margins so space-between flushes
+   it to the card's right edge. Hover flip handled by .write-btn--read below. */
+.archive-list .archive-read.write-btn {
+  min-width: 0;
+  width: auto;
+  margin: 0;
+  padding: 0 18px;
+  height: 26px;
 }
 
-.pagination {
+/* Numbered pager (XD): identical to Sessions — 15px green numbers, current one
+   Metropolis Medium, flanked by ‹ › chevrons, windowed to 5 numbers. */
+.archive-pager {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 4px;
+  margin: 10px 0 4px;
 }
-.page-info {
-  font-size: 0.9em;
-  color: #888;
-}
-
-.search-form {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-.search-input {
-  flex: 1;
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.95em;
-  outline: none;
-}
-.search-input:focus {
-  border-color: #21ba45;
-}
-.search-btn {
-  padding: 6px 12px;
-  background: #21ba45;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9em;
-}
-.search-btn:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-.search-clear {
-  padding: 6px 10px;
-  background: none;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  color: #888;
-  font-size: 0.9em;
-}
-.search-hint {
-  font-size: 0.82em;
-  color: #888;
-  margin-bottom: 8px;
-}
-
-.accordion {
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  overflow: hidden;
-}
-.accordion-toggle {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
+.archive-pager .pg-num,
+.archive-pager .pg-arrow {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.88em;
-  color: #555;
-  text-align: left;
+  font-family: var(--font-sans);
+  color: var(--kg-green);
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1;
+  padding: 4px 6px;
 }
-.accordion-toggle:hover { background: #fafafa; }
-.accordion-icon { font-size: 0.75em; color: #aaa; }
-.accordion-body.sort-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 8px 12px 10px;
-  border-top: 1px solid #f0f0f0;
-}
-.sort-icon {
-  color: #21ba45;
-  font-size: 1.05em;
-  margin-right: 2px;
-}
-.sort-btn {
-  padding: 3px 10px;
-  font-size: 0.82em;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  background: none;
-  cursor: pointer;
-  color: #666;
-}
-.sort-btn.active {
-  border-color: #21ba45;
-  color: #21ba45;
-  background: rgba(33,186,69,0.06);
+.archive-pager .pg-num { min-width: 24px; }
+.archive-pager .pg-num.active { font-weight: 500; }
+.archive-pager .pg-arrow { font-size: 20px; padding: 4px 8px; }
+.archive-pager .pg-arrow:disabled { opacity: 0.3; cursor: default; }
+.archive-pager .pg-ellipsis {
+  color: var(--kg-green);
+  font-size: 15px;
+  padding: 0 2px;
 }
 </style>
 
@@ -230,8 +371,8 @@ export default {
       sortBy: 'completedAt',
       sortDesc: true,
       sortOptions: [
-        { value: 'completedAt', label: 'beendet am' },
-        { value: 'createdAt',   label: 'erstellt am' },
+        { value: 'completedAt', label: 'beendet' },
+        { value: 'createdAt',   label: 'erstellt' },
         { value: 'number',      label: '#' },
         { value: 'title',       label: 'Titel' },
         { value: 'totalLikes',  label: '♥' },
@@ -287,6 +428,28 @@ export default {
     pagedSessions() {
       const start = (this.page - 1) * this.perPage;
       return this.filteredSessions.slice(start, start + this.perPage);
+    },
+    // Same windowed pager as Sessions: always MAX numbers (first, last, and a
+    // 3-wide window around the current page, shifted inward at the edges) with
+    // '…' filling gaps — e.g. "1 2 3 4 … 6" on page 1, "1 … 3 4 5 6" on the last.
+    pageWindow() {
+      const total = this.totalPages;
+      const cur = this.page;
+      const MAX = 5;
+      if (total <= MAX) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+      }
+      let mid = cur - 1;
+      mid = Math.max(2, Math.min(mid, total - 3));
+      const sorted = [1, mid, mid + 1, mid + 2, total];
+      const out = [];
+      let prev = 0;
+      for (const n of sorted) {
+        if (n - prev > 1) out.push('…');
+        out.push(n);
+        prev = n;
+      }
+      return out;
     },
   },
   methods: {

@@ -1,11 +1,22 @@
 <template>
   <ooc-page>
-    <ooc-menu title="angefangene Geschichten" subtitle="schreib mit">
-      <div>
-        <div class="accordion">
+    <ooc-menu title="begonnene Geschichten" subtitle="schreib mit" title-class="sessions-title">
+      <div class="sessions-col">
+        <div class="accordion sessions-sort">
           <button class="accordion-toggle" @click="showSort = !showSort">
-            <span><span class="sort-icon">⇅</span> {{ currentSortLabel }}</span>
-            <span class="accordion-icon">{{ showSort ? '▲' : '▼' }}</span>
+            <span>
+              <!-- XD sort glyph (exact geometry): two bars, left arrow down +
+                   right arrow up. 0.7px stroke, matching the XD lines. -->
+              <svg viewBox="0 0 14 8" class="sort-svg" aria-hidden="true">
+                <line x1="3.5" y1="1" x2="3.5" y2="7"/>
+                <line x1="0.5" y1="4.5" x2="3.5" y2="7.5"/>
+                <line x1="6.5" y1="4.5" x2="3.5" y2="7.5"/>
+                <line x1="10.5" y1="1" x2="10.5" y2="7"/>
+                <line x1="7.5" y1="3.5" x2="10.5" y2="0.5"/>
+                <line x1="13.5" y1="3.5" x2="10.5" y2="0.5"/>
+              </svg>
+              {{ currentSortLabel }}
+            </span>
           </button>
           <div v-if="showSort" class="accordion-body sort-options">
             <button
@@ -22,7 +33,7 @@
         <div v-if="loading" style="text-align: center; padding: 24px">
           <sui-loader active inline centered>lädt</sui-loader>
         </div>
-        <div v-else>
+        <div v-else class="sessions-list">
           <div v-if="activeSessions.length === 0"
             style="text-align: center; padding: 24px; color: #888;">
             keine angefangenen Geschichten vorhanden
@@ -31,34 +42,36 @@
           </div>
 
           <div v-for="session in pagedSessions" :key="session.code" class="session-card">
-            <div class="session-title">
-              {{ session.title }}
-              <span v-if="storyNumber(session.title)" class="session-number">#{{ storyNumber(session.title) }}</span>
+            <div class="session-head">
+              <span class="session-title">{{ session.title }}</span>
+              <span v-if="session.playersOnline > 0" class="session-online">{{ session.playersOnline }} online</span>
+              <span v-if="session.number" class="session-number">#{{ session.number }}</span>
             </div>
-            <div v-if="session.teaser" class="session-teaser">„{{ session.teaser }}"</div>
-            <div class="session-meta">
-              <span v-if="session.playersOnline > 0">{{ session.playersOnline }} online</span>
-            </div>
-            <div class="kg-progress session-progress">
-              <div class="kg-progress__fill" :style="{ width: Math.round((session.progress || 0) * 100) + '%' }"></div>
+            <div v-if="session.teaser" class="session-teaser">{{ session.teaser }}</div>
+            <div class="session-progress">
+              <div class="session-progress__fill"
+                :style="{ width: Math.round((session.progress || 0) * 100) + '%' }"></div>
             </div>
             <div class="session-footer">
               <span class="session-age">{{ timeAgo(session.lastActivity) }}</span>
-              <sui-button size="tiny" color="green" @click="joinSession(session.code)">
+              <button class="write-btn write-btn--solid session-join"
+                @click="joinSession(session.code)">
                 mitschreiben
-              </sui-button>
+              </button>
             </div>
           </div>
         </div>
 
-        <div v-if="totalPages > 1" class="pagination">
-          <sui-button icon size="small" :disabled="page === 1" @click="page--">
-            <sui-icon name="chevron left"/>
-          </sui-button>
-          <span class="page-info">{{ page }} / {{ totalPages }}</span>
-          <sui-button icon size="small" :disabled="page === totalPages" @click="page++">
-            <sui-icon name="chevron right"/>
-          </sui-button>
+        <div v-if="totalPages > 1" class="sessions-pager">
+          <button class="pg-arrow" :disabled="page === 1"
+            aria-label="vorherige Seite" @click="page = Math.max(1, page - 1)">‹</button>
+          <template v-for="(p, i) in pageWindow">
+            <button v-if="typeof p === 'number'" :key="'p' + i"
+              class="pg-num" :class="{ active: p === page }" @click="page = p">{{ p }}</button>
+            <span v-else :key="'e' + i" class="pg-ellipsis">…</span>
+          </template>
+          <button class="pg-arrow" :disabled="page === totalPages"
+            aria-label="nächste Seite" @click="page = Math.min(totalPages, page + 1)">›</button>
         </div>
       </div>
     </ooc-menu>
@@ -67,114 +80,221 @@
 </template>
 
 <style>
-.pagination {
+/* Keep "begonnene Geschichten" on a single centred line. The global .title
+   allows wrapping (desktop-centering fix); here we override with nowrap. This
+   column (320px) is narrower than Home's section title column, so the XD's
+   33px doesn't fit here — 30px is the largest size that stays on one line. */
+.menu .title.sessions-title {
+  white-space: nowrap;
+  font-size: clamp(22px, 7.6vw, 30px);
+}
+
+/* Numbered pager (XD): 15px green numbers, current one Metropolis Medium,
+   flanked by ‹ › chevrons. Windowed to at most 5 numbers (+ … ellipsis) so it
+   never wraps in the 310px column. */
+.sessions-pager {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 4px;
+  margin: 10px 0 4px;
 }
-.page-info {
-  font-size: 0.9em;
-  color: #888;
-}
-
-.session-card {
-  border: 1px solid rgba(34, 36, 38, 0.15);
-  border-radius: 4px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  text-align: left;
-}
-
-.session-title {
-  font-weight: bold;
-  font-size: 1.05em;
-  margin-bottom: 2px;
-}
-.session-number {
-  font-weight: normal;
-  font-size: 0.78em;
-  color: #aaa;
-  margin-left: 5px;
-}
-
-.session-meta {
-  font-size: 0.88em;
-  color: #888;
-  margin-bottom: 4px;
-}
-
-.kg-progress.session-progress {
-  margin: 10px 0 0;
-}
-
-.session-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 6px;
-}
-
-.session-age {
-  font-size: 0.82em;
-  color: #aaa;
-}
-
-.session-complete {
-  opacity: 0.85;
-}
-
-.session-teaser {
-  font-family: 'Lora', serif;
-  font-style: italic;
-  font-size: 0.92em;
-  color: #444;
-  margin: 4px 0;
-}
-
-.accordion {
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  overflow: hidden;
-}
-.accordion-toggle {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
+.sessions-pager .pg-num,
+.sessions-pager .pg-arrow {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.88em;
-  color: #555;
+  font-family: var(--font-sans);
+  color: var(--kg-green);
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1;
+  padding: 4px 6px;
+}
+.sessions-pager .pg-num {
+  min-width: 24px;
+}
+.sessions-pager .pg-num.active {
+  font-weight: 500;
+}
+.sessions-pager .pg-arrow {
+  font-size: 20px;
+  padding: 4px 8px;
+}
+.sessions-pager .pg-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.sessions-pager .pg-ellipsis {
+  color: var(--kg-green);
+  font-size: 15px;
+  padding: 0 2px;
+}
+
+/* --- Session cards (XD artboard 7e09c9f6) -----------------------------------
+   Card: 310x152 r23, white fill, #19421E 2px border. Title Metropolis Medium
+   13px, #number italic 11px muted, teaser Metropolis Light 13px, a 2px
+   progress bar (#19421E 25% track + solid fill), age italic 11px + green pill. */
+/* Content column: XD cards are 310 wide (centred), so cap the sort control and
+   the card list at 310 instead of filling the ~352 menu container. */
+.sessions-col {
+  width: 310px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Scoped under .sessions-list so these beat the global .session-* rules that
+   Archive.vue also defines (both pages share the class names). */
+.sessions-list .session-card {
+  border: 2px solid var(--kg-green);
+  border-radius: 23px;
+  background: var(--kg-cream);   /* same cream as the page background */
+  padding: 18px 20px 16px;
+  margin-bottom: 20px;
+  text-align: left;
+  color: var(--kg-green);
+}
+
+.sessions-list .session-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.sessions-list .session-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--kg-green);
+}
+/* #code flush right (aligns with the mitschreiben button), leaving room for
+   long AI-generated titles that wrap under it. */
+.sessions-list .session-number {
+  flex: none;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-muted);
+}
+.sessions-list .session-online {
+  flex: none;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-muted);
+}
+
+.sessions-list .session-teaser {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: normal;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--kg-green);
+  margin: 8px 0 0;
+}
+
+/* 2px rule: 25%-opacity green track with a solid green fill (round caps). */
+.sessions-list .session-progress {
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(25, 66, 30, 0.25);
+  margin: 18px 0 0;
+  overflow: hidden;
+}
+.sessions-list .session-progress__fill {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--kg-green);
+}
+
+.sessions-list .session-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+.sessions-list .session-age {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-green);
+}
+/* Compact green pill sized to "mitschreiben" (.write-btn is global, Story.vue).
+   Zero the global button margins so space-between flushes it to the card's
+   right padding edge. */
+.sessions-list .session-join.write-btn {
+  min-width: 0;
+  width: auto;
+  margin: 0;
+  padding: 0 18px;
+  height: 26px;
+}
+
+/* Sort control: the XD shows a plain italic "⇅ zuletzt" label, no boxed
+   accordion. Keep the toggle logic but strip the border/background. Scoped
+   under .sessions-sort to beat the global .accordion styles from other pages. */
+.sessions-sort.accordion {
+  border: none;
+  border-radius: 0;
+  margin-bottom: 18px;
+  overflow: visible;
   text-align: left;
 }
-.accordion-toggle:hover { background: #fafafa; }
-.accordion-icon { font-size: 0.75em; color: #aaa; }
-.accordion-body.sort-options {
+.sessions-sort .accordion-toggle {
+  width: auto;
+  display: inline-flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-green);
+  text-align: left;
+}
+.sessions-sort .accordion-toggle:hover { background: none; }
+/* XD sort glyph (two bars: left arrow down, right arrow up). viewBox 14x8 at
+   14x8px keeps a 1:1 scale so stroke-width maps straight to the XD 0.7px. */
+.sort-svg {
+  width: 14px;
+  height: 8px;
+  flex: none;
+  stroke: var(--kg-green);
+  stroke-width: 0.7;
+  stroke-linecap: round;
+  vertical-align: -1px;
+  margin-right: 3px;
+}
+.sessions-sort .accordion-body.sort-options {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 8px 12px 10px;
-  border-top: 1px solid #f0f0f0;
+  padding: 8px 0 2px;
+  border-top: none;
 }
-.sort-icon { color: #21ba45; font-size: 1.05em; margin-right: 2px; }
-.sort-btn {
-  padding: 3px 10px;
-  font-size: 0.82em;
-  border: 1px solid #ddd;
-  border-radius: 12px;
+.sessions-sort .sort-btn {
+  padding: 3px 12px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  border: 1.5px solid var(--kg-green);
+  border-radius: var(--kg-radius-pill);
   background: none;
   cursor: pointer;
-  color: #666;
+  color: var(--kg-green);
 }
-.sort-btn.active {
-  border-color: #21ba45;
-  color: #21ba45;
-  background: rgba(33,186,69,0.06);
+.sessions-sort .sort-btn.active {
+  color: var(--kg-cream);
+  background: var(--kg-green);
 }
 </style>
 
@@ -220,6 +340,33 @@ export default {
     pagedSessions() {
       const start = (this.page - 1) * this.perPage;
       return this.sortedSessions.slice(start, start + this.perPage);
+    },
+    // Page numbers to show in the pager. Always exactly MAX numbers when there
+    // are that many pages: first, last, and a 3-wide window around the current
+    // page (current ±1). At the edges the window shifts inward so the count
+    // stays at MAX, e.g. "1 2 3 4 … 6" on page 1 or "1 … 3 4 5 6" on the last.
+    // '…' fills any gap between the shown numbers.
+    pageWindow() {
+      const total = this.totalPages;
+      const cur = this.page;
+      const MAX = 5;
+      if (total <= MAX) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+      }
+      // 3-wide middle block within [2, total-1], centred on cur, shifted to
+      // stay in range; combined with first (1) and last (total) → 5 numbers.
+      let mid = cur - 1;
+      mid = Math.max(2, Math.min(mid, total - 3));
+      const middle = [mid, mid + 1, mid + 2];
+      const sorted = [1, ...middle, total];
+      const out = [];
+      let prev = 0;
+      for (const n of sorted) {
+        if (n - prev > 1) out.push('…');
+        out.push(n);
+        prev = n;
+      }
+      return out;
     },
   },
   watch: {

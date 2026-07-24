@@ -1,45 +1,118 @@
 <template>
-  <sui-dimmer :active="active" style="position: fixed">
+  <sui-dimmer :active="active" class="code-dimmer" style="position: fixed">
     <sui-form
            @submit="testLobby"
       :error="lobbyError"
-      :loading="testingLobby">
-      <sui-card>
-        <sui-card-content>
-          <sui-card-header>
-            Raum beitreten
-          </sui-card-header>
-        </sui-card-content>
-        <sui-card-content>
-          <sui-form-field
-            :error="lobbyError">
-            <label>Code</label>
-            <input name="lobbyCode"
-              required
-              @input="lobbyError = false"
-              :type="hideLobbyCode ? 'password' : 'text'"
-              autocomplete="off"
-              placeholder="1c1b">
-          </sui-form-field>
-          <sui-button
-            color="blue"
-                       type="submit">
-            beitreten
-          </sui-button>
-          <sui-button
-                       type="button"
-            @click="$emit('close')">
-            zurück
-          </sui-button>
-        </sui-card-content>
-      </sui-card>
-      <sui-message
-        error
-        header="ungültiger Code"
-        content="Der Code ist falsch oder der Raum existiert nicht mehr"/>
+      :loading="testingLobby"
+      class="code-form">
+      <h1 class="code-title">Raum beitreten</h1>
+      <sui-form-field :error="lobbyError">
+        <input class="code-input"
+          name="lobbyCode"
+          required
+          @input="lobbyError = false"
+          :type="hideLobbyCode ? 'password' : 'text'"
+          autocomplete="off"
+          placeholder="1c1b">
+      </sui-form-field>
+      <div v-if="lobbyError" class="code-error">
+        Der Code ist falsch oder der Raum existiert nicht mehr
+      </div>
+      <div class="code-buttons">
+        <!-- shared compact pill (.write-btn is a global class, see Story.vue) -->
+        <button type="button" class="write-btn write-btn--outline" @click="$emit('close')">
+          zurück
+        </button>
+        <button type="submit" class="write-btn write-btn--solid">
+          beitreten
+        </button>
+      </div>
     </sui-form>
   </sui-dimmer>
 </template>
+
+<style>
+.code-dimmer.ui.dimmer {
+  background: var(--kg-cream);
+  /* Sit below the sticky torn-paper header (z-index 100 in Page.vue) so it
+     stays visible, and top-align the content like the XD instead of Semantic's
+     default vertical centring. Force a column layout so justify-content
+     top-aligns and padding-top places the title where the artboard has it. */
+  z-index: 90;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 150px;
+}
+.code-form {
+  /* Fixed 313 (XD) so the field stays wider than the 238 button row; in a flex
+     column a max-width alone shrinks to the widest child (the buttons). */
+  width: 313px;
+  max-width: 88%;
+  margin: 0 auto;
+  text-align: center;
+}
+.code-title {
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 33px;
+  color: var(--kg-green);
+  margin: 0 0 22px;
+}
+.ui.form input.code-input {
+  width: 100%;
+  height: 33px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--kg-green);
+  border-radius: 17px;
+  background: var(--kg-cream);   /* unfilled = same cream as the page */
+  padding: 0 20px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--kg-green);
+  text-align: left;
+}
+/* Keep the pill (and clean styling) in every state — focus and Semantic's
+   error state both otherwise reshape/recolour the input. */
+.ui.form input.code-input:focus,
+.ui.form .field.error input.code-input {
+  border-radius: 17px;
+  background: var(--kg-cream);
+  outline: none;
+}
+.ui.form input.code-input:focus {
+  border-color: var(--kg-green);
+  box-shadow: 0 0 0 2px rgba(25, 66, 30, 0.12);
+}
+.ui.form .field.error input.code-input {
+  border-color: #db2828;
+  color: var(--kg-green);
+}
+.ui.form input.code-input::placeholder {
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-muted);
+}
+.code-error {
+  margin-top: 8px;
+  font-size: 11px;
+  font-style: italic;
+  color: #db2828;
+}
+.code-buttons {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 18px;
+}
+/* Fixed 112px each (XD) so the two-button row is narrower than the 313 input. */
+.code-buttons .write-btn {
+  margin: 0;
+  width: 112px;
+  min-width: 0;
+  padding: 0;
+}
+</style>
 
 <script>
 module.exports = {

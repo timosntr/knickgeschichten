@@ -6,6 +6,7 @@ import PortalVue from 'portal-vue';
 
 import './style.css';
 import '../res/favicon.ico';
+import '../res/og-image.png';
 import appleTouchIcon from '../res/apple-touch-icon.png';
 
 // iOS home-screen icon (KG logo)
