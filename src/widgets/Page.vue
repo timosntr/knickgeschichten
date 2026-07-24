@@ -70,8 +70,8 @@ body {
 
 .top-bar-logo svg {
   display: block;
-  width: 30px;
-  height: 30px;
+  width: 38px;                     /* XD: 38x37 */
+  height: 37px;
   fill: currentColor;
 }
 
