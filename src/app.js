@@ -33,11 +33,19 @@ Vue.prototype.setLobbyHidden = isHidden => {
 };
 
 
+// Stable per-browser id, used server-side to recognize the same visitor
+// across reconnects/reloads (e.g. so a like can't be repeated by refreshing).
+if (!localStorage.kgClientId) {
+  localStorage.kgClientId = window.crypto && window.crypto.randomUUID
+    ? window.crypto.randomUUID()
+    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
 Vue.use(VueRouter);
 Vue.use(PortalVue);
 Vue.use(SemanticUI);
 Vue.use(new VueSocketIO({
-  connection: io(),
+  connection: io({ query: { kgClientId: localStorage.kgClientId } }),
 }));
 
 const router = new VueRouter({
