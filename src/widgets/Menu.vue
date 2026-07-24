@@ -44,10 +44,10 @@
   <div>
     <div class="menu">
       <header>
-        <div class="title">
+        <div class="title" v-if="title">
           {{title}}
         </div>
-        <div class="subtitle">
+        <div class="subtitle" v-if="subtitle">
           {{subtitle}}
         </div>
       </header>

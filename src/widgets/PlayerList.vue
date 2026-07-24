@@ -1,7 +1,7 @@
 <template>
   <div class="player-list-widget">
     <sui-divider horizontal >
-      Lobby Members<span
+      Schreibraum<span
         v-if="lobbyState === 'PLAYING' && $route.params.code"
         class="lobby-code-inline">{{ $route.params.code.toUpperCase() }}</span>
     </sui-divider>
@@ -9,12 +9,12 @@
       <sui-table-header>
         <sui-table-row>
           <th style="position: relative;">
-            Players
+            Autor*innen
           </th>
         </sui-table-row>
       </sui-table-header>
       <sui-table-body>
-        <sui-table-row v-for="p in players"
+        <sui-table-row v-for="p in sortedPlayers"
           :key="p.playerId"
           :negative="!p.connected"
           :positive="$root.playerId === p.id">
@@ -25,16 +25,12 @@
                 size="tiny"
                 @click="$socket.emit('lobby:replace', p.playerId)"
                                basic>
-                Join
+                beitreten
               </sui-button>
                <sui-icon
                 v-if="admin === p.id"
                 color="grey"
                 name="shield"/>
-              <sui-icon
-                v-if="$root.playerId === p.id"
-                color="grey"
-                name="user"/>
               <sui-icon
                 v-if="gameState.icons[p.playerId]"
                 color="grey"
@@ -48,7 +44,7 @@
         </sui-table-row>
         <sui-table-row v-if="!players.length">
           <td>
-            <i>No Players</i>
+            <i>keine Autor*innen da</i>
           </td>
         </sui-table-row>
       </sui-table-body>
@@ -58,7 +54,7 @@
                color="red"
         @click="tryEndGame"
         v-if="$root.playerId === admin && lobbyState === 'PLAYING' && !gameState.reading">
-        {{confirmEndGame ? 'Are You Sure?' : 'End Game'}}
+        {{confirmEndGame ? 'bist du sicher?' : 'Geschichten beenden'}}
       </sui-button>
     </div>
   </div>
@@ -121,6 +117,13 @@ export default {
     // never see the "Join" button on someone else's disconnected slot.
     isActivePlayer() {
       return this.players.some(p => p.id === this.$root.playerId && p.connected);
+    },
+    // Put the viewer's own row first so they can find themselves at a glance;
+    // everyone else keeps the server's order. Sorts a copy — `players` is a
+    // prop and must not be mutated.
+    sortedPlayers() {
+      const self = this.$root.playerId;
+      return [...this.players].sort((a, b) => (b.id === self) - (a.id === self));
     },
   },
   data() {
