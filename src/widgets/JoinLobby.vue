@@ -7,39 +7,36 @@
       <sui-card>
         <sui-card-content>
           <sui-card-header>
-            Join a Lobby
+            Raum beitreten
           </sui-card-header>
-          <sui-card-meta>
-            Enter the code for an existing lobby
-          </sui-card-meta>
         </sui-card-content>
         <sui-card-content>
           <sui-form-field
             :error="lobbyError">
-            <label>Lobby Code</label>
+            <label>Code</label>
             <input name="lobbyCode"
               required
               @input="lobbyError = false"
               :type="hideLobbyCode ? 'password' : 'text'"
               autocomplete="off"
-              placeholder="c0d3">
+              placeholder="1c1b">
           </sui-form-field>
           <sui-button
             color="blue"
                        type="submit">
-            Join
+            beitreten
           </sui-button>
           <sui-button
                        type="button"
             @click="$emit('close')">
-            Cancel
+            zurück
           </sui-button>
         </sui-card-content>
       </sui-card>
       <sui-message
         error
-        header="Invalid Lobby Code"
-        content="This lobby does not exist"/>
+        header="ungültiger Code"
+        content="Der Code ist falsch oder der Raum existiert nicht mehr"/>
     </sui-form>
   </sui-dimmer>
 </template>

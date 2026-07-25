@@ -1,10 +1,10 @@
 <template>
   <ooc-page>
-    <ooc-menu title="Offene Storys" subtitle="Mach mit beim Schreiben">
+    <ooc-menu title="angefangene Geschichten" subtitle="schreib mit">
       <div>
         <div class="accordion">
           <button class="accordion-toggle" @click="showSort = !showSort">
-            <span>Sortieren nach <span class="sort-active-label">· {{ currentSortLabel }}</span></span>
+            <span><span class="sort-icon">⇅</span> {{ currentSortLabel }}</span>
             <span class="accordion-icon">{{ showSort ? '▲' : '▼' }}</span>
           </button>
           <div v-if="showSort" class="accordion-body sort-options">
@@ -20,14 +20,14 @@
         </div>
 
         <div v-if="loading" style="text-align: center; padding: 24px">
-          <sui-loader active inline centered>Laden...</sui-loader>
+          <sui-loader active inline centered>lädt</sui-loader>
         </div>
         <div v-else>
           <div v-if="activeSessions.length === 0"
             style="text-align: center; padding: 24px; color: #888;">
-            Keine offenen Storys vorhanden.
+            keine angefangenen Geschichten vorhanden
             <br>
-            <router-link to="/">Neue starten!</router-link>
+            <router-link to="/">neue Geschichte starten</router-link>
           </div>
 
           <div v-for="session in pagedSessions" :key="session.code" class="session-card">
@@ -39,10 +39,13 @@
             <div class="session-meta">
               <span v-if="session.playersOnline > 0">{{ session.playersOnline }} online</span>
             </div>
+            <div class="kg-progress session-progress">
+              <div class="kg-progress__fill" :style="{ width: Math.round((session.progress || 0) * 100) + '%' }"></div>
+            </div>
             <div class="session-footer">
-              <span class="session-age">{{ timeAgo(session.createdAt) }}</span>
+              <span class="session-age">{{ timeAgo(session.lastActivity) }}</span>
               <sui-button size="tiny" color="green" @click="joinSession(session.code)">
-                Mitmachen
+                mitschreiben
               </sui-button>
             </div>
           </div>
@@ -56,12 +59,6 @@
           <sui-button icon size="small" :disabled="page === totalPages" @click="page++">
             <sui-icon name="chevron right"/>
           </sui-button>
-        </div>
-
-        <div style="margin-top: 16px; text-align: center">
-          <router-link is="sui-button" to="/" size="small" basic>
-            Zurück
-          </router-link>
         </div>
       </div>
     </ooc-menu>
@@ -106,6 +103,10 @@
   font-size: 0.88em;
   color: #888;
   margin-bottom: 4px;
+}
+
+.kg-progress.session-progress {
+  margin: 10px 0 0;
 }
 
 .session-footer {
@@ -160,7 +161,7 @@
   padding: 8px 12px 10px;
   border-top: 1px solid #f0f0f0;
 }
-.sort-active-label { color: #21ba45; font-size: 0.92em; }
+.sort-icon { color: #21ba45; font-size: 1.05em; margin-right: 2px; }
 .sort-btn {
   padding: 3px 10px;
   font-size: 0.82em;
@@ -190,8 +191,8 @@ export default {
       sortBy: 'lastActivity',
       sortDesc: true,
       sortOptions: [
-        { value: 'lastActivity', label: 'Zuletzt bearbeitet' },
-        { value: 'number',       label: 'Nummer' },
+        { value: 'lastActivity', label: 'zuletzt' },
+        { value: 'number',       label: '#' },
       ],
     };
   },
@@ -247,13 +248,14 @@ export default {
     joinSession(code) {
       this.$router.push(`/lobby/${code}`);
     },
+    // Relative time since the last contribution
     timeAgo(ts) {
-      const diff = Date.now() - ts;
+      const diff = Date.now() - (ts || 0);
       const mins = Math.floor(diff / 60000);
       if (mins < 1) return 'gerade eben';
-      if (mins < 60) return `vor ${mins} Min.`;
+      if (mins < 60) return `vor ${mins} Minute${mins !== 1 ? 'n' : ''}`;
       const hrs = Math.floor(mins / 60);
-      if (hrs < 24) return `vor ${hrs} Std.`;
+      if (hrs < 24) return `vor ${hrs} Stunde${hrs !== 1 ? 'n' : ''}`;
       const days = Math.floor(hrs / 24);
       return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
     },
