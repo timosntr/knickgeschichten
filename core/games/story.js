@@ -308,7 +308,15 @@ module.exports = class Story extends Game {
 
       for(const player of players) {
         const playerObj = this.lobby.players.find(p => p.playerId === player);
-        const memberId = playerObj ? playerObj.id : '';
+        // Never hand a chain to someone who isn't actually here. After a server
+        // restart the game is rebuilt from the saved member list, so
+        // this.players can still name authors who are long gone (offline, closed
+        // tab). Without this guard redistribute() would assign a freed chain to
+        // one of those ghosts, whose editor slot then never clears — the next
+        // real joiner is stuck on "Warte auf den nächsten Abschnitt" forever.
+        if (!playerObj || !playerObj.connected)
+          continue;
+        const memberId = playerObj.id;
         const story = this.findChainForPlayer(player, memberId);
         if(!story)
           continue;
