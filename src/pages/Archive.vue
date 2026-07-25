@@ -1,17 +1,17 @@
 <template>
   <ooc-page>
-    <ooc-menu title="Archiv" subtitle="Fertige Geschichten lesen">
+    <ooc-menu title="Archiv" subtitle="abgeschlossene Geschichten">
       <div>
         <form class="search-form" @submit.prevent="submitSearch">
           <input
             v-model="searchQuery"
             class="search-input"
             type="text"
-            placeholder="Titel, Autor …"
+            placeholder="#, Titel, Autor*in, Stichwort"
             @input="onSearchInput"
           />
           <button type="submit" class="search-btn" :disabled="searching">
-            {{ searching ? '…' : 'Suchen' }}
+            {{ searching ? '…' : 'suchen' }}
           </button>
           <button v-if="hasSearch" type="button" class="search-clear" @click="clearSearch">✕</button>
         </form>
@@ -21,7 +21,7 @@
 
         <div class="accordion">
           <button class="accordion-toggle" @click="showSort = !showSort">
-            <span>Sortieren nach <span class="sort-active-label">· {{ currentSortLabel }}</span></span>
+            <span><span class="sort-icon">⇅</span> {{ currentSortLabel }}</span>
             <span class="accordion-icon">{{ showSort ? '▲' : '▼' }}</span>
           </button>
           <div v-if="showSort" class="accordion-body sort-options">
@@ -37,12 +37,12 @@
         </div>
 
         <div v-if="loading" style="text-align: center; padding: 24px">
-          <sui-loader active inline centered>Laden...</sui-loader>
+          <sui-loader active inline centered>lädt</sui-loader>
         </div>
         <div v-else>
           <div v-if="filteredSessions.length === 0"
             style="text-align: center; padding: 24px; color: #888;">
-            {{ hasSearch ? 'Keine Ergebnisse gefunden.' : 'Noch keine fertigen Storys.' }}
+            {{ hasSearch ? 'keine Ergebnisse gefunden' : 'noch keine abgeschlossenen Geschichten' }}
           </div>
 
           <div v-for="session in pagedSessions" :key="session.code" class="session-card">
@@ -51,13 +51,15 @@
               <span v-if="session.number" class="session-number">#{{ session.number }}</span>
             </div>
             <div v-if="session.teaser" class="session-teaser">„{{ session.teaser }}"</div>
-            <div class="session-meta">
-              {{ session.numAuthors }} {{ session.numAuthors === 1 ? 'Autor' : 'Autoren' }}
-            </div>
             <div class="session-footer">
-              <span class="session-age">{{ timeAgo(session.createdAt) }}</span>
+              <span class="session-meta">
+                <span class="session-age">{{ dateSpan(session.createdAt, session.completedAt) }}</span>
+                <span v-if="session.totalLikes > 0" class="session-likes">
+                  <span class="session-likes__heart">♥</span> {{ session.totalLikes }}
+                </span>
+              </span>
               <sui-button size="tiny" color="teal" @click="joinSession(session.code)">
-                Lesen
+                lesen
               </sui-button>
             </div>
           </div>
@@ -72,12 +74,6 @@
             <sui-icon name="chevron right"/>
           </sui-button>
         </div>
-
-        <div style="margin-top: 16px; text-align: center">
-          <router-link is="sui-button" to="/" size="small" basic>
-            Zurück
-          </router-link>
-        </div>
       </div>
     </ooc-menu>
     <ooc-util></ooc-util>
@@ -90,6 +86,19 @@
   font-size: 0.78em;
   color: #aaa;
   margin-left: 5px;
+}
+.session-meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.session-likes {
+  font-size: 0.82em;
+  color: #999;
+  white-space: nowrap;
+}
+.session-likes__heart {
+  color: #d66;
 }
 .session-teaser {
   font-family: 'Lora', serif;
@@ -183,9 +192,10 @@
   padding: 8px 12px 10px;
   border-top: 1px solid #f0f0f0;
 }
-.sort-active-label {
+.sort-icon {
   color: #21ba45;
-  font-size: 0.92em;
+  font-size: 1.05em;
+  margin-right: 2px;
 }
 .sort-btn {
   padding: 3px 10px;
@@ -220,11 +230,11 @@ export default {
       sortBy: 'completedAt',
       sortDesc: true,
       sortOptions: [
-        { value: 'completedAt', label: 'Beendet' },
-        { value: 'createdAt',   label: 'Erstellt' },
-        { value: 'number',      label: 'Nummer' },
+        { value: 'completedAt', label: 'beendet am' },
+        { value: 'createdAt',   label: 'erstellt am' },
+        { value: 'number',      label: '#' },
         { value: 'title',       label: 'Titel' },
-        { value: 'totalLikes',  label: 'Likes' },
+        { value: 'totalLikes',  label: '♥' },
       ],
     };
   },
@@ -335,15 +345,23 @@ export default {
     joinSession(code) {
       this.$router.push(`/lobby/${code}`);
     },
-    timeAgo(ts) {
-      const diff = Date.now() - ts;
-      const mins = Math.floor(diff / 60000);
-      if (mins < 1) return 'gerade eben';
-      if (mins < 60) return `vor ${mins} Min.`;
-      const hrs = Math.floor(mins / 60);
-      if (hrs < 24) return `vor ${hrs} Std.`;
-      const days = Math.floor(hrs / 24);
-      return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
+    // Format a timestamp as DD.MM.YYYY
+    formatDate(ts) {
+      const d = new Date(ts);
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+    },
+    // Creation span of a completed story: "19.06.2026 – 21.06.2026",
+    // collapsed to a single date when start and end fall on the same day
+    // or completedAt is missing (old data).
+    dateSpan(createdAt, completedAt) {
+      if (!completedAt) return this.formatDate(createdAt);
+      // Legacy data can lack a real createdAt (falls back to "today") — if it's
+      // missing or after completion, just show the reliable completion date.
+      if (!createdAt || createdAt > completedAt) return this.formatDate(completedAt);
+      const start = this.formatDate(createdAt);
+      const end = this.formatDate(completedAt);
+      return start === end ? end : `${start} – ${end}`;
     },
   },
   created() {

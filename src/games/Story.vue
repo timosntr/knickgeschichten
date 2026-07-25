@@ -10,16 +10,15 @@
       </p>
     </div>
     <div v-else-if="submitted" style="margin: 16px 0">
-      <sui-icon name="check circle" color="green" size="large"/>
-      <p style="margin-top: 8px; font-size: 1.05em; font-weight: bold;">Beitrag gesendet!</p>
+      <p style="margin-top: 8px; font-size: 1.05em; font-weight: bold;">erfolgreich weitergegeben</p>
 
       <div class="share-contribution">
-        <div class="share-contribution-label">Dein Beitrag:</div>
+        <div class="share-contribution-label">dein Text:</div>
         <p class="share-contribution-text">{{ submittedLine }}</p>
       </div>
 
       <p style="font-size: 0.9em; color: #555; margin-bottom: 10px">
-        Lad andere ein, die Geschichte weiterzuschreiben:
+        Lade andere ein, die Geschichte weiterzuschreiben:
       </p>
       <div class="share-buttons">
         <sui-button color="green" @click="shareLink">
@@ -32,29 +31,31 @@
       <div v-if="linkCopied" style="font-size:0.82em; color:#21ba45; margin-top:6px">
         Link kopiert!
       </div>
+      <div style="margin-top: 20px;">
+        <sui-button basic size="small" @click="$router.push('/sessions')">
+          <sui-icon name="arrow left"/> zu den Geschichten
+        </sui-button>
+      </div>
     </div>
     <div v-else-if="player.state === 'EDITING'"
       style="margin: 16px 0">
       <h2 is="sui-header" icon="pencil" v-if="player.link.length !== 0">
-        {{player.isLastLink ? 'Finish the story! ' : ''}}The story so far ends with...
+        {{player.isLastLink ? 'Beende die Geschichte! ' : ''}}Die Geschichte endet gerade mit...
         <div style="margin-top: 10px">
           <div v-for="(link, i) in player.link" :key="i">
-            <sui-divider horizontal v-if="i !== 0" >Then</sui-divider>
+            <sui-divider horizontal v-if="i !== 0" >Dann</sui-divider>
             <sui-header-subheader>
               {{link}}
             </sui-header-subheader>
           </div>
         </div>
       </h2>
-      <h2 is="sui-header" icon="pencil" v-else-if="player.link.length === 0">
-        Write the first line
-      </h2>
       <div v-if="player.deadline" class="countdown" :class="{urgent: secondsLeft <= 30}">
         ⏱ {{ formattedTime }} verbleibend
       </div>
       <sui-form @submit="writeLine" >
         <sui-form-field>
-          <label>The Story Goes...</label>
+          <label>{{ player.link.length !== 0 ? 'und so geht es weiter...' : 'Der erste Satz gehört dir...' }}</label>
           <textarea v-model="line" rows="2"
             @keydown.enter.prevent
             @paste="onPaste">
@@ -72,35 +73,36 @@
         <sui-button type="submit"
           :color="player.isLastLink ? 'green' : 'blue'"
                    :disabled="line.length < 1 || line.length > 300 || wordCount < game.minWords">
-          {{player.isLastLink ? 'Finish' : 'Sign'}}
+          {{player.isLastLink ? 'beenden' : 'weitergeben'}}
         </sui-button>
         <sui-button v-if="lobby.isAsync"
           type="button"
                    basic
           @click="skipTurn"
           style="margin-top: 6px;">
-          Abbrechen
+          abbrechen
         </sui-button>
       </sui-form>
     </div>
     <div v-else-if="player.state === 'WAITING'"
       style="margin: 16px">
       <sui-loader active centered inline size="huge" >
-        Waiting on Other Authors
+        Warte auf den nächsten Abschnitt
       </sui-loader>
     </div>
     <div v-else-if="player.state === 'READING' || !player.state && stories.length">
       <sui-loader active centered inline size="huge"  v-if="!stories.length">
-        Loading Stories
+        lädt Geschichten
       </sui-loader>
       <div style="text-align: left">
-        <div style="text-align: right; margin-bottom: 8px; display: flex; justify-content: flex-end; gap: 16px;">
+        <div style="text-align: right; margin-bottom: 8px; display: flex; justify-content: flex-end; align-items: center; gap: 16px;">
           <button class="view-toggle" @click="exportPdf" :disabled="exportingPdf">
             {{ exportingPdf ? 'erzeuge pdf …' : 'als pdf exportieren' }}
           </button>
-          <button class="view-toggle" @click="flowView = !flowView">
-            {{ flowView ? 'Beiträge' : 'Fließtext' }}
-          </button>
+          <div class="view-switch">
+            <button type="button" :class="{ active: flowView }" @click="flowView = true">Fließtext</button>
+            <button type="button" :class="{ active: !flowView }" @click="flowView = false">Abschnitte</button>
+          </div>
         </div>
         <div v-for="(story, i) in stories" :key="i">
           <sui-divider horizonal v-if="i > 0" ></sui-divider>
@@ -147,28 +149,25 @@
           @click="$socket.emit('game:message', 'story:done', game.icons[player.id] !== 'check')"
           color="blue"
           :basic="game.icons[player.id] === 'check'">
-          {{game.icons[player.id] === 'check' ? 'Still Reading' : 'Done Reading'}}
+          {{game.icons[player.id] === 'check' ? 'lese noch' : 'durchgelesen'}}
         </sui-button>
         <sui-button
           v-if="lobby.isAsync"
           basic
           size="small"
           @click="leaveToArchive">
-          Zurück
+          zurück
         </sui-button>
       </div>
     </div>
     <div v-else style="margin: 16px">
       <sui-loader active centered inline size="huge" >
-        Stories are Being Written
+        warte auf ander*n Autor*in
       </sui-loader>
     </div>
-    <sui-progress
-           v-if="game.progress > 0 && game.progress !== 1"
-      state="active"
-      progress
-      indicating
-      :percent="Math.round(game.progress * 100)"/>
+    <div class="kg-progress" style="margin-top: 14px" v-if="game.progress > 0 && game.progress !== 1">
+      <div class="kg-progress__fill" :style="{ width: Math.round(game.progress * 100) + '%' }"></div>
+    </div>
   </div>
 </template>
 
@@ -228,19 +227,56 @@
   padding: 6px 10px 0;
 }
 
+.view-switch {
+  display: inline-flex;
+  border: 1px solid rgba(25, 66, 30, 0.25);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* PDF-export action next to the Fließtext/Abschnitte switch — same quiet,
+   uppercase register so it reads as a sibling control, not a loud button. */
 .view-toggle {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.78em;
-  color: #aaa;
-  letter-spacing: 0.03em;
+  font-size: 0.72em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 0;
+  color: #8a8a83;
+  padding: 4px 4px;
+  transition: color 0.15s;
 }
 
-.view-toggle:hover {
+.view-toggle:hover:not(:disabled) {
+  color: var(--kg-green, #19421e);
+}
+
+.view-toggle:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.view-switch button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.72em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a8a83;
+  padding: 4px 12px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.view-switch button:hover:not(.active) {
   color: #555;
+}
+
+.view-switch button.active {
+  background: #19421e;
+  color: #fff;
+  font-weight: 700;
 }
 
 .flow-text {
@@ -453,7 +489,7 @@ export default {
       }
       const parts = [...named];
       if (hasAnon) parts.push('Anonym');
-      return parts.length ? 'Von: ' + parts.join(', ') : '';
+      return parts.length ? 'von: ' + parts.join(', ') : '';
     },
     inviteUrl() {
       return `${location.origin}/einladen/${this.$route.params.code}`;

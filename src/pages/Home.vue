@@ -63,27 +63,27 @@
           class="kg-btn kg-btn--solid"
           :disabled="!connected || creatingAsync"
           @click="createAsync">
-          Neue öffentliche Story starten
+          öffentliche Geschichte starten
         </button>
 
         <!-- Private Geschichten -->
-        <div class="kg-divider"><span>Private Geschichten</span></div>
+        <div class="kg-divider"><span>private Geschichten</span></div>
         <button
           class="kg-btn kg-btn--outline"
           :disabled="!connected || creatingLobby"
           @click="createLobby">
-          Lobby erstellen
+          Raum erstellen
         </button>
         <button
           class="kg-btn kg-btn--outline"
           :disabled="!connected || showJoinLobby"
           @click="showJoinLobby = true">
-          Lobby beitreten
+          Raum beitreten
         </button>
 
         <!-- Öffentliche Geschichten Karussell -->
         <section v-if="recentSessions.length > 0" class="kg-sheet">
-          <h2 class="kg-sheet__title">Öffentliche Geschichten</h2>
+          <h2 class="kg-sheet__title">angefangene Geschichten</h2>
           <div class="carousel"
             @touchstart="onTouchStart"
             @touchend="onTouchEnd"
@@ -97,7 +97,7 @@
                 <div class="kg-card kg-card--outline" :key="carouselIndex" @click="$router.push(`/lobby/${recentSessions[carouselIndex].code}`)">
                   <div class="kg-card__top">
                     <h3 class="kg-card__title">{{ recentSessions[carouselIndex].title }}</h3>
-                    <span class="kg-card__id">#{{ recentSessions[carouselIndex].number }}</span>
+                    <span v-if="recentSessions[carouselIndex].number" class="kg-card__id">#{{ recentSessions[carouselIndex].number }}</span>
                   </div>
                   <p v-if="recentSessions[carouselIndex].teaser" class="kg-card__body">
                     „{{ recentSessions[carouselIndex].teaser }}"
@@ -113,7 +113,7 @@
                         · {{ recentSessions[carouselIndex].playersOnline }} online
                       </template>
                     </span>
-                    <span class="kg-pill kg-pill--solid">Beitreten</span>
+                    <span class="kg-pill kg-pill--solid">beitreten</span>
                   </div>
                 </div>
               </transition>
@@ -142,17 +142,21 @@
                 <div class="kg-card kg-card--dark" :key="archiveIndex" @click="$router.push(`/lobby/${recentCompleted[archiveIndex].code}`)">
                   <div class="kg-card__top">
                     <h3 class="kg-card__title">{{ recentCompleted[archiveIndex].title }}</h3>
-                    <span class="kg-card__id">#{{ recentCompleted[archiveIndex].number }}</span>
+                    <span v-if="recentCompleted[archiveIndex].number" class="kg-card__id">#{{ recentCompleted[archiveIndex].number }}</span>
                   </div>
                   <p v-if="recentCompleted[archiveIndex].teaser" class="kg-card__body">
                     „{{ recentCompleted[archiveIndex].teaser }}"
                   </p>
                   <div class="kg-card__foot">
-                    <span class="kg-card__time">
-                      {{ timeAgo(recentCompleted[archiveIndex].createdAt) }}
-                      · {{ recentCompleted[archiveIndex].numAuthors }} {{ recentCompleted[archiveIndex].numAuthors === 1 ? 'Autor' : 'Autoren' }}
+                    <span class="kg-card__meta">
+                      <span class="kg-card__time">
+                        {{ dateSpan(recentCompleted[archiveIndex].createdAt, recentCompleted[archiveIndex].completedAt) }}
+                      </span>
+                      <span v-if="recentCompleted[archiveIndex].totalLikes > 0" class="kg-card__likes">
+                        ♥ {{ recentCompleted[archiveIndex].totalLikes }}
+                      </span>
                     </span>
-                    <span class="kg-pill kg-pill--cream">Lesen</span>
+                    <span class="kg-pill kg-pill--cream">lesen</span>
                   </div>
                 </div>
               </transition>
@@ -451,6 +455,16 @@
   margin-top: 14px;
 }
 .kg-card__time { font-size: 11px; font-style: italic; opacity: 0.85; }
+.kg-card__meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.kg-card__likes {
+  font-size: 11px;
+  opacity: 0.85;
+  white-space: nowrap;
+}
 
 .kg-pill {
   border-radius: var(--kg-radius-pill);
@@ -528,11 +542,29 @@ export default {
       const diff = Date.now() - ts;
       const mins = Math.floor(diff / 60000);
       if (mins < 1) return 'gerade eben';
-      if (mins < 60) return `vor ${mins} Min.`;
+      if (mins < 60) return `vor ${mins} Minute${mins !== 1 ? 'n' : ''}`;
       const hrs = Math.floor(mins / 60);
-      if (hrs < 24) return `vor ${hrs} Std.`;
+      if (hrs < 24) return `vor ${hrs} Stunde${hrs !== 1 ? 'n' : ''}`;
       const days = Math.floor(hrs / 24);
       return `vor ${days} Tag${days !== 1 ? 'en' : ''}`;
+    },
+    // Format a timestamp as DD.MM.YYYY
+    formatDate(ts) {
+      const d = new Date(ts);
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+    },
+    // Creation span of a completed story: "19.06.2026 – 21.06.2026",
+    // collapsed to a single date when start and end fall on the same day
+    // or completedAt is missing (old data).
+    dateSpan(createdAt, completedAt) {
+      if (!completedAt) return this.formatDate(createdAt);
+      // Legacy data can lack a real createdAt (falls back to "today") — if it's
+      // missing or after completion, just show the reliable completion date.
+      if (!createdAt || createdAt > completedAt) return this.formatDate(completedAt);
+      const start = this.formatDate(createdAt);
+      const end = this.formatDate(completedAt);
+      return start === end ? end : `${start} – ${end}`;
     },
     // Shortest circular direction from cur to next: 'slide-left' = forward.
     slideDirection(cur, next, len) {

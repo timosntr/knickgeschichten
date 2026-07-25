@@ -2,7 +2,7 @@
   <ooc-page>
     <ooc-menu :title="info ? info.title : '…'" subtitle="">
       <div v-if="loading" style="text-align:center; padding: 24px">
-        <sui-loader active inline centered>Laden...</sui-loader>
+        <sui-loader active inline centered>lädt</sui-loader>
       </div>
       <div v-else-if="notFound" style="text-align:center; padding: 24px; color: #888">
         Diese Geschichte existiert nicht mehr.
@@ -33,7 +33,7 @@
         </div>
 
         <sui-button color="green" fluid style="margin-top: 16px" @click="$router.push(`/lobby/${code}`)">
-          Jetzt weiterschreiben
+          weiterschreiben
         </sui-button>
       </div>
     </ooc-menu>
