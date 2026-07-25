@@ -53,11 +53,11 @@
             {{wordCount}} / {{game.minWords}} Wörter
           </div>
           <!-- Only surfaces once it matters, so the XD layout stays clean in the
-               normal case. Without it, going over 250 silently disables the
+               normal case. Without it, going over 300 silently disables the
                submit button while the word count still reads green — leaving no
                way to tell why the turn can't be passed on. -->
-          <div v-if="line.length > 200" class="char-count" :class="{over: line.length > 250}">
-            {{line.length}} / 250 Zeichen
+          <div v-if="line.length > 200" class="char-count" :class="{over: line.length > 300}">
+            {{line.length}} / 300 Zeichen
           </div>
           <div v-if="wordCount >= game.minWords && lastContextWords" class="preview-snippet">
             <div class="preview-label">Vorschau</div>
@@ -65,7 +65,7 @@
           </div>
         </sui-form-field>
         <button type="submit" class="write-btn write-btn--solid"
-          :disabled="line.length < 1 || line.length > 250 || wordCount < game.minWords">
+          :disabled="line.length < 1 || line.length > 300 || wordCount < game.minWords">
           {{player.isLastLink ? 'beenden' : 'weitergeben'}}
         </button>
         <button v-if="lobby.isAsync" type="button" class="write-btn write-btn--outline"
@@ -86,6 +86,9 @@
       </sui-loader>
       <div class="read-view">
         <div class="read-toggle-row">
+          <button type="button" class="pdf-btn" @click="exportPdf" :disabled="exportingPdf">
+            {{ exportingPdf ? 'erzeuge pdf …' : 'als pdf exportieren' }}
+          </button>
           <div class="view-switch">
             <button type="button" :class="{ active: flowView }" @click="flowView = true">Fließtext</button>
             <button type="button" :class="{ active: !flowView }" @click="flowView = false">Abschnitte</button>
@@ -345,8 +348,33 @@
 }
 .read-toggle-row {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 10px;
+}
+/* "als pdf exportieren": same 26px outline pill as the view-switch, sitting on
+   the left of the toggle row. Reads as a sibling control, not a loud button. */
+.pdf-btn {
+  height: 26px;
+  padding: 0 12px;
+  border: 1.5px solid var(--kg-green);
+  border-radius: 15px;
+  background: var(--kg-cream);
+  color: var(--kg-green);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 9px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.pdf-btn:hover:not(:disabled) {
+  background: var(--kg-green);
+  color: var(--kg-cream);
+}
+.pdf-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 .read-story { margin-bottom: 8px; }
 
@@ -732,7 +760,7 @@ export default {
     writeLine(event) {
       event.preventDefault();
 
-      if(this.line.length < 1 || this.line.length > 250)
+      if(this.line.length < 1 || this.line.length > 300)
         return;
 
       this.submittedLine = this.line;
@@ -772,6 +800,23 @@ export default {
     },
     requestExport() {
       this.$socket.emit('game:message', 'story:export');
+    },
+    async exportPdf() {
+      if (this.exportingPdf) return;
+      this.exportingPdf = true;
+      try {
+        const { exportStoriesPdf } = await import('../pdf/export');
+        await exportStoriesPdf({
+          title: this.lobby.title || 'Knickgeschichte',
+          stories: this.stories,
+          storyAuthors: this.storyAuthors,
+          isAsync: this.lobby.isAsync,
+        });
+      } catch (e) {
+        console.error('PDF export failed', e);
+      } finally {
+        this.exportingPdf = false;
+      }
     },
     copyStories() {
       const text = this.stories.map((story, i) =>
@@ -813,6 +858,7 @@ export default {
       idleReason: 'idle',
       copied: false,
       flowView: false,
+      exportingPdf: false,
     };
   },
 };
