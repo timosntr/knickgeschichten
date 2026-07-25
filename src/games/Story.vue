@@ -95,7 +95,10 @@
         lädt Geschichten
       </sui-loader>
       <div style="text-align: left">
-        <div style="text-align: right; margin-bottom: 8px">
+        <div style="text-align: right; margin-bottom: 8px; display: flex; justify-content: flex-end; align-items: center; gap: 16px;">
+          <button class="view-toggle" @click="exportPdf" :disabled="exportingPdf">
+            {{ exportingPdf ? 'erzeuge pdf …' : 'als pdf exportieren' }}
+          </button>
           <div class="view-switch">
             <button type="button" :class="{ active: flowView }" @click="flowView = true">Fließtext</button>
             <button type="button" :class="{ active: !flowView }" @click="flowView = false">Abschnitte</button>
@@ -229,6 +232,29 @@
   border: 1px solid rgba(25, 66, 30, 0.25);
   border-radius: 999px;
   overflow: hidden;
+}
+
+/* PDF-export action next to the Fließtext/Abschnitte switch — same quiet,
+   uppercase register so it reads as a sibling control, not a loud button. */
+.view-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.72em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a8a83;
+  padding: 4px 4px;
+  transition: color 0.15s;
+}
+
+.view-toggle:hover:not(:disabled) {
+  color: var(--kg-green, #19421e);
+}
+
+.view-toggle:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .view-switch button {
@@ -535,6 +561,23 @@ export default {
     requestExport() {
       this.$socket.emit('game:message', 'story:export');
     },
+    async exportPdf() {
+      if (this.exportingPdf) return;
+      this.exportingPdf = true;
+      try {
+        const { exportStoriesPdf } = await import('../pdf/export');
+        await exportStoriesPdf({
+          title: this.lobby.title || 'Knickgeschichte',
+          stories: this.stories,
+          storyAuthors: this.storyAuthors,
+          isAsync: this.lobby.isAsync,
+        });
+      } catch (e) {
+        console.error('PDF export failed', e);
+      } finally {
+        this.exportingPdf = false;
+      }
+    },
     copyStories() {
       const text = this.stories.map((story, i) =>
         `=== Story ${i + 1} ===\n` +
@@ -574,6 +617,7 @@ export default {
       idleReason: 'idle',
       copied: false,
       flowView: false,
+      exportingPdf: false,
     };
   },
 };

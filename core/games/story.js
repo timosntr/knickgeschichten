@@ -6,7 +6,13 @@ const WordFilter = require('./util/WordFilter');
 
 const MIN_WORDS = 15;
 const MAX_CONTRIBUTION = 250;
-const MAX_STORY_CHARS = 4000;
+// Total length at which a story is considered finished. Also the effective
+// per-contribution ceiling near the end: a chain stays assignable while
+// sum + MAX_CONTRIBUTION <= MAX_STORY_CHARS, so the last contribution can run
+// up to MAX_CONTRIBUTION and the completed story never exceeds this value.
+// Kept at 3900 so a finished public story fits on a single A4 page in the PDF
+// export at 10pt (see src/pdf/export.js).
+const MAX_STORY_CHARS = 3900;
 const CONTEXT_LEN = 1;
 const CONTEXT_WORDS = 8;
 
