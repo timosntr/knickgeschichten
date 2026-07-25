@@ -61,7 +61,7 @@
             @paste="onPaste">
           </textarea>
           <div class="char-count">
-            {{line.length}}/250
+            {{line.length}}/300
           </div>
           <div v-if="game.minWords > 0" class="word-count" :class="{insufficient: wordCount < game.minWords}">
             {{wordCount}} / {{game.minWords}} Wörter
@@ -72,7 +72,7 @@
         </sui-form-field>
         <sui-button type="submit"
           :color="player.isLastLink ? 'green' : 'blue'"
-                   :disabled="line.length < 1 || line.length > 250 || wordCount < game.minWords">
+                   :disabled="line.length < 1 || line.length > 300 || wordCount < game.minWords">
           {{player.isLastLink ? 'beenden' : 'weitergeben'}}
         </sui-button>
         <sui-button v-if="lobby.isAsync"
@@ -520,7 +520,7 @@ export default {
     writeLine(event) {
       event.preventDefault();
 
-      if(this.line.length < 1 || this.line.length > 250)
+      if(this.line.length < 1 || this.line.length > 300)
         return;
 
       this.submittedLine = this.line;
