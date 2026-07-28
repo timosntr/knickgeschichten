@@ -1,5 +1,5 @@
 // Builds a PDF of one or more finished stories, using the project's own
-// fonts (Fraunces for the title, Hanken Grotesk for body text) rather than
+// fonts (Boska for the title, Metropolis for body text) rather than
 // jsPDF's default Helvetica. Loaded on demand (dynamic import) so the fonts
 // and jsPDF itself don't bloat the main bundle.
 
@@ -48,12 +48,12 @@ export async function exportStoriesPdf({ title, stories, storyAuthors, isAsync }
 
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
-  doc.addFileToVFS('Fraunces-Bold.ttf', fonts.frauncesBold);
-  doc.addFont('Fraunces-Bold.ttf', 'Fraunces', 'bold');
-  doc.addFileToVFS('HankenGrotesk-Regular.ttf', fonts.hankenRegular);
-  doc.addFont('HankenGrotesk-Regular.ttf', 'HankenGrotesk', 'normal');
-  doc.addFileToVFS('HankenGrotesk-Medium.ttf', fonts.hankenMedium);
-  doc.addFont('HankenGrotesk-Medium.ttf', 'HankenGrotesk', 'medium');
+  doc.addFileToVFS('Boska-Black.ttf', fonts.boskaBlack);
+  doc.addFont('Boska-Black.ttf', 'Boska', 'bold');
+  doc.addFileToVFS('Metropolis-Light.ttf', fonts.metropolis300);
+  doc.addFont('Metropolis-Light.ttf', 'Metropolis', 'normal');
+  doc.addFileToVFS('Metropolis-Medium.ttf', fonts.metropolis500);
+  doc.addFont('Metropolis-Medium.ttf', 'Metropolis', 'medium');
 
   const textX = MARGIN_LEFT + MARGIN_GUTTER;
   const textWidth = doc.internal.pageSize.getWidth() - textX - MARGIN_RIGHT;
@@ -75,7 +75,7 @@ export async function exportStoriesPdf({ title, stories, storyAuthors, isAsync }
     }
   };
 
-  doc.setFont('Fraunces', 'bold');
+  doc.setFont('Boska', 'bold');
   doc.setFontSize(TITLE_SIZE);
   writeLines(doc.splitTextToSize(title || 'Knickgeschichte', textWidth), TITLE_LH);
   y += GAP_TITLE_AUTHOR;
@@ -91,13 +91,13 @@ export async function exportStoriesPdf({ title, stories, storyAuthors, isAsync }
 
     const authors = storyAuthors(story);
     if (authors) {
-      doc.setFont('HankenGrotesk', 'medium');
+      doc.setFont('Metropolis', 'medium');
       doc.setFontSize(AUTHOR_SIZE);
       writeLines(doc.splitTextToSize(authors, textWidth), AUTHOR_LH);
       y += GAP_AUTHOR_BODY;
     }
 
-    doc.setFont('HankenGrotesk', 'normal');
+    doc.setFont('Metropolis', 'normal');
     doc.setFontSize(body.size);
     const text = story.map(entry => entry.link).join(' ');
     writeLines(doc.splitTextToSize(text, textWidth), body.leading);
