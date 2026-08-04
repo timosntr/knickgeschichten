@@ -517,3 +517,31 @@ try {
 
 // Start the webserver
 server.listen(PORT, () => console.log(`Started ${VERSION} server on :${PORT}!`));
+
+// --- Internal metrics listener --------------------------------------------
+// Aggregate, anonymous instance metrics on a SEPARATE port that the public
+// Cloudflare Tunnel never maps. Bound to 127.0.0.1 by default so it is private
+// out of the box; in Docker set METRICS_HOST=0.0.0.0 (and simply don't publish
+// the port) so Prometheus can scrape it over the internal network only.
+const metrics = require('./core/metrics');
+const metricsDashboard = require('./core/metricsDashboard');
+const METRICS_PORT = process.env.METRICS_PORT || 9091;
+const METRICS_HOST = process.env.METRICS_HOST || '127.0.0.1';
+
+const metricsApp = express();
+metricsApp.get('/metrics', (req, res) => {
+  res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+  res.send(metrics.renderPrometheus(metrics.collect(io)));
+});
+metricsApp.get('/metrics.json', (req, res) => {
+  res.json(metrics.collect(io));
+});
+metricsApp.get('/', (req, res) => {
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.send(metricsDashboard.PAGE);
+});
+const metricsServer = metricsApp.listen(METRICS_PORT, METRICS_HOST, () =>
+  console.log(`Metrics on ${METRICS_HOST}:${METRICS_PORT} (dashboard /, prometheus /metrics)`));
+// A problem with the internal metrics port must never take down the game.
+metricsServer.on('error', err =>
+  console.error(new Date(), `!- metrics listener disabled (${METRICS_HOST}:${METRICS_PORT}): ${err.message}`));
