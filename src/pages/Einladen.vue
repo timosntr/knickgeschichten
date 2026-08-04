@@ -19,10 +19,11 @@
           </button>
           <div v-if="showInfo" class="home-howto__body">
             <ul class="info-list">
-              <li>Der bisher geschriebene Text wird wie beim klassischen Spiel „umgeknickt". Du siehst also nur einen kleinen Teil vom vorherigen Abschnitt.</li>
-              <li>Du liest den sichtbaren Teil und schreibst darauf basierend einen neuen Abschnitt – mindestens <strong>15 Wörter</strong>, maximal <strong>300 Zeichen</strong>.</li>
-              <li>Alle Beiträge sind anonym. Du weißt nicht, wer vor dir geschrieben hat, und am Ende ist nicht ersichtlich, wer welchen Abschnitt verfasst hat.</li>
-              <li>Eine Geschichte ist fertig, wenn das Limit von <strong>3900 Zeichen</strong> erreicht ist.</li>
+              <li>geschriebener Text wird wie beim klassischen Spiel „umgeknickt", die nächste Person sieht nur die letzten Wörter</li>
+              <li>sichtbaren Teil lesen, weiterschreiben, innerhalb von <strong>10 min</strong> an die nächste Person weitergeben</li>
+              <li>eine Geschichte ist fertig, wenn das Blatt vollgeschrieben ist</li>
+              <li>Name frei wählbar oder anonym – und erst in der fertigen Geschichte sichtbar</li>
+              <li>fertige Geschichten landen automatisch im Archiv</li>
             </ul>
           </div>
         </div>
