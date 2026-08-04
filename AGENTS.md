@@ -48,7 +48,7 @@ by webpack and served by Express.
   `start()`, `stop()`, `pause()`, `save()`, `restore(blob)`, `handleMessage(pid, type,
   data)`, `getState()`, `getPlayerState(pid)`, `sendGameInfo()`, plus async helpers
   `addPlayer`, `detachPlayer`, and chain-release on disconnect.
-- **`core/games/story.js`** — the only game ("Raconteur" / story). Manages per-story
+- **`core/games/story.js`** — the only game (story / "Knickgeschichten"). Manages per-story
   **chains** (`core/games/util/Chain.js`), whose turn it is (`editor`), turn timers /
   deadlines, word-count rules, and end conditions. Player input arrives through
   `handleMessage` as `story:*` messages.

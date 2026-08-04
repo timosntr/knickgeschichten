@@ -43,6 +43,17 @@ module.exports = {
         type: 'asset/inline',
       },
       {
+        // Unhashed, stable filename: og:image is a static <meta> URL that
+        // crawlers (WhatsApp, etc.) fetch directly, so it can't move on
+        // every rebuild the way hashed assets do.
+        test: /og-image\.png$/,
+        loader: 'file-loader',
+        options: {
+          limit: 1,
+          name: '[name].[ext]',
+        },
+      },
+      {
         test: /\.(png|jpe?g|gif|webp)$/,
         type: 'asset/resource',
         generator: {

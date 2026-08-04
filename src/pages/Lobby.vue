@@ -1,191 +1,92 @@
 <template>
   <ooc-page>
     <ooc-menu v-if="state === 'NO_LOBBY'"
-      title="Invalid Lobby"
-      subtitle="This lobby does not exist">
-      <div>
-        <sui-divider horizontal >
-          Lobby
-        </sui-divider>
-        <sui-button-group>
-          <sui-button
-            color="green"
-                       :loading="creatingLobby"
-            @click="createLobby">
-            Create
-          </sui-button>
-          <sui-button-or/>
-          <sui-button
-            color="blue"
-                       :loading="showJoinLobby"
-            @click="showJoinLobby = true">
-            Join
-          </sui-button>
-        </sui-button-group>
-        <sui-divider horizontal >
-          Redirect
-        </sui-divider>
-        <sui-button-group vertical basic>
-          <router-link is="sui-button"             to="/">
-            Home
-          </router-link>
-        </sui-button-group>
+      title="Diese Lobby gibt es nicht"
+      subtitle="Vielleicht ist der Code abgelaufen oder falsch.">
+      <div class="no-lobby-actions">
+        <router-link to="/" class="write-btn write-btn--solid">
+          zur Startseite
+        </router-link>
       </div>
     </ooc-menu>
-    <ooc-menu v-else-if="state === 'JOIN_LOBBY'"
-      title="Enter a Name"
-      subtitle="Try to be creative">
-      <sui-form
-               @submit="e => enterName(e)"
-        :error="!validName"
-        :loading="loadingName">
-        <sui-form-field :disabled="anonymousJoin">
-          <label>Name</label>
-          <input name="playerName"
-            :required="!anonymousJoin"
-            @input="validName = true"
-            v-model="name"
-            :disabled="anonymousJoin"
-            minlength="1"
-            maxlength="15"
-            autocomplete="on"
-            placeholder="Ethan">
-        </sui-form-field>
-        <div v-if="!validName" style="color:#db2828; font-size:0.85em; margin:-6px 0 10px; text-align:left;">
-          Dieser Name ist nicht erlaubt. Bitte wähle einen anderen.
-        </div>
-        <sui-form-field v-if="lobbyInfo.isAsync">
-          <sui-checkbox
-            v-model="anonymousJoin"
-            label="Anonym bleiben"/>
-        </sui-form-field>
-        <sui-button color="blue"  type="submit">
-          Mitmachen
-        </sui-button>
-        <sui-button basic type="button" @click="leaveLobby">
-          Leave
-        </sui-button>
-      </sui-form>
+    <ooc-menu v-else-if="state === 'JOIN_LOBBY'">
+      <div class="name-screen">
+        <sui-form
+                 @submit="e => enterName(e)"
+          :error="!validName"
+          :loading="loadingName"
+          class="name-form">
+          <!-- Design's big "Gib dir einen Namen" / "sei kreativ" was dropped in
+               favour of a small "Name" label sitting just above the field. -->
+          <label class="name-label" for="playerName">Gib dir einen Namen</label>
+          <sui-form-field :disabled="anonymousJoin" :error="!validName">
+            <input class="name-input"
+              id="playerName"
+              name="playerName"
+              aria-label="Dein Name"
+              :required="!anonymousJoin"
+              @input="validName = true"
+              v-model="name"
+              :disabled="anonymousJoin"
+              minlength="1"
+              maxlength="15"
+              autocomplete="on"
+              placeholder="Uwe">
+          </sui-form-field>
+          <div v-if="!validName" class="name-error">
+            Dieser Name ist nicht erlaubt. Bitte wähle einen anderen.
+          </div>
+          <sui-form-field v-if="lobbyInfo.isAsync" class="anon-field">
+            <sui-checkbox
+              v-model="anonymousJoin"
+              label="anonym"/>
+          </sui-form-field>
+          <div class="name-buttons">
+            <!-- .write-btn is a global pill (defined in Story.vue) -->
+            <button type="button" class="write-btn write-btn--outline" @click="leaveLobby">
+              zurück
+            </button>
+            <button type="submit" class="write-btn write-btn--solid">
+              mitschreiben
+            </button>
+          </div>
+        </sui-form>
+      </div>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'LOBBY_WAITING'"
-      :title="lobbyInfo.title || (currGame ? currGame.title : 'Knickgeschichten')"
+      :title="lobbyInfo.title"
       :subtitle="currGame ? currGame.subtitle : ''">
-      <div>
+      <div class="lobby-waiting">
         <div v-if="!lobbyInfo.isAsync">
-          <sui-divider horizontal >
-            Lobby Code
-          </sui-divider>
-          <sui-statistic  style="margin-bottom: 14px; margin-top: 0;">
-            <sui-statistic-value>
-              {{$route.params.code}}
-            </sui-statistic-value>
-            <sui-statistic-label>
-              {{phonetic}}
-            </sui-statistic-label>
-          </sui-statistic>
-        </div>
-        <div v-if="lobbyInfo.admin === $root.playerId && !lobbyInfo.isAsync" style="text-align: left">
-          <sui-divider horizontal >
-            Game Settings
-          </sui-divider>
-          <sui-form @submit="event => event.preventDefault()" >
-            <div v-if="currGame">
-              <sui-form-field v-for="(opt, name) in configFieldsForDisplay" :key="name">
-                <label>{{opt.name}}</label>
-                <div v-if="opt.type === 'int'" style="display: flex">
-                  <sui-input
-                    type="number"
-                    @input="val => updateConfig(name, val)"
-                    :value="deriveConfigValue(name)"
-                    :min="opt.min"
-                    :max="opt.max || 256"
-                    autocomplete="off"/>
-                  <sui-button v-if="opt.defaults === '#numPlayers'"
-                    type="button"
-                    :color="configVal(name) === '#numPlayers' ? 'blue' : undefined"
-                                       @click="updateConfig(name, '#numPlayers')"
-                    style="margin-left: 8px"
-                    icon="users"/>
-                </div>
-                <div class="char-count" v-if="typeof opt.max !== 'undefined' && deriveConfigValue(name) > opt.max">
-                  Maximum: {{opt.max}}
-                </div>
-                <div class="char-count" v-if="typeof opt.min !== 'undefined' &&
-                (deriveConfigValue(name) < opt.min || configVal(name) === '#numPlayers' && lobbyInfo.players.length < opt.min)">
-                  Minimum: {{opt.min}}
-                </div>
-                <sui-dropdown v-else-if="opt.type === 'bool'"
-                  :value="deriveConfigValue(name)"
-                  :options="[{text: 'Enabled', value: 'true'}, {text: 'Disabled', value: 'false'}]"
-                  @input="val => updateConfig(name, val)"
-                  selection>
-                </sui-dropdown>
-                <sui-dropdown v-else-if="opt.type === 'list'"
-                  :value="deriveConfigValue(name)"
-                  :options="opt.options.map(o => ({
-                    text: o.more || o.text,
-                    value: o.name,
-                  }))"
-                  @input="val => updateConfig(name, val)"
-                  selection>
-                </sui-dropdown>
-              </sui-form-field>
-              <div style="margin: 1em 0; text-align: center">
-                <sui-button
-                  type="button"
-                  :disabled="invalidConfig"
-                  @click="$socket.emit('game:start')"
-                  color="blue">
-                  Start Game
-                </sui-button>
-                <sui-button
-                  type="button"
-                  basic
-                  @click="leaveLobby">
-                  Leave
-                </sui-button>
-              </div>
-            </div>
-          </sui-form>
-        </div>
-        <div v-else-if="currGame && !lobbyInfo.isAsync">
-          <sui-divider horizontal >
-            Game Setup
-          </sui-divider>
-          <sui-card>
-            <div style="display: flex; flex-flow: row wrap; align-items: center; justify-content: center;">
-              <div v-for="(opt, name) in configFieldsForDisplay"
-                :key="name"
-                style="margin: 8px;">
-                <sui-statistic >
-                  <sui-statistic-value>
-                    {{deriveConfigText(name)}}
-                  </sui-statistic-value>
-                  <sui-statistic-label>
-                    {{opt.text}}
-                  </sui-statistic-label>
-                </sui-statistic>
-              </div>
-            </div>
-          </sui-card>
-          <div style="margin-top: 1em; text-align: center">
-            <sui-button basic @click="leaveLobby">Leave</sui-button>
-          </div>
+          <div class="kg-divider"><span>Code</span></div>
+          <div class="lobby-code">{{ codeDisplay }}</div>
         </div>
 
-        <div v-if="!lobbyInfo.isAsync && lobbyInfo.completedStories && lobbyInfo.completedStories.length"
-          style="margin-top: 8px;">
-          <sui-divider horizontal >
-            Letzte Runde
-          </sui-divider>
+        <!-- Buttons are absent from the XD; added in the name-screen style:
+             outline "verlassen" (like "zurück") + solid "Geschichten starten"
+             (like "mitschreiben"). Non-admins only see "verlassen". Sit between
+             the Code and the previous round. -->
+        <div v-if="!lobbyInfo.isAsync && currGame" class="lobby-buttons">
+          <button type="button" class="write-btn write-btn--outline" @click="leaveLobby">
+            verlassen
+          </button>
+          <button v-if="lobbyInfo.admin === $root.playerId"
+            type="button" class="write-btn write-btn--solid"
+            :disabled="invalidConfig"
+            @click="$socket.emit('game:start')">
+            Geschichten starten
+          </button>
+        </div>
+
+        <div v-if="!lobbyInfo.isAsync && lobbyInfo.completedStories && lobbyInfo.completedStories.length">
+          <div class="kg-divider"><span>letzte Runde</span></div>
           <div class="story-accordion">
             <div v-for="(story, i) in lobbyInfo.completedStories" :key="i" class="story-acc-item">
-              <button type="button" class="story-acc-toggle" @click="toggleStory(i)">
-                <span class="story-acc-title">Geschichte {{ i + 1 }}</span>
-                <span class="story-acc-preview" v-if="!openStories[i]">{{ storyPreview(story) }}</span>
-                <span class="story-acc-icon">{{ openStories[i] ? '▲' : '▼' }}</span>
+              <button type="button" class="story-pill" :class="{ 'is-open': openStories[i] }"
+                @click="toggleStory(i)">
+                {{ storyTitle(story, i) }}
               </button>
-              <div v-if="openStories[i]" class="story-acc-body">
+              <div v-if="openStories[i]" class="story-body">
                 <p>{{ story.map(e => e.link).join(' ') }}</p>
               </div>
             </div>
@@ -201,7 +102,7 @@
       </ooc-player-list>
     </ooc-menu>
     <ooc-menu v-else-if="state === 'PLAYING'"
-      :title="lobbyInfo.title || (currGame ? currGame.title : 'Knickgeschichten')"
+      :title="lobbyInfo.title"
       :subtitle="currGame ? currGame.subtitle : ''">
       <ooc-game :game="lobbyInfo.game">
       </ooc-game>
@@ -219,21 +120,6 @@
     <sui-dimmer :active="reconnecting">
       <sui-loader>Verbindung verloren – verbinde neu …</sui-loader>
     </sui-dimmer>
-    <sui-label
-      v-if="validLobby && !rocketcrab && !lobbyInfo.isAsync"
-      class="lobby-code left"
-      attached="top left">
-      <code>
-        {{$route.params.code.toUpperCase()}}
-      </code>
-    </sui-label>
-    <sui-label
-      v-if="lobbyInfo.admin === $root.playerId"
-      class="lobby-code right"
-      color="green"
-      attached="top right">
-      <sui-icon name="shield"/>
-    </sui-label>
     <ooc-util></ooc-util>
     <ooc-join-lobby :active="showJoinLobby" @close="showJoinLobby = false">
     </ooc-join-lobby>
@@ -242,102 +128,229 @@
 
 <style>
 
+/* --- "Namen geben" screen (JOIN_LOBBY) --------------------------------------
+   Values taken directly from the XD artboard (bc63d558): field 313x33 r17,
+   fill #FFFFFF, border #19421E 1.5; buttons 112x26 r15. Mirrors the code
+   screen (JoinLobby.vue) so the two entry screens look identical. */
+.name-screen {
+  /* Fixed 313 (XD) so the field stays wider than the 238 button row. This sits
+     inside the ~352px .menu container, so cap at 100% (not 88%, which would
+     clamp to ~310 here) — 313 still fits and can't overflow narrow screens. */
+  width: 313px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+.name-form {
+  text-align: center;
+}
+/* "Gib dir einen Namen" label above the field (replaces the dropped XD
+   title/subtitle combo with a single compact line). */
+.ui.form .name-label,
+.name-label {
+  display: block;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--kg-green);
+  margin: 0 0 6px;
+}
+.ui.form input.name-input {
+  width: 100%;
+  height: 33px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--kg-green);
+  border-radius: 17px;
+  background: var(--kg-cream);   /* unfilled = same cream as the page */
+  padding: 0 20px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--kg-green);
+  text-align: left;
+}
+/* Keep the pill (and clean styling) in focus and Semantic's error state,
+   both of which otherwise reshape/recolour the input. */
+.ui.form input.name-input:focus,
+.ui.form .field.error input.name-input {
+  border-radius: 17px;
+  background: var(--kg-cream);
+  outline: none;
+}
+.ui.form input.name-input:focus {
+  border-color: var(--kg-green);
+  box-shadow: 0 0 0 2px rgba(25, 66, 30, 0.12);
+}
+.ui.form .field.error input.name-input {
+  border-color: #db2828;
+  color: var(--kg-green);
+}
+.ui.form input.name-input::placeholder {
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-muted);
+}
+.name-error {
+  margin-top: 8px;
+  font-size: 11px;
+  font-style: italic;
+  color: #db2828;
+}
+.anon-field.field {
+  margin-top: 14px;
+  text-align: center;
+}
+/* "anonym" toggle: a round box that fills solid green when checked
+   (Semantic's default is a square with a dark checkmark). */
+.anon-field .ui.checkbox label {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  color: var(--kg-green);
+  padding-left: 24px;
+}
+.anon-field .ui.checkbox label:before {
+  width: 16px;
+  height: 16px;
+  top: 1px;
+  border-radius: 50%;
+  border: 1.5px solid var(--kg-green);
+  background: var(--kg-cream);   /* unchecked: same as page background */
+}
+.anon-field .ui.checkbox input:checked ~ label:before,
+.anon-field .ui.checkbox input:focus:checked ~ label:before {
+  background: var(--kg-green);   /* checked: solid green, no checkmark */
+  border-color: var(--kg-green);
+}
+/* No checkmark glyph — the fill alone signals the state. The checked selector
+   is needed to beat Semantic's higher-specificity checked rule. */
+.anon-field .ui.checkbox label:after,
+.anon-field .ui.checkbox input:checked ~ label:after,
+.anon-field .ui.checkbox input:focus:checked ~ label:after {
+  content: none;
+}
+.name-buttons {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 22px;
+}
+/* Fixed 112px each (XD) so the two-button row is narrower than the 313 input. */
+.name-buttons .write-btn {
+  margin: 0;
+  width: 112px;
+  min-width: 0;
+  padding: 0;
+}
+
 .player-table td {
   font-weight: normal !important;
 }
 
-.story-accordion {
-  text-align: left;
+/* --- Private lobby / waiting room (XD artboard 078aeb6f) -------------------- */
+/* XD content column is 307 wide, centred (pills, dividers, code, buttons). */
+.lobby-waiting {
+  width: 307px;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: center;
 }
 
-.story-acc-item {
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
-  margin-bottom: 6px;
-  overflow: hidden;
+/* "Diese Lobby gibt es nicht" screen: solid pill, matching the rest of the
+   app instead of a raw Semantic UI button. */
+.no-lobby-actions {
+  margin-top: 8px;
 }
+.no-lobby-actions .write-btn { margin: 0 auto; }
 
-.story-acc-toggle {
+/* Section divider (XD): a 10px Metropolis-Light label flanked by thin 0.5px
+   green rules. Replaces Semantic's large uppercase divider. */
+.kg-divider {
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px 12px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  font-size: 0.95em;
+  gap: 12px;
+  margin: 24px 0 0;
 }
-
-.story-acc-toggle:hover {
-  background: rgba(0, 0, 0, 0.03);
-}
-
-.story-acc-title {
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-.story-acc-preview {
+.kg-divider::before,
+.kg-divider::after {
+  content: '';
   flex: 1;
-  color: #999;
-  font-style: italic;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  border-top: 0.5px solid var(--kg-green);
+}
+.kg-divider > span {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 10px;
+  color: var(--kg-green);
   white-space: nowrap;
 }
 
-.story-acc-icon {
-  margin-left: auto;
-  font-size: 0.7em;
-  color: #aaa;
+/* Room code, big: Boska-Black 45px green, middle dots between characters. */
+.lobby-code {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 45px;
+  line-height: 1.1;
+  color: var(--kg-green);
+  text-align: center;
+  margin: 14px 0 4px;
+  letter-spacing: 2px;
 }
 
-.story-acc-body {
-  padding: 4px 14px 14px;
+/* "letzte Runde" stories: outlined white pills (307x33 r17), named after the
+   first author, italic Metropolis-Light 11. Click a pill to expand its full
+   text underneath. */
+.story-accordion {
+  text-align: left;
+  margin: 12px 0 0;
 }
-
-.story-acc-body p {
-  font-family: 'Lora', serif;
-  line-height: 1.7;
+.story-acc-item { margin-bottom: 7px; }
+.story-pill {
+  display: block;
+  width: 100%;
+  height: 33px;
+  box-sizing: border-box;
+  padding: 0 18px;
+  border: 1.5px solid var(--kg-green);
+  border-radius: 17px;
+  background: var(--kg-cream);
+  color: var(--kg-green);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+.story-body {
+  padding: 10px 18px 4px;
+}
+.story-body p {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--kg-green);
   white-space: pre-wrap;
   margin: 0;
+  text-align: left;
 }
 
-.lobby-code {
-  position: fixed !important;
-  top: 0 !important;
+/* Bottom action row, styled like the name screen (outline "verlassen" +
+   solid "Geschichten starten"). */
+.lobby-buttons {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin: 24px 0 4px;
 }
-
-.lobby-code.left {
-  left: 0 !important;
-}
-
-.lobby-code.right {
-  right: 0 !important;
-}
+.lobby-buttons .write-btn { margin: 0; }
 
 </style>
 
 <script>
 
 import gameInfo from '../../gameInfo';
-import converter, { NATO_PHONETIC_ALPHABET } from 'phonetic-alphabet-converter'
-
-const alphabet = {
-  ...NATO_PHONETIC_ALPHABET,
-  '0': 'zero',
-  '1': 'one',
-  '2': 'two',
-  '3': 'three',
-  '4': 'four',
-  '5': 'five',
-  '6': 'six',
-  '7': 'seven',
-  '8': 'eight',
-  '9': 'nine',
-}
 
 const emptyInfo = () => ({
   admin: '',
@@ -364,16 +377,12 @@ export default {
       validName: true,
       lobbyInfo: emptyInfo(),
       state: 'LOADING',
-      gameInfo,
       reconnecting: false,
       reconnectTimer: null,
       openStories: {},
     };
   },
   computed:  {
-    phonetic() {
-      return converter(this.$route.params.code, alphabet).join(' - ');
-    },
     // Config fields to show in the lobby waiting UI (exclude 'players' and hidden fields)
     configFieldsForDisplay() {
       if (!this.currGame) return {};
@@ -391,7 +400,11 @@ export default {
     },
     currGame() {
       return gameInfo[this.lobbyInfo.game];
-    }
+    },
+    // Room code shown big as "A·B·C·D" (XD: Boska-Black 45, middle dots).
+    codeDisplay() {
+      return (this.$route.params.code || '').toUpperCase().split('').join('·');
+    },
   },
   methods: {
     update() { this.$forceUpdate(); },
@@ -427,49 +440,15 @@ export default {
       const words = text.trim().split(/\s+/);
       return words.length > 6 ? words.slice(0, 6).join(' ') + '…' : text;
     },
+    // Title a story after whoever wrote its first line ("Geschichte von Pavlo");
+    // fall back to a number when the first author is anonymous/unknown.
+    storyTitle(story, i) {
+      const first = story && story[0] && story[0].authorName;
+      return first ? `Geschichte von ${first}` : `Geschichte ${i + 1}`;
+    },
     leaveLobby() {
       this.$socket.emit('lobby:leave');
       this.$router.push('/');
-    },
-    configVal(name) {
-      const confVal = this.lobbyInfo.config[name];
-      const defVal = gameInfo[this.lobbyInfo.game].config[name].defaults;
-      return typeof confVal !== 'undefined' ? confVal : defVal;
-    },
-    deriveConfigText(name) {
-      const val = this.configVal(name);
-      const conf = gameInfo[this.lobbyInfo.game].config[name];
-
-      switch(conf.type) {
-      case 'int':
-        return this.deriveConfigValue(name);
-      case 'bool':
-        return val === 'true' ? 'Yes' : 'No';
-      case 'list':
-        const entry = conf.options.find(v => v.name === val);
-        return entry ? entry.text : '???';
-      }
-    },
-    deriveConfigValue(name) {
-      const val = this.configVal(name);
-      const conf = gameInfo[this.lobbyInfo.game].config[name];
-
-      switch(conf.type) {
-      case 'int':
-        switch(val) {
-        case '#numPlayers':
-          return Math.min(this.lobbyInfo.players.length, conf.max);
-        default:
-          return val;
-        }
-      case 'bool':
-        return val;
-      case 'list':
-        return val
-      }
-    },
-    updateConfig(name, val) {
-      this.$socket.emit('lobby:game:config', name, val);
     },
     enterName(event) {
       event.preventDefault();

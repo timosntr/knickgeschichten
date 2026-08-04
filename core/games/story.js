@@ -5,8 +5,16 @@ const Sanitize = require('./util/Sanitize');
 const WordFilter = require('./util/WordFilter');
 
 const MIN_WORDS = 15;
-const MAX_CONTRIBUTION = 250;
-const MAX_STORY_CHARS = 4000;
+const MAX_CONTRIBUTION = 300;
+// Total length at which a story is considered finished. Also the effective
+// per-contribution ceiling near the end: a chain stays assignable while
+// sum + MAX_CONTRIBUTION <= MAX_STORY_CHARS, so the last contribution can run
+// up to MAX_CONTRIBUTION and the completed story never exceeds this value.
+// Kept at 3900 so a finished public story fits on a single A4 page in the PDF
+// export at 10pt (see src/pdf/export.js). With MAX_CONTRIBUTION = 300 a chain
+// stays assignable up to sum <= 3600, and the "Finish"/last-link zone begins
+// at sum > 3300 (both derived from these two constants).
+const MAX_STORY_CHARS = 3900;
 const CONTEXT_LEN = 1;
 const CONTEXT_WORDS = 8;
 
@@ -43,6 +51,10 @@ module.exports = class Story extends Game {
     this.aborted = blob.aborted || false;
     this.ring = blob.ring || null;
     this.succ = blob.succ || {};
+    // Restore per-player last-contribution timestamps (feeds lastActivity in
+    // the public session list). Old saves lack this field — keep the
+    // constructor's zero-initialized map in that case.
+    this.lastEdit = blob.lastEdit || this.lastEdit;
 
     // A restored game has no live connections — nobody is actually mid-turn.
     // Release every held chain so it can be reassigned when players (re)join.
@@ -64,6 +76,7 @@ module.exports = class Story extends Game {
       aborted: this.aborted,
       ring: this.ring,
       succ: this.succ,
+      lastEdit: this.lastEdit,
     }
   }
 
@@ -295,7 +308,15 @@ module.exports = class Story extends Game {
 
       for(const player of players) {
         const playerObj = this.lobby.players.find(p => p.playerId === player);
-        const memberId = playerObj ? playerObj.id : '';
+        // Never hand a chain to someone who isn't actually here. After a server
+        // restart the game is rebuilt from the saved member list, so
+        // this.players can still name authors who are long gone (offline, closed
+        // tab). Without this guard redistribute() would assign a freed chain to
+        // one of those ghosts, whose editor slot then never clears — the next
+        // real joiner is stuck on "Warte auf den nächsten Abschnitt" forever.
+        if (!playerObj || !playerObj.connected)
+          continue;
+        const memberId = playerObj.id;
         const story = this.findChainForPlayer(player, memberId);
         if(!story)
           continue;
@@ -430,8 +451,9 @@ module.exports = class Story extends Game {
 
       // If this writer was in the "last link" zone (same threshold the client
       // uses to show "Finish"), their contribution closes the story — otherwise
-      // a short final line would leave the chain assignable between 3500–3750
-      // chars and the "Finish" promise would be a lie.
+      // a short final line would leave the chain assignable in the
+      // (MAX_STORY_CHARS - 2*MAX_CONTRIBUTION, MAX_STORY_CHARS - MAX_CONTRIBUTION]
+      // char band and the "Finish" promise would be a lie.
       const wasLastLink = _.sumBy(story.chain, l => l.length) + 2 * MAX_CONTRIBUTION > MAX_STORY_CHARS;
       story.addLink(pid, line, authorName, memberId);
       if (wasLastLink)

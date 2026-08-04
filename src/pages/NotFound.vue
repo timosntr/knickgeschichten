@@ -1,17 +1,20 @@
-<style scoped>
+<style>
+.not-found-actions {
+  text-align: center;
+  margin-top: 8px;
+}
+.not-found-actions .write-btn { margin: 0 auto; }
 </style>
 
 <template>
   <ooc-page>
     <ooc-menu
-      title="Page Not Found"
-      subtitle="It appears this page does not exist!">
-      <div>
-        <sui-button-group vertical basic>
-          <router-link is="sui-button" to="/">
-            Home
-          </router-link>
-        </sui-button-group>
+      title="Seite nicht gefunden"
+      subtitle="Diese Seite scheint es nicht zu geben.">
+      <div class="not-found-actions">
+        <router-link to="/" class="write-btn write-btn--solid">
+          zur Startseite
+        </router-link>
       </div>
     </ooc-menu>
   </ooc-page>
