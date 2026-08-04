@@ -36,6 +36,10 @@
           <div v-if="!validName" class="name-error">
             Dieser Name ist nicht erlaubt. Bitte wähle einen anderen.
           </div>
+          <!-- Only for public sessions: private rooms never publish to the archive. -->
+          <div v-if="lobbyInfo.isAsync" class="name-hint">
+            Vorname oder Spitzname genügt<br>Er erscheint später mit der fertigen Geschichte im Archiv
+          </div>
           <sui-form-field v-if="lobbyInfo.isAsync" class="anon-field">
             <sui-checkbox
               v-model="anonymousJoin"
@@ -195,6 +199,17 @@
   font-size: 11px;
   font-style: italic;
   color: #db2828;
+}
+/* Public sessions only: the name is published with the finished story, so
+   nudge towards a first name / nickname. Green to match the name screen; sits
+   close under the field, with a bit more room before the "anonym" toggle. */
+.name-hint {
+  margin: 5px 0 8px;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--kg-green);
 }
 .anon-field.field {
   margin-top: 14px;
