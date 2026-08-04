@@ -58,6 +58,23 @@ io.on('connection', socket => {
       player.name = name;
       socket.emit('member:nameOk', true);
       if(player.lobby) {
+        // Confirming the name screen is the moment a public session becomes
+        // real: promote it out of "pending" so it shows up in the session
+        // browser, gets its story number and starts being persisted. Until
+        // here, backing out leaves nothing behind (see lobby:create:async).
+        if (player.lobby.pending) {
+          const lobby = player.lobby;
+          lobby.pending = false;
+          clearTimeout(lobby.pendingCullTimer);
+          lobby.pendingCullTimer = null;
+          lobby.number = ++asyncSessionCounter;
+          // Default title; replaced by an AI-generated one when the story
+          // finishes (the number lives in lobby.number, so the title text is
+          // free to change).
+          lobby.title = `Knickgeschichte ${lobby.number}`;
+          lobby.persist = true;
+          console.log(new Date(), `-- [lobby ${lobby.code}] async session started "${lobby.title}"`);
+        }
         // Async sessions: if a same-named contributor recently disconnected,
         // reclaim their slot (and in-progress chain) before updateMembers()
         // below gets a chance to register this connection as a brand-new
@@ -107,11 +124,13 @@ io.on('connection', socket => {
     const lobby = new Lobby();
     lobby.code = code;
     lobby.isAsync = true;
-    lobby.number = ++asyncSessionCounter;
-    // Default title; replaced by an AI-generated one when the story finishes
-    // (the number lives in lobby.number, so the title text is free to change).
-    lobby.title = `Knickgeschichte ${lobby.number}`;
-    lobby.persist = true;
+    // The session only becomes real once someone confirms the name screen with
+    // "mitschreiben" (see member:name). Until then it stays pending: hidden from
+    // the session browser, never persisted, and discarded as soon as its creator
+    // leaves — so backing out of the name entry leaves no empty story behind.
+    // Number and title are assigned on activation too, so a cancelled session
+    // doesn't burn a story number and leave a gap in the numbering.
+    lobby.pending = true;
     lobby.selectedGame = 'story';
 
     // Initialize config from story defaults
@@ -135,7 +154,7 @@ io.on('connection', socket => {
     player.lobby = lobby;
     socket.emit('lobby:join', code);
     lobby.addMember(player);
-    console.log(new Date(), `-- [lobby ${code}] created async session "${lobby.title}"`);
+    console.log(new Date(), `-- [lobby ${code}] created pending async session`);
   });
 
   // Allow players to request current lobby info

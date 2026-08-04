@@ -50,6 +50,29 @@ class Lobby {
     return count;
   }
 
+  // How long an unconfirmed ("pending") async session may sit empty before it
+  // is discarded. Only has to outlast the home page → name screen navigation,
+  // which empties the lobby for a few milliseconds.
+  static PENDING_TTL = 60000;
+
+  // Discard an async session that was created via "öffentliche Geschichte
+  // starten" but never confirmed on the name screen. Rescheduled every time it
+  // empties and cancelled again in addMember(), so it only fires once the
+  // creator is really gone.
+  static schedulePendingCull(lobby) {
+    clearTimeout(lobby.pendingCullTimer);
+    lobby.pendingCullTimer = setTimeout(() => {
+      // Re-check: the lobby may have been confirmed, refilled or already culled
+      // while the timer was pending.
+      if (!lobby.pending || !lobby.empty() || Lobby.lobbies[lobby.code] !== lobby) return;
+      if (lobby.game) { lobby.game.stop(); lobby.game.cleanup(); lobby.game = undefined; }
+      Lobby.cull(lobby.code);
+      console.log(new Date(), `-- [lobby ${lobby.code}] pending async session abandoned, discarded`);
+    }, Lobby.PENDING_TTL);
+    // Don't hold the process open just for an abandoned session
+    if (lobby.pendingCullTimer.unref) lobby.pendingCullTimer.unref();
+  }
+
   // generate a new lobby code
   static newCode(prefix='') {
     let code, counter = 0, length = CODE_LENGTH;
@@ -78,7 +101,10 @@ class Lobby {
     };
 
     return Object.values(Lobby.lobbies)
-      .filter(l => l && l.isAsync)
+      // `pending` sessions were created by the "öffentliche Geschichte starten"
+      // button but nobody has confirmed the name screen yet — they aren't real
+      // stories, so keep them out of the browser until someone commits.
+      .filter(l => l && l.isAsync && !l.pending)
       .map(l => {
         const progress = l.game ? l.game.getGameProgress() : (l.completedStories ? 1 : 0);
         const isComplete = progress === 1;
@@ -153,6 +179,21 @@ class Lobby {
     player.lobby = undefined;
 
     if(lobby.empty()) {
+      // Never confirmed on the name screen — the creator backed out or closed
+      // the tab. Drop it rather than saving an empty story: nothing was
+      // written, and it was never visible in the session browser anyway.
+      // Deliberately delayed, because the normal walk from the home page to
+      // the name screen empties the lobby for a moment (lobby:join auto-leaves
+      // a WAITING lobby before re-joining it) — culling right here would
+      // destroy the very session the user is about to put their name into.
+      if (lobby.pending) {
+        if (lobby.game) lobby.game.pause();
+        for (const t of Object.values(lobby.disconnectTimers || {})) clearTimeout(t);
+        lobby.disconnectTimers = {};
+        Lobby.schedulePendingCull(lobby);
+        return;
+      }
+
       try {
         // save the lobby state
         Persistence.saveLobbyState(lobby);
@@ -207,6 +248,9 @@ class Lobby {
     this.lobbyState = 'WAITING';
     this.game = null;
     this.isAsync = false;
+    // Async sessions awaiting their first confirmed contributor; see publicList().
+    // Never saved, so a restored lobby is by definition no longer pending.
+    this.pending = false;
     this.title = '';
     // Sequential story number for async sessions. Kept separate from `title` so
     // an AI-generated title can replace the title text without breaking the
@@ -279,6 +323,8 @@ class Lobby {
     this.admin = '';
     this.lobbyState = lobbyState.lobbyState || 'WAITING';
     this.isAsync = lobbyState.isAsync || false;
+    // A session only reaches persistence after it was confirmed and activated.
+    this.pending = false;
     this.title = lobbyState.title || '';
     // Older saves have no `number` — fall back to the trailing digits of the
     // title ("Knickgeschichte 7"), which is how it used to be derived.
@@ -496,6 +542,10 @@ class Lobby {
   }
 
   addMember(member) {
+    // Somebody is here again — call off a scheduled discard of this unconfirmed
+    // session (see Lobby.schedulePendingCull).
+    clearTimeout(this.pendingCullTimer);
+    this.pendingCullTimer = null;
     this.members.push(member);
     this.updateMembers();
     this.sendLobbyInfo();
