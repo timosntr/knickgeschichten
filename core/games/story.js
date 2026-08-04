@@ -161,6 +161,17 @@ module.exports = class Story extends Game {
       clearTimeout(this.idleTimers[pid]);
     }
     this.idleTimers = {};
+
+    // pause() only runs once the lobby is empty, so nobody is genuinely
+    // mid-turn — the same situation restore() handles. Release every held
+    // chain, otherwise a chain whose editor was still assigned when the last
+    // member left stays locked to an absent player forever: its turn timer was
+    // just cleared above, the caller also drops the 60s disconnect timers, and
+    // redistribute()'s `!s.editor` filter skips it. The next joiner then sits
+    // on "Waiting on Other Authors" with frozen progress until a server restart
+    // frees it via restore().
+    for (const chain of this.chains)
+      chain.editor = '';
   }
 
   // Called when a player's time runs out — release their chain, remove from queue, notify
