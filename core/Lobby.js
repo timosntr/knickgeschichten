@@ -28,11 +28,11 @@ class Lobby {
     const now = Date.now();
     const keys = Object.keys(Lobby.lobbies);
     let count = 0, lobby;
-    for (const code in keys) {
+    for (const code of keys) {
       lobby = Lobby.lobbies[code];
       // cleanup some garbage
       if (!lobby) {
-        Lobby.cull(lobby);
+        Lobby.cull(code);
         continue;
       }
 
