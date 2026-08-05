@@ -50,7 +50,7 @@
             @paste="onPaste">
           </textarea>
           <div v-if="game.minWords > 0" class="word-count" :class="{insufficient: wordCount < game.minWords}">
-            {{wordCount}} / {{game.minWords}} Wörter
+            {{wordCount}} / min. {{game.minWords}} Wörter
           </div>
           <!-- Only surfaces once it matters, so the XD layout stays clean in the
                normal case. Without it, going over 300 silently disables the
