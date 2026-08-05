@@ -3,6 +3,7 @@ const _ = require('lodash');
 const Chain = require('./util/Chain');
 const Sanitize = require('./util/Sanitize');
 const WordFilter = require('./util/WordFilter');
+const MetricsState = require('../metricsState');
 
 const MIN_WORDS = 15;
 const MAX_CONTRIBUTION = 300;
@@ -84,6 +85,9 @@ module.exports = class Story extends Game {
   // Assign a chain to a player, starting a timer if configured
   assignChain(pid, chain) {
     chain.editor = pid;
+    // Mark the turn's start so metrics can measure how long the writer takes
+    // (received -> submitted). Ephemeral: not saved, refreshed on every assign.
+    chain.assignedAt = Date.now();
     if (this.config.timeLimit > 0) {
       const deadline = Date.now() + this.config.timeLimit * 1000;
       this.deadlines[pid] = deadline;
@@ -466,6 +470,10 @@ module.exports = class Story extends Game {
       // (MAX_STORY_CHARS - 2*MAX_CONTRIBUTION, MAX_STORY_CHARS - MAX_CONTRIBUTION]
       // char band and the "Finish" promise would be a lie.
       const wasLastLink = _.sumBy(story.chain, l => l.length) + 2 * MAX_CONTRIBUTION > MAX_STORY_CHARS;
+      // Turn duration (received -> submitted). Read before redistribute() below
+      // reassigns the chain and overwrites assignedAt.
+      if (story.assignedAt)
+        MetricsState.recordTurnDuration((Date.now() - story.assignedAt) / 1000);
       story.addLink(pid, line, authorName, memberId);
       if (wasLastLink)
         story.closed = true;

@@ -70,9 +70,12 @@ const PAGE = `<!doctype html>
   var CUM = [
     ['storiesCompleted', 'fertige Geschichten'],
     ['storiesInProgress', 'in Arbeit'],
-    ['linesWritten', 'Zeilen'],
+    ['contributions', 'Beiträge'],
     ['wordsWritten', 'Wörter'],
     ['charsWritten', 'Zeichen'],
+    ['avgContributionWords', 'Ø Wörter/Beitrag'],
+    ['avgContributionChars', 'Ø Zeichen/Beitrag'],
+    ['avgTurnSeconds', 'Ø Zug-Dauer (s, seit Neustart)'],
     ['likes', 'Likes'],
   ];
 
