@@ -12,8 +12,9 @@
         <p>
           Ruhr-Universität Bochum,
           [PLATZHALTER: Lehrstuhl / Einrichtung], Universitätsstraße 150,
-          44801 Bochum, E-Mail: [PLATZHALTER: kontakt@rub.de] – siehe
-          <router-link to="/impressum">Impressum</router-link>.
+          44801 Bochum, E-Mail:
+          <a href="mailto:support@knickgeschichten.com">support@knickgeschichten.com</a>
+          – siehe <router-link to="/impressum">Impressum</router-link>.
         </p>
 
         <h3>1a. Datenschutzbeauftragte:r</h3>

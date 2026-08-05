@@ -32,8 +32,10 @@
 
         <h3>Kontakt</h3>
         <p>
-          E-Mail: [PLATZHALTER: kontakt@rub.de]<br>
-          Telefon: [PLATZHALTER: optional]
+          E-Mail: <a href="mailto:support@knickgeschichten.com">support@knickgeschichten.com</a><br>
+          Telefon: [PLATZHALTER: optional – eine Telefonnummer ist nicht
+          zwingend, solange über die E-Mail-Adresse eine schnelle elektronische
+          Kontaktaufnahme möglich ist.]
         </p>
 
         <h3>Umsatzsteuer-Identifikationsnummer</h3>
@@ -159,6 +161,16 @@
   background: #f0f0f0;
   padding: 0 3px;
   border-radius: 3px;
+}
+/* Semantic's default link blue clashes with the KG palette — keep contact and
+   cross-references in the project green. Applies to both legal pages. */
+.legal a {
+  color: var(--kg-green, #19421e);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.legal a:hover {
+  color: var(--kg-green-hover, #21562a);
 }
 .legal-back {
   margin-top: 20px;
