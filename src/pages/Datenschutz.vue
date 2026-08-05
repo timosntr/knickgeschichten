@@ -10,18 +10,25 @@
 
         <h3>1. Verantwortlicher</h3>
         <p>
-          Ruhr-Universität Bochum,
-          [PLATZHALTER: Lehrstuhl / Einrichtung], Universitätsstraße 150,
-          44801 Bochum, E-Mail:
+          Ruhr-Universität Bochum<br>
+          Der Rektor, Universitätsstraße 150<br>
+          44801 Bochum<br>
+          E-Mail:
           <a href="mailto:support@knickgeschichten.com">support@knickgeschichten.com</a>
           – siehe <router-link to="/impressum">Impressum</router-link>.
         </p>
 
-        <h3>1a. Datenschutzbeauftragte:r</h3>
+        <h3>1a. Datenschutzbeauftragter</h3>
         <p>
-          [PLATZHALTER: Kontaktdaten der/des behördlichen
-          Datenschutzbeauftragten der Ruhr-Universität Bochum – bei der
-          Einrichtung erfragen.]
+          Ruhr-Universität Bochum<br>
+          Dr. Kai-Uwe Loser<br>
+          Datenschutzbeauftragter<br>
+          Universitätsstraße 150<br>
+          44780 Bochum
+          
+          Telefon: +49 234 32 28720<br>
+          E-Mail: dsb@rub.de<br>
+          Webseite: https://dsb.ruhr-uni-bochum.de/
         </p>
 
         <h3>2. Hosting (Hetzner)</h3>

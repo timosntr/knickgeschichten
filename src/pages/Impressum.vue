@@ -13,35 +13,37 @@
         <h3>Diensteanbieter</h3>
         <p>
           Ruhr-Universität Bochum<br>
-          [PLATZHALTER: Lehrstuhl / Einrichtung, z. B. Institut für Medienwissenschaft]<br>
+          Institut für Medienwissenschaft<br>
+          Gebäude GB 1/44<br>
           Universitätsstraße 150<br>
           44801 Bochum<br>
-          Deutschland
+          Tel. 02 34/3 22 50 57<br>
+          Fax. 02 34/3 21 42 68<br>
+          E-Mail:ifm-gz@ruhr-uni-bochum.de (Geschäftszimmer)
         </p>
         <p>
-          Die Ruhr-Universität Bochum ist eine Körperschaft des öffentlichen
-          Rechts des Landes Nordrhein-Westfalen.
+          Das Institut für Medienwissenschaft ist eine wissenschaftliche 
+          Einrichtung der Ruhr-Universität Bochum.
         </p>
 
         <h3>Vertreten durch</h3>
         <p>
-          [PLATZHALTER: gesetzliche Vertretung – bei Einrichtungen der RUB in
-          der Regel das Rektorat, vertreten durch die Rektorin / den Rektor;
-          ggf. zusätzlich die verantwortliche Person des Lehrstuhls.]
+          Ruhr-Universität Bochum<br>
+          44780 Bochum<br>
+          Telefon +49 234 32-201
+          
+          Die Ruhr-Universität ist als wissenschaftliche Hochschule Körperschaft 
+          des öffentlichen Rechts und zugleich Einrichtung des Landes Nordrhein-Westfalen.
         </p>
 
         <h3>Kontakt</h3>
         <p>
           E-Mail: <a href="mailto:support@knickgeschichten.com">support@knickgeschichten.com</a><br>
-          Telefon: [PLATZHALTER: optional – eine Telefonnummer ist nicht
-          zwingend, solange über die E-Mail-Adresse eine schnelle elektronische
-          Kontaktaufnahme möglich ist.]
         </p>
 
         <h3>Umsatzsteuer-Identifikationsnummer</h3>
         <p>
-          [PLATZHALTER: USt-IdNr. gemäß § 27 a UStG – bei der Einrichtung
-          erfragen. Nur angeben, falls für dieses Angebot einschlägig.]
+          Die Ruhr-Universität verfügt über die Umsatzsteuer-ID-Nummer DE 127 056 261.
         </p>
 
         <h3>Zuständige Aufsichtsbehörde</h3>
