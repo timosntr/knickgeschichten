@@ -79,9 +79,22 @@ function restoreLobbyState(code) {
   return state;
 }
 
+// List the lobby codes that currently have a save file on disk (both the new
+// gzip and the legacy zlib format). Used by the metrics collector to fold
+// culled-from-memory stories back into the cumulative totals.
+function listSaveCodes() {
+  const codes = new Set();
+  for (const f of [...glob.sync(saveName('*'), {}), ...glob.sync(legacySaveName('*'), {})]) {
+    const m = /([^/\\]+)\.json\.(?:gz|zip)$/.exec(f);
+    if (m) codes.add(m[1]);
+  }
+  return [...codes];
+}
+
 module.exports = {
   saveExists,
   saveLobbyState,
   restoreLobbyState,
+  listSaveCodes,
   cullSaves,
 };
