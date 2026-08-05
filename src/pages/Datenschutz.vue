@@ -25,10 +25,12 @@
           Datenschutzbeauftragter<br>
           Universitätsstraße 150<br>
           44780 Bochum
-          
+        </p>
+        <p>
           Telefon: +49 234 32 28720<br>
-          E-Mail: dsb@rub.de<br>
-          Webseite: https://dsb.ruhr-uni-bochum.de/
+          E-Mail: <a href="mailto:dsb@rub.de">dsb@rub.de</a><br>
+          Webseite:
+          <a href="https://dsb.ruhr-uni-bochum.de/" target="_blank" rel="noopener">dsb.ruhr-uni-bochum.de</a>
         </p>
 
         <h3>2. Hosting (Hetzner)</h3>

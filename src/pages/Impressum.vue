@@ -19,10 +19,12 @@
           44801 Bochum<br>
           Tel. 02 34/3 22 50 57<br>
           Fax. 02 34/3 21 42 68<br>
-          E-Mail:ifm-gz@ruhr-uni-bochum.de (Geschäftszimmer)
+          E-Mail:
+          <a href="mailto:ifm-gz@ruhr-uni-bochum.de">ifm-gz@ruhr-uni-bochum.de</a>
+          (Geschäftszimmer)
         </p>
         <p>
-          Das Institut für Medienwissenschaft ist eine wissenschaftliche 
+          Das Institut für Medienwissenschaft ist eine wissenschaftliche
           Einrichtung der Ruhr-Universität Bochum.
         </p>
 
@@ -31,8 +33,9 @@
           Ruhr-Universität Bochum<br>
           44780 Bochum<br>
           Telefon +49 234 32-201
-          
-          Die Ruhr-Universität ist als wissenschaftliche Hochschule Körperschaft 
+        </p>
+        <p>
+          Die Ruhr-Universität ist als wissenschaftliche Hochschule Körperschaft
           des öffentlichen Rechts und zugleich Einrichtung des Landes Nordrhein-Westfalen.
         </p>
 
