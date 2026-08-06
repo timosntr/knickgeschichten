@@ -21,7 +21,6 @@ appleIconLink.href = appleTouchIcon;
 document.head.appendChild(appleIconLink);
 
 const VERSION = require('../package.json').version;
-const config = page_path => gtag('config', 'UA-58828021-7', {page_path});
 
 Vue.prototype.rocketcrab = false;
 Vue.prototype.bus = new Vue();
@@ -62,6 +61,8 @@ const router = new VueRouter({
     { name: 'sessions', path: '/sessions' },
     { name: 'archive', path: '/archive' },
     { name: 'einladen', path: '/einladen/:code' },
+    { name: 'impressum', path: '/impressum' },
+    { name: 'datenschutz', path: '/datenschutz' },
     { name: 'home', path: '/' },
   ]
 });
@@ -73,6 +74,8 @@ import Lobby from './pages/Lobby.vue';
 import Sessions from './pages/Sessions.vue';
 import Archive from './pages/Archive.vue';
 import Einladen from './pages/Einladen.vue';
+import Impressum from './pages/Impressum.vue';
+import Datenschutz from './pages/Datenschutz.vue';
 import NotFound from './pages/NotFound.vue';
 
 import GameRenderer from './games/GameRenderer.vue';
@@ -99,8 +102,6 @@ new Vue({
         isHost: ishost === 'true',
       };
     }
-
-    config('/' + this.$route.path);
   },
   sockets: {
     connect() {
@@ -123,12 +124,6 @@ new Vue({
       this.playerId = id;
     }
   },
-  watch: {
-    $route(to, from) {
-      if(to.path !== from.path)
-        config('/' + to.path);
-    },
-  },
   render(h) {
     return h({
       home: Home,
@@ -136,6 +131,8 @@ new Vue({
       sessions: Sessions,
       archive: Archive,
       einladen: Einladen,
+      impressum: Impressum,
+      datenschutz: Datenschutz,
     }[this.$route.name] || NotFound);
   }
 });
