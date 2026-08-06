@@ -4,6 +4,11 @@ import SemanticUI from 'semantic-ui-vue';
 import VueSocketIO from 'vue-socket.io'
 import PortalVue from 'portal-vue';
 
+// Self-hosted (was a //cdnjs.cloudflare.com <link> in index.html — a
+// third-party request to Cloudflare on every page load, independent of and
+// in addition to our own Cloudflare Tunnel). Imported before style.css so
+// the cascade order matches before: Semantic's defaults, then our overrides.
+import 'semantic-ui-css/semantic.min.css';
 import './style.css';
 import '../res/favicon.ico';
 import '../res/og-image.png';
