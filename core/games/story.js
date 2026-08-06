@@ -3,10 +3,19 @@ const _ = require('lodash');
 const Chain = require('./util/Chain');
 const Sanitize = require('./util/Sanitize');
 const WordFilter = require('./util/WordFilter');
+const MetricsState = require('../metricsState');
 
 const MIN_WORDS = 15;
-const MAX_CONTRIBUTION = 250;
-const MAX_STORY_CHARS = 4000;
+const MAX_CONTRIBUTION = 300;
+// Total length at which a story is considered finished. Also the effective
+// per-contribution ceiling near the end: a chain stays assignable while
+// sum + MAX_CONTRIBUTION <= MAX_STORY_CHARS, so the last contribution can run
+// up to MAX_CONTRIBUTION and the completed story never exceeds this value.
+// Kept at 3900 so a finished public story fits on a single A4 page in the PDF
+// export at 10pt (see src/pdf/export.js). With MAX_CONTRIBUTION = 300 a chain
+// stays assignable up to sum <= 3600, and the "Finish"/last-link zone begins
+// at sum > 3300 (both derived from these two constants).
+const MAX_STORY_CHARS = 3900;
 const CONTEXT_LEN = 1;
 const CONTEXT_WORDS = 8;
 
@@ -43,6 +52,10 @@ module.exports = class Story extends Game {
     this.aborted = blob.aborted || false;
     this.ring = blob.ring || null;
     this.succ = blob.succ || {};
+    // Restore per-player last-contribution timestamps (feeds lastActivity in
+    // the public session list). Old saves lack this field — keep the
+    // constructor's zero-initialized map in that case.
+    this.lastEdit = blob.lastEdit || this.lastEdit;
 
     // A restored game has no live connections — nobody is actually mid-turn.
     // Release every held chain so it can be reassigned when players (re)join.
@@ -64,6 +77,7 @@ module.exports = class Story extends Game {
       aborted: this.aborted,
       ring: this.ring,
       succ: this.succ,
+      lastEdit: this.lastEdit,
     }
   }
 
@@ -71,6 +85,9 @@ module.exports = class Story extends Game {
   // Assign a chain to a player, starting a timer if configured
   assignChain(pid, chain) {
     chain.editor = pid;
+    // Mark the turn's start so metrics can measure how long the writer takes
+    // (received -> submitted). Ephemeral: not saved, refreshed on every assign.
+    chain.assignedAt = Date.now();
     if (this.config.timeLimit > 0) {
       const deadline = Date.now() + this.config.timeLimit * 1000;
       this.deadlines[pid] = deadline;
@@ -148,6 +165,17 @@ module.exports = class Story extends Game {
       clearTimeout(this.idleTimers[pid]);
     }
     this.idleTimers = {};
+
+    // pause() only runs once the lobby is empty, so nobody is genuinely
+    // mid-turn — the same situation restore() handles. Release every held
+    // chain, otherwise a chain whose editor was still assigned when the last
+    // member left stays locked to an absent player forever: its turn timer was
+    // just cleared above, the caller also drops the 60s disconnect timers, and
+    // redistribute()'s `!s.editor` filter skips it. The next joiner then sits
+    // on "Waiting on Other Authors" with frozen progress until a server restart
+    // frees it via restore().
+    for (const chain of this.chains)
+      chain.editor = '';
   }
 
   // Called when a player's time runs out — release their chain, remove from queue, notify
@@ -295,7 +323,15 @@ module.exports = class Story extends Game {
 
       for(const player of players) {
         const playerObj = this.lobby.players.find(p => p.playerId === player);
-        const memberId = playerObj ? playerObj.id : '';
+        // Never hand a chain to someone who isn't actually here. After a server
+        // restart the game is rebuilt from the saved member list, so
+        // this.players can still name authors who are long gone (offline, closed
+        // tab). Without this guard redistribute() would assign a freed chain to
+        // one of those ghosts, whose editor slot then never clears — the next
+        // real joiner is stuck on "Warte auf den nächsten Abschnitt" forever.
+        if (!playerObj || !playerObj.connected)
+          continue;
+        const memberId = playerObj.id;
         const story = this.findChainForPlayer(player, memberId);
         if(!story)
           continue;
@@ -318,6 +354,9 @@ module.exports = class Story extends Game {
       this.lobby.completedAuthors = namedAuthors.size + (hasAnonymous ? 1 : 0);
       this.lobby.completedAt = Date.now();
       this.lobby.completedLikes = _.sumBy(this.chains, c => _.size(_.filter(c.likes, v => v)));
+      // Fire-and-forget: the story is complete right now regardless of whether
+      // the model answers. A title, if produced, is pushed out a few seconds later.
+      this.lobby.generateStoryTitle();
     }
 
     this.sendGameInfo();
@@ -427,9 +466,14 @@ module.exports = class Story extends Game {
 
       // If this writer was in the "last link" zone (same threshold the client
       // uses to show "Finish"), their contribution closes the story — otherwise
-      // a short final line would leave the chain assignable between 3500–3750
-      // chars and the "Finish" promise would be a lie.
+      // a short final line would leave the chain assignable in the
+      // (MAX_STORY_CHARS - 2*MAX_CONTRIBUTION, MAX_STORY_CHARS - MAX_CONTRIBUTION]
+      // char band and the "Finish" promise would be a lie.
       const wasLastLink = _.sumBy(story.chain, l => l.length) + 2 * MAX_CONTRIBUTION > MAX_STORY_CHARS;
+      // Turn duration (received -> submitted). Read before redistribute() below
+      // reassigns the chain and overwrites assignedAt.
+      if (story.assignedAt)
+        MetricsState.recordTurnDuration((Date.now() - story.assignedAt) / 1000);
       story.addLink(pid, line, authorName, memberId);
       if (wasLastLink)
         story.closed = true;
@@ -470,7 +514,8 @@ module.exports = class Story extends Game {
     case 'chain:like':
       const reading = this.aborted || this.getGameProgress() === 1;
       if(typeof data === 'number' && data >= 0 && data <= this.chains.length && reading) {
-        this.chains[data].likes[pid] = !this.chains[data].likes[pid];
+        const key = this.likeKey(pid);
+        this.chains[data].likes[key] = !this.chains[data].likes[key];
         this.sendGameInfo();
       }
       break;
@@ -504,9 +549,18 @@ module.exports = class Story extends Game {
       deadline: this.deadlines[pid] || null,
     } : {
       id: pid,
-      liked: this.chains.map(s => s.likes[pid]),
+      liked: this.chains.map(s => s.likes[this.likeKey(pid)]),
       state: done ? 'READING' : 'WAITING',
     };
+  }
+
+  // Likes are keyed by the browser's stable client id (survives reloads/
+  // reconnects) rather than the transient playerId, so refreshing the page
+  // can't be used to like a story again. Falls back to pid for clients that
+  // didn't send one.
+  likeKey(pid) {
+    const player = this.lobby.players.find(p => p.playerId === pid);
+    return (player && player.member && player.member.clientId) || pid;
   }
 
   compileStories() {

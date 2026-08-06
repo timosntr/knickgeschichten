@@ -25,27 +25,15 @@ const GAMES = require('./gameInfo.js');
 
 let asyncSessionCounter = 0;
 
-const EMOTES = [
-  'smile',
-  'meh',
-  'frown',
-  'heart',
-  'bug',
-  'hand rock',
-  'hand paper',
-  'hand scissors',
-  'question',
-  'exclamation',
-  'wait',
-  'write',
-  'check',
-  'times',
-  'thumbs up',
-  'thumbs down',
-];
-
 io.on('connection', socket => {
   const player = new Member(socket);
+
+  // Accept the browser's stable client id, if it sent a plausible one.
+  const rawClientId = socket.handshake.query && socket.handshake.query.kgClientId;
+  if (typeof rawClientId === 'string' && /^[a-zA-Z0-9-]{8,64}$/.test(rawClientId)) {
+    player.clientId = rawClientId;
+  }
+
   socket.emit('member:id', player.id);
   socket.emit('version', VERSION);
 
@@ -70,6 +58,23 @@ io.on('connection', socket => {
       player.name = name;
       socket.emit('member:nameOk', true);
       if(player.lobby) {
+        // Confirming the name screen is the moment a public session becomes
+        // real: promote it out of "pending" so it shows up in the session
+        // browser, gets its story number and starts being persisted. Until
+        // here, backing out leaves nothing behind (see lobby:create:async).
+        if (player.lobby.pending) {
+          const lobby = player.lobby;
+          lobby.pending = false;
+          clearTimeout(lobby.pendingCullTimer);
+          lobby.pendingCullTimer = null;
+          lobby.number = ++asyncSessionCounter;
+          // Default title; replaced by an AI-generated one when the story
+          // finishes (the number lives in lobby.number, so the title text is
+          // free to change).
+          lobby.title = `Knickgeschichte ${lobby.number}`;
+          lobby.persist = true;
+          console.log(new Date(), `-- [lobby ${lobby.code}] async session started "${lobby.title}"`);
+        }
         // Async sessions: if a same-named contributor recently disconnected,
         // reclaim their slot (and in-progress chain) before updateMembers()
         // below gets a chance to register this connection as a brand-new
@@ -119,8 +124,13 @@ io.on('connection', socket => {
     const lobby = new Lobby();
     lobby.code = code;
     lobby.isAsync = true;
-    lobby.title = `Knickgeschichte ${++asyncSessionCounter}`;
-    lobby.persist = true;
+    // The session only becomes real once someone confirms the name screen with
+    // "mitschreiben" (see member:name). Until then it stays pending: hidden from
+    // the session browser, never persisted, and discarded as soon as its creator
+    // leaves — so backing out of the name entry leaves no empty story behind.
+    // Number and title are assigned on activation too, so a cancelled session
+    // doesn't burn a story number and leave a gap in the numbering.
+    lobby.pending = true;
     lobby.selectedGame = 'story';
 
     // Initialize config from story defaults
@@ -144,7 +154,7 @@ io.on('connection', socket => {
     player.lobby = lobby;
     socket.emit('lobby:join', code);
     lobby.addMember(player);
-    console.log(new Date(), `-- [lobby ${code}] created async session "${lobby.title}"`);
+    console.log(new Date(), `-- [lobby ${code}] created pending async session`);
   });
 
   // Allow players to request current lobby info
@@ -203,28 +213,7 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('lobby:emote', emote => {
-    if(player.lobby) {
-      const now = Date.now();
-      if(now - player.lastEmote < 400 || !EMOTES.includes(emote))
-        return;
-
-      player.activity = now;
-      player.lastEmote = now;
-      player.lobby.emitAll('lobby:emote', player.id, emote);
-    } else {
-      socket.emit('lobby:leave');
-    }
-  });
-
-  // Allow an admin player to change what game is being played
-  socket.on('lobby:game:set', game => {
-    if(player.isAdmin()) {
-      player.lobby.setGame(game);
-    }
-  });
-
-  // Allow an admin player to change what game is being played
+  // Allow an admin player to start the game
   socket.on('game:start', game => {
     if(player.isAdmin()) {
       player.interact();
@@ -250,18 +239,6 @@ io.on('connection', socket => {
   });
 
 
-  // Change the admin
-  socket.on('lobby:admin:grant', targetId => {
-    if(player.isAdmin() && targetId !== player.id) {
-      player.interact();
-      const targetPlayer = player.lobby.players.find(p => p.id === targetId);
-      if(targetPlayer && targetPlayer.member) {
-        player.lobby.admin = targetPlayer.id;
-        player.lobby.sendLobbyInfo();
-      }
-    }
-  });
-
   // Core gameplay messages
   socket.on('game:message', (type, data) => {
     if(player.lobby) {
@@ -272,17 +249,6 @@ io.on('connection', socket => {
       });
     } else {
       socket.emit('lobby:leave');
-    }
-  });
-
-  // Change game config if the player is an admin
-  socket.on('lobby:game:config', (name, val) => {
-    if(player.isAdmin()) {
-      player.interact();
-      // Error handling
-      player.lobby.attempt(() => {
-        player.lobby.setConfig(name, val);
-      });
     }
   });
 
@@ -373,6 +339,13 @@ app.get('/api/v1/lobbies/search', (req, res) => {
 });
 
 // Quote of the day — one random sentence from completed public stories, changes daily
+//
+// QUOTE_MAX_CHARS is capped below the card's design-breaking point, not
+// arbitrarily: the "Satz des Tages" card on the home page has a fixed
+// aspect-ratio background (torn-paper look) that visibly stretches once the
+// quote (rendered as `„${text}"`, i.e. 2 chars longer than the raw sentence)
+// exceeds ~67 characters total. 65 here keeps the displayed text at 67.
+const QUOTE_MAX_CHARS = 65;
 app.get('/api/v1/quote', (req, res) => {
   const sentences = [];
   for (const lobby of Object.values(Lobby.lobbies)) {
@@ -385,7 +358,7 @@ app.get('/api/v1/quote', (req, res) => {
         for (const s of parts) {
           const trimmed = s.trim();
           const wordCount = trimmed.split(/\s+/).filter(w => w.length > 0).length;
-          if (trimmed.length >= 20 && wordCount >= 5) {
+          if (trimmed.length >= 20 && trimmed.length <= QUOTE_MAX_CHARS && wordCount >= 4) {
             // Preserve '' (anonymous sentinel); only undefined/null become null
             sentences.push({ text: trimmed, code: lobby.code, authorName: entry.authorName ?? null });
           }
@@ -532,15 +505,43 @@ try {
       }
     } catch {}
   }
+  // Continue numbering from the highest story number seen. Uses lobby.number
+  // (restoreState back-fills it from the old "Knickgeschichte N" titles), so an
+  // AI-generated title can no longer reset the counter.
   asyncSessionCounter = Object.values(Lobby.lobbies)
     .filter(l => l && l.isAsync)
-    .reduce((max, l) => {
-      const m = /(\d+)\s*$/.exec(l.title || '');
-      return m ? Math.max(max, Number(m[1])) : max;
-    }, 0);
+    .reduce((max, l) => Math.max(max, Number(l.number) || 0), 0);
   if (restored > 0)
     console.log(new Date(), `-- restored ${restored} async session(s), counter at ${asyncSessionCounter}`);
 } catch {}
 
 // Start the webserver
 server.listen(PORT, () => console.log(`Started ${VERSION} server on :${PORT}!`));
+
+// --- Internal metrics listener --------------------------------------------
+// Aggregate, anonymous instance metrics on a SEPARATE port that the public
+// Cloudflare Tunnel never maps. Bound to 127.0.0.1 by default so it is private
+// out of the box; in Docker set METRICS_HOST=0.0.0.0 (and simply don't publish
+// the port) so Prometheus can scrape it over the internal network only.
+const metrics = require('./core/metrics');
+const metricsDashboard = require('./core/metricsDashboard');
+const METRICS_PORT = process.env.METRICS_PORT || 9091;
+const METRICS_HOST = process.env.METRICS_HOST || '127.0.0.1';
+
+const metricsApp = express();
+metricsApp.get('/metrics', (req, res) => {
+  res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+  res.send(metrics.renderPrometheus(metrics.collect(io)));
+});
+metricsApp.get('/metrics.json', (req, res) => {
+  res.json(metrics.collect(io));
+});
+metricsApp.get('/', (req, res) => {
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.send(metricsDashboard.PAGE);
+});
+const metricsServer = metricsApp.listen(METRICS_PORT, METRICS_HOST, () =>
+  console.log(`Metrics on ${METRICS_HOST}:${METRICS_PORT} (dashboard /, prometheus /metrics)`));
+// A problem with the internal metrics port must never take down the game.
+metricsServer.on('error', err =>
+  console.error(new Date(), `!- metrics listener disabled (${METRICS_HOST}:${METRICS_PORT}): ${err.message}`));

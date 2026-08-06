@@ -4,8 +4,14 @@ import SemanticUI from 'semantic-ui-vue';
 import VueSocketIO from 'vue-socket.io'
 import PortalVue from 'portal-vue';
 
+// Self-hosted (was a //cdnjs.cloudflare.com <link> in index.html — a
+// third-party request to Cloudflare on every page load, independent of and
+// in addition to our own Cloudflare Tunnel). Imported before style.css so
+// the cascade order matches before: Semantic's defaults, then our overrides.
+import 'semantic-ui-css/semantic.min.css';
 import './style.css';
 import '../res/favicon.ico';
+import '../res/og-image.png';
 import appleTouchIcon from '../res/apple-touch-icon.png';
 
 // iOS home-screen icon (KG logo)
@@ -32,11 +38,19 @@ Vue.prototype.setLobbyHidden = isHidden => {
 };
 
 
+// Stable per-browser id, used server-side to recognize the same visitor
+// across reconnects/reloads (e.g. so a like can't be repeated by refreshing).
+if (!localStorage.kgClientId) {
+  localStorage.kgClientId = window.crypto && window.crypto.randomUUID
+    ? window.crypto.randomUUID()
+    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
 Vue.use(VueRouter);
 Vue.use(PortalVue);
 Vue.use(SemanticUI);
 Vue.use(new VueSocketIO({
-  connection: io(),
+  connection: io({ query: { kgClientId: localStorage.kgClientId } }),
 }));
 
 const router = new VueRouter({
