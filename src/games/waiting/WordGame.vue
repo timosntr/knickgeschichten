@@ -58,6 +58,17 @@
   text-transform: none;
 }
 .wg-cell.filled { border-color: var(--kg-green); }
+/* Each tile flips over as its colour is set. submit() staggers when the
+   classes below land, so the row reveals left to right. */
+.wg-cell.correct,
+.wg-cell.present,
+.wg-cell.absent {
+  animation: wg-flip 0.3s ease-out;
+}
+@keyframes wg-flip {
+  from { transform: rotateX(-90deg); }
+  to { transform: rotateX(0); }
+}
 .wg-cell.correct { background: var(--kg-green); color: var(--kg-cream); border-color: var(--kg-green); }
 .wg-cell.present { background: var(--kg-blue); color: #fff; border-color: var(--kg-blue); }
 .wg-cell.absent { background: #c8c5b7; color: #6a685e; border-color: #c8c5b7; }
@@ -127,6 +138,9 @@ import WORDS from './words';
 const VALID = new Set(WORDS);
 const ROWS = 6;
 const LEN = 5;
+// Delay between two tiles flipping over, in ms — the whole row reveals in
+// LEN * REVEAL_STEP, short enough not to feel like waiting.
+const REVEAL_STEP = 130;
 const KEY_ROWS = [
   ['Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', 'Ü'],
   ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ö', 'Ä'],
@@ -153,6 +167,8 @@ export default {
       keyState: {},     // char -> 'correct' | 'present' | 'absent'
       recent: [],       // recently used answers, to avoid quick repeats
       keyRows: KEY_ROWS,
+      revealing: false, // a row is currently flipping over, input is paused
+      revealTimers: [],
     };
   },
   computed: {
@@ -176,6 +192,7 @@ export default {
   },
   methods: {
     newWord() {
+      this.clearReveal();
       let word;
       do {
         word = WORDS[Math.floor(Math.random() * WORDS.length)];
@@ -189,6 +206,7 @@ export default {
       this.status = 'playing';
     },
     onKey(k) {
+      if (this.revealing) return;   // ignore input while a row flips over
       if (k === 'ENTER') this.submit();
       else if (k === 'BACK') this.current.pop();
       else if (this.status === 'playing' && this.current.length < LEN) this.current.push(k);
@@ -201,7 +219,20 @@ export default {
         return;
       }
       const scored = this.score(guess);
-      this.guesses.push(scored);
+      // Add the row uncoloured first, then turn the tiles over one by one; the
+      // keyboard and the win/loss state follow once the last one has landed.
+      const row = scored.map(c => ({ char: c.char, state: 'filled' }));
+      this.guesses.push(row);
+      this.current = [];
+      this.revealing = true;
+      scored.forEach((cell, i) => {
+        this.revealTimers.push(setTimeout(() => {
+          this.$set(row, i, cell);
+          if (i === LEN - 1) this.finishReveal(guess, scored);
+        }, (i + 1) * REVEAL_STEP));
+      });
+    },
+    finishReveal(guess, scored) {
       for (const cell of scored) {
         const prev = this.keyState[cell.char];
         if (cell.state === 'correct' || (cell.state === 'present' && prev !== 'correct')
@@ -209,9 +240,14 @@ export default {
           this.$set(this.keyState, cell.char, cell.state);
         }
       }
-      this.current = [];
+      this.revealing = false;
       if (guess.join('') === this.answerStr) this.status = 'won';
       else if (this.guesses.length >= ROWS) this.status = 'lost';
+    },
+    clearReveal() {
+      for (const t of this.revealTimers) clearTimeout(t);
+      this.revealTimers = [];
+      this.revealing = false;
     },
     // Wordle two-pass scoring so duplicate letters are coloured correctly.
     score(guess) {
@@ -248,6 +284,7 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener('keydown', this.onPhysical);
+    this.clearReveal();
   },
 };
 </script>
