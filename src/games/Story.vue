@@ -572,7 +572,9 @@
    the whole block closer to the header, so the word game below stays in
    view without scrolling. */
 .wait-head {
-  margin: 0 16px;
+  /* Negative top margin eats into the shared header's 12px bottom padding,
+     lifting the whole waiting block (and everything below it) a little more. */
+  margin: -10px 16px 0;
 }
 .wait-head .ui.loader:before,
 .wait-head .ui.loader:after {
