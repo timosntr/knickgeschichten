@@ -2,12 +2,6 @@
   <ooc-page>
     <ooc-menu title="Datenschutzerklärung" subtitle="Informationen nach Art. 13 DSGVO">
       <div class="legal">
-        <p class="legal-draft">
-          ⚠️ Entwurf – vor Veröffentlichung rechtlich prüfen lassen und alle
-          <code>[PLATZHALTER]</code> ausfüllen. Mit Hetzner und Cloudflare sollten
-          Auftragsverarbeitungsverträge (AVV) geschlossen werden.
-        </p>
-
         <h3>1. Verantwortlicher</h3>
         <p>
           Ruhr-Universität Bochum<br>
@@ -113,13 +107,6 @@
 .legal h3 {
   margin: 18px 0 4px;
   font-size: 1em;
-}
-.legal-draft {
-  background: #fff8e1;
-  border: 1px solid #ffe082;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 0.85em;
 }
 .legal code {
   background: #f0f0f0;

@@ -2,14 +2,6 @@
   <ooc-page>
     <ooc-menu title="Impressum" subtitle="Angaben gemäß § 5 DDG">
       <div class="legal">
-        <p class="legal-draft">
-          ⚠️ Entwurf – vor Veröffentlichung mit der zuständigen Einrichtung der
-          Ruhr-Universität Bochum (Lehrstuhl, Justiziariat, Datenschutz)
-          abstimmen und alle <code>[PLATZHALTER]</code> ausfüllen. Erst wenn
-          feststeht, wer formal Diensteanbieter ist, sind die Angaben
-          rechtsverbindlich.
-        </p>
-
         <h3>Diensteanbieter</h3>
         <p>
           Ruhr-Universität Bochum<br>
@@ -150,13 +142,6 @@
 .legal h3 {
   margin: 18px 0 4px;
   font-size: 1em;
-}
-.legal-draft {
-  background: #fff8e1;
-  border: 1px solid #ffe082;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 0.85em;
 }
 .legal code {
   background: #f0f0f0;
