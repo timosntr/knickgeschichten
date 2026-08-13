@@ -59,7 +59,7 @@
 }
 .wg-cell.filled { border-color: var(--kg-green); }
 .wg-cell.correct { background: var(--kg-green); color: var(--kg-cream); border-color: var(--kg-green); }
-.wg-cell.present { background: #9a8b3a; color: #fff; border-color: #9a8b3a; }
+.wg-cell.present { background: var(--kg-blue); color: #fff; border-color: var(--kg-blue); }
 .wg-cell.absent { background: #c8c5b7; color: #6a685e; border-color: #c8c5b7; }
 
 .wg-end {
@@ -117,7 +117,7 @@
 .wg-key--wide { flex: 1.5 1 0; font-size: 15px; }
 .wg-key:active { transform: scale(0.96); }
 .wg-key.correct { background: var(--kg-green); color: var(--kg-cream); border-color: var(--kg-green); }
-.wg-key.present { background: #9a8b3a; color: #fff; border-color: #9a8b3a; }
+.wg-key.present { background: var(--kg-blue); color: #fff; border-color: var(--kg-blue); }
 .wg-key.absent { background: #c8c5b7; color: #6a685e; border-color: #c8c5b7; }
 </style>
 
