@@ -120,4 +120,5 @@ export default [
   'RÖHRE', 'SCHOß', 'SERIE', 'SESAM', 'SPEZI', 'SPINT', 'SPION', 'STREU',
   'STUBE', 'TANGO', 'TOKEN', 'TUMOR', 'TUTOR', 'ULTRA', 'VENUS', 'WAFFE',
   'WAMPE', 'WEISE', 'WRACK', 'ZEDER', 'ZITZE', 'ZWIST',
+  'KRACH', 'BITTE', 'WATTE', 'HUNNE', 'NONNE',
 ];
