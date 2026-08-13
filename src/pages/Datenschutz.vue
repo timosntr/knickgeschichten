@@ -77,9 +77,13 @@
 
         <h3>7. Speicherdauer</h3>
         <p>
-          Laufende, unfertige Sessions werden nach ca. 30 Tagen Inaktivität
-          gelöscht. Im Archiv veröffentlichte Geschichten bleiben dauerhaft
-          verfügbar. [PLATZHALTER: an tatsächliche Aufbewahrung anpassen.]
+          Private Sessions (nur per Code zugänglich) werden nach ca. 30 Tagen
+          ohne Aktivität automatisch gelöscht. Öffentliche Sessions sind Teil
+          des Archivs und bleiben – ob abgeschlossen oder noch laufend –
+          dauerhaft verfügbar; die dort veröffentlichten Beiträge und
+          Anzeigenamen werden nicht automatisch gelöscht. Eine Löschung auf
+          Anfrage (Art. 17 DSGVO) ist über die im Impressum genannte
+          Kontaktadresse möglich.
         </p>
 
         <h3>8. Deine Rechte</h3>
