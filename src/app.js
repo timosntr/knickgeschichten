@@ -56,6 +56,12 @@ Vue.use(new VueSocketIO({
 const router = new VueRouter({
   mode: 'history',
   base: '/',
+  // Land at the top of every page on navigation (e.g. the footer's Impressum /
+  // Datenschutz links, clicked from halfway down a long list). Without a
+  // scrollBehavior VueRouter keeps the previous scroll offset.
+  scrollBehavior() {
+    return { x: 0, y: 0 };
+  },
   routes: [
     { name: 'lobby', path: '/lobby/:code?' },
     { name: 'sessions', path: '/sessions' },
