@@ -44,8 +44,9 @@
         <h3>Zum Projekt</h3>
         <p>
           Knickgeschichten ist ein nicht-kommerzielles studentisches Projekt.
-          Die Website ist im Rahmen des Projektmoduls „Schreibszenen“ im
-          akademischen Jahr 2025/26 an der Ruhr-Universität Bochum entstanden.
+          Die Website ist im Rahmen des Projektmoduls „Schreibszenen“ bei
+          Prof. Dr. Stefan Rieger im akademischen Jahr 2025/26 an der
+          Ruhr-Universität Bochum entstanden.
           Es werden keine Waren oder Dienstleistungen angeboten; eine
           Gewinnerzielungsabsicht besteht nicht.
         </p>
