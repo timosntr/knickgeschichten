@@ -123,7 +123,7 @@ export default [
   'KRACH', 'BITTE', 'WATTE', 'NONNE',
 
   // --- fourth batch -------------------------------------------------------
-  'ABBAU', 'ABTEI', 'ACHSE', 'AGENT', 'ANRUF', 'ARMEE', 'AROMA', 'ASPIK',
+  'ABBAU', 'ACHSE', 'AGENT', 'ANRUF', 'ARMEE', 'AROMA', 'ASPIK',
   'AUDIO', 'BEBEN', 'BERUF', 'BEZUG', 'BISON', 'BRAUE', 'BRISE', 'BÜSTE',
   'CELLO', 'CLOWN', 'COMIC', 'CREDO', 'DEBÜT', 'DEICH', 'DOSIS', 'DROGE',
   'EIFER', 'ESSAY', 'ETHIK', 'EVENT', 'FAKIR', 'FAZIT', 'FEHDE', 'FLAUM',
