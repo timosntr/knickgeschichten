@@ -580,6 +580,13 @@
   height: 1.71428571rem;
   margin: 0 0 0 -0.85714286rem;
 }
+/* The huge loader reserves 4.93rem above its text for the (now small) ring.
+   Match the small ring's reservation instead, so the text — and the progress
+   bar, word game and player list below it — all move up with it. */
+.wait-head .ui.text.loader {
+  min-width: 1.71428571rem;
+  padding-top: 2.5rem;
+}
 /* Shake the word game when a guess isn't a real word. */
 .wg-shake { animation: wg-shake 0.35s; }
 @keyframes wg-shake {
