@@ -146,8 +146,10 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+/* Both legal pages share this rule (SFC styles are global; Datenschutz has no
+   own .legal a). In-text links turn blue on hover, like the footer links. */
 .legal a:hover {
-  color: var(--kg-green-hover, #21562a);
+  color: var(--kg-blue);
 }
 </style>
 
