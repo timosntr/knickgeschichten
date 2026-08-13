@@ -75,7 +75,7 @@
       </sui-form>
     </div>
     <div v-else-if="player.state === 'WAITING'" class="wait-head">
-      <sui-loader active centered inline size="small">
+      <sui-loader active centered inline size="huge">
         Warte auf den nächsten Abschnitt
       </sui-loader>
     </div>
@@ -567,12 +567,18 @@
 /* Back link reuses .read-back (green, underline, blue on hover). */
 .share-back { margin-top: 14px; }
 
-/* Waiting header: smaller loader pulled up, so the word game below stays in
+/* Waiting header: keep the "Warte auf den nächsten Abschnitt" text at its
+   original size, but shrink just the spinning ring (not the text) and pull
+   the whole block closer to the header, so the word game below stays in
    view without scrolling. */
 .wait-head {
-  margin: 4px 16px 0;
-  transform: scale(0.85);
-  transform-origin: top center;
+  margin: 0 16px;
+}
+.wait-head .ui.loader:before,
+.wait-head .ui.loader:after {
+  width: 1.71428571rem;
+  height: 1.71428571rem;
+  margin: 0 0 0 -0.85714286rem;
 }
 /* Shake the word game when a guess isn't a real word. */
 .wg-shake { animation: wg-shake 0.35s; }
