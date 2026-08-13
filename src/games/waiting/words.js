@@ -107,4 +107,17 @@ export default [
   'TOAST', 'TONNE', 'TREND', 'TRIEB', 'TROPF', 'TURBO', 'UNION', 'VIDEO',
   'VIRUS', 'VISUM', 'WAAGE', 'WACHE', 'WAGEN', 'WALZE', 'WARZE', 'WEBER',
   'WICHT', 'WIEGE', 'WUNDE', 'ZELLE', 'ZWIRN',
+
+  // --- third batch (contributed) ------------------------------------------
+  'ADMIN', 'AFTER', 'AIOLI', 'ALPHA', 'ANBAU', 'BACON', 'BAFÖG', 'BIEST',
+  'BINDE', 'BLUFF', 'BOHLE', 'COUCH', 'DEKOR', 'DEMUT', 'DRALL', 'DUDEN',
+  'DÖNER', 'ELFIN', 'ERKER', 'FOKUS', 'FRUST', 'FUTON', 'FUTUR', 'GEBOT',
+  'GRIPS', 'HILFE', 'HOBBY', 'HYÄNE', 'HÖRER', 'INDIZ', 'JUROR', 'JÄGER',
+  'KEBAP', 'KLAPS', 'KRÖTE', 'LACHE', 'LENDE', 'LEPRA', 'LOKAL', 'LOKUS',
+  'LOLLI', 'LÄNGE', 'MACKE', 'MIXER', 'MÖBEL', 'OPIUM', 'ORGAN', 'PAMPE',
+  'PATTE', 'PENNE', 'PENNY', 'PETZE', 'PHASE', 'PIANO', 'PLANE', 'POKER',
+  'POPEL', 'PORNO', 'PROFI', 'PUMPE', 'RACHE', 'REIFE', 'RITZE', 'RUNDE',
+  'RÖHRE', 'SCHOß', 'SERIE', 'SESAM', 'SPEZI', 'SPINT', 'SPION', 'STREU',
+  'STUBE', 'TANGO', 'TOKEN', 'TUMOR', 'TUTOR', 'ULTRA', 'VENUS', 'WAFFE',
+  'WAMPE', 'WEISE', 'WRACK', 'ZEDER', 'ZITZE', 'ZWIST',
 ];
