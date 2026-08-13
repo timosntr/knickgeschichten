@@ -41,7 +41,7 @@
         <h3>3. Content Delivery / Tunnel (Cloudflare)</h3>
         <p>
           Zur Auslieferung und Absicherung nutzen wir Cloudflare (Cloudflare,
-          Inc., USA). Dabei wird die <strong>IP-Adresse</strong> der Besucher:innen
+          Inc., USA). Dabei wird die <strong>IP-Adresse</strong> der Besucher*innen
           verarbeitet; es kann zu einer <strong>Übermittlung in die USA</strong>
           kommen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; die
           Übermittlung wird auf Standardvertragsklauseln (Art. 46 DSGVO)
@@ -50,7 +50,7 @@
 
         <h3>4. Spieldaten (Geschichten &amp; Namen)</h3>
         <p>
-          Beiträge, die Nutzer:innen schreiben, werden gespeichert und – bei
+          Beiträge, die Nutzer*innen schreiben, werden gespeichert und – bei
           öffentlichen Sessions – im <router-link to="/archive">Archiv</router-link>
           veröffentlicht. Ein selbst gewählter <strong>Anzeigename</strong> wird
           zusammen mit den Beiträgen gespeichert; eine <strong>anonyme</strong>

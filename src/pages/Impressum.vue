@@ -53,7 +53,7 @@
         <h3>Haftung für Inhalte</h3>
         <p>
           Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach
-          den allgemeinen Gesetzen verantwortlich. Die von Nutzer:innen
+          den allgemeinen Gesetzen verantwortlich. Die von Nutzer*innen
           verfassten Geschichten sind fremde Inhalte; sie geben nicht die
           Auffassung des Anbieters wieder. Nach §§ 7 bis 10 DDG sind wir nicht
           verpflichtet, übermittelte oder gespeicherte fremde Informationen zu
@@ -82,7 +82,7 @@
         <h3>Urheberrecht</h3>
         <p>
           Die Rechte an den geschriebenen Beiträgen verbleiben bei den jeweiligen
-          Autor:innen. Mit dem Absenden eines Beitrags in einer öffentlichen
+          Autor*innen. Mit dem Absenden eines Beitrags in einer öffentlichen
           Session wird dem Projekt das einfache Recht eingeräumt, den Beitrag als
           Teil der Gesamtgeschichte auf dieser Website zu veröffentlichen.
         </p>
