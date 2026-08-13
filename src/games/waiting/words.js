@@ -6,6 +6,8 @@
 // discriminatory terms; mildly crude everyday words are fine.
 //
 // Rules for entries (checked by scripts/check-words.js):
+//   - nouns in the SINGULAR only — no plurals, no adjectives, no verbs, so
+//     every answer is guessable as one clear dictionary form
 //   - exactly five letters, where ä/ö/ü/ß each count as one letter
 //   - only A-Z plus Ä Ö Ü and ß (uppercase; ß stays lowercase — there is no
 //     everyday single-glyph uppercase form). Built to match the on-screen
@@ -17,52 +19,57 @@
 export default [
   // food & drink
   'APFEL', 'BIRNE', 'BEERE', 'MANGO', 'GURKE', 'MÖHRE', 'LAUCH', 'BOHNE',
-  'ERBSE', 'LINSE', 'SALAT', 'KRAUT', 'PILZE', 'BROTE', 'KEKSE', 'TORTE',
-  'HONIG', 'SAHNE', 'MILCH', 'QUARK', 'ESSIG', 'PIZZA', 'NUDEL', 'SUPPE',
-  'WURST', 'SPECK', 'KAKAO', 'ZWECK',
+  'ERBSE', 'LINSE', 'SALAT', 'KRAUT', 'TORTE', 'HONIG', 'SAHNE', 'MILCH',
+  'QUARK', 'ESSIG', 'PIZZA', 'NUDEL', 'SUPPE', 'WURST', 'SPECK', 'KAKAO',
+  'SAUCE', 'SIRUP', 'ESSEN',
   // sky & weather
-  'SONNE', 'MONDE', 'STERN', 'WOLKE', 'REGEN', 'STURM', 'BLITZ', 'NEBEL',
-  'HAGEL', 'FROST', 'WÄRME', 'KÄLTE', 'WINDE', 'DAMPF', 'RAUCH', 'ASCHE',
-  'LICHT', 'DUNST',
+  'SONNE', 'STERN', 'WOLKE', 'REGEN', 'STURM', 'BLITZ', 'NEBEL', 'HAGEL',
+  'FROST', 'WÄRME', 'KÄLTE', 'DAMPF', 'RAUCH', 'ASCHE', 'LICHT', 'DUNST',
+  'ORKAN', 'KOMET', 'GLANZ', 'FEUER',
   // water & land
-  'MEERE', 'WELLE', 'KÜSTE', 'INSEL', 'TEICH', 'FLUSS', 'BÄCHE', 'SUMPF',
-  'BERGE', 'HÜGEL', 'TÄLER', 'WIESE', 'ACKER', 'ERNTE', 'STEIN', 'KOHLE',
-  'EISEN', 'STAHL', 'STAUB', 'ERDEN',
+  'WELLE', 'KÜSTE', 'INSEL', 'TEICH', 'FLUSS', 'SUMPF', 'HÜGEL', 'WIESE',
+  'ACKER', 'ERNTE', 'STEIN', 'KOHLE', 'EISEN', 'STAHL', 'STAUB', 'HÖHLE',
+  'WÜSTE', 'EBENE', 'KLUFT', 'GRUND', 'STROM', 'STROH', 'RASEN',
   // plants & trees
-  'BLUME', 'TULPE', 'ASTER', 'HALME', 'ZWEIG', 'BLÜTE', 'BLATT', 'BÄUME',
-  'TANNE', 'BIRKE', 'EICHE', 'AHORN', 'LINDE', 'MOOSE', 'FARNE',
+  'BLUME', 'TULPE', 'ASTER', 'ZWEIG', 'BLÜTE', 'BLATT', 'TANNE', 'BIRKE',
+  'EICHE', 'AHORN', 'LINDE', 'BUCHE', 'RINDE', 'PALME', 'LILIE', 'SAMEN',
+  'STIEL', 'RANKE',
   // home & things
   'TISCH', 'STUHL', 'REGAL', 'LAMPE', 'KERZE', 'TASSE', 'GABEL', 'KANNE',
-  'EIMER', 'BESEN', 'LEDER', 'VILLA', 'HÜTTE', 'TÜREN', 'WÄNDE', 'DIELE',
-  'KÜCHE', 'STUFE', 'SCHAL', 'KNOPF', 'NADEL', 'FADEN', 'STOFF', 'SEIDE',
-  'WOLLE',
-  // town
-  'STADT', 'GASSE', 'PLATZ', 'MARKT', 'LADEN', 'KIOSK', 'BÜHNE',
+  'EIMER', 'BESEN', 'LEDER', 'HÜTTE', 'DIELE', 'KÜCHE', 'STUFE', 'SCHAL',
+  'KNOPF', 'NADEL', 'FADEN', 'STOFF', 'SEIDE', 'WOLLE', 'KISTE', 'KETTE',
+  'TRUHE', 'LAKEN', 'KABEL', 'HEBEL', 'HAKEN', 'TAFEL', 'TASTE', 'KAMIN',
+  'MAUER', 'SÄULE', 'VILLA', 'HALLE', 'KELLE', 'ZANGE', 'WANNE', 'PUDER',
+  // town & work
+  'STADT', 'GASSE', 'PLATZ', 'MARKT', 'LADEN', 'KIOSK', 'BÜHNE', 'HAFEN',
+  'WERFT', 'KREIS', 'STAAT', 'STALL', 'LAGER', 'KASSE', 'MIETE', 'MESSE',
   // animals
-  'TIGER', 'ZEBRA', 'KAMEL', 'PFERD', 'ZIEGE', 'RINDE', 'HASEN', 'MÄUSE',
-  'RATTE', 'KATZE', 'HUNDE', 'WÖLFE', 'BÄREN', 'DACHS', 'OTTER', 'BIBER',
-  'ROBBE', 'VOGEL', 'ADLER', 'EULEN', 'RABEN', 'MÖWEN', 'SPATZ', 'MEISE',
-  'AMSEL', 'FINKE', 'ENTEN', 'GÄNSE', 'HÄHNE', 'FISCH', 'HECHT', 'KRAKE',
-  'BIENE', 'WESPE', 'MÜCKE', 'KÄFER', 'RAUPE',
+  'TIGER', 'ZEBRA', 'KAMEL', 'PFERD', 'ZIEGE', 'RATTE', 'KATZE', 'DACHS',
+  'OTTER', 'BIBER', 'ROBBE', 'VOGEL', 'ADLER', 'SPATZ', 'MEISE', 'AMSEL',
+  'PUDEL', 'FISCH', 'HECHT', 'KRAKE', 'BIENE', 'WESPE', 'MÜCKE', 'KÄFER',
+  'RAUPE', 'FUCHS', 'FALKE', 'TAUBE', 'SCHAF', 'KATER', 'KREBS', 'HERDE',
   // clothes
-  'KLEID', 'HOSEN', 'RÖCKE', 'JACKE', 'SOCKE', 'MÜTZE', 'HAUBE',
+  'KLEID', 'JACKE', 'SOCKE', 'MÜTZE', 'HAUBE', 'WESTE', 'FRACK', 'SCHUH',
+  'KAPPE', 'SOHLE', 'ANZUG',
   // body
-  'HAARE', 'STIRN', 'AUGEN', 'NASEN', 'OHREN', 'LIPPE', 'ZÄHNE', 'ZUNGE',
-  'HÄLSE', 'HÄNDE', 'BEINE', 'BRUST', 'BAUCH', 'LEBER', 'NIERE', 'LUNGE',
-  'ADERN', 'BUSEN', 'HODEN', 'PENIS', 'TITTE', 'ARSCH',
-  // colours & sound & books
-  'FARBE', 'BRAUN', 'BEIGE', 'KLANG', 'MUSIK', 'GEIGE', 'FLÖTE', 'HARFE',
-  'NOTEN', 'TÄNZE', 'SPIEL', 'BÄLLE', 'KARTE', 'PUPPE', 'BRIEF', 'SEITE',
-  'ZEILE', 'WORTE', 'SILBE', 'REIME', 'VERSE', 'ROMAN', 'KRIMI', 'FABEL',
-  'STIFT', 'TINTE', 'FEDER', 'HEFTE', 'BUCHE',
-  // time & place
-  'NACHT', 'ABEND', 'WOCHE', 'MONAT', 'JAHRE', 'DATUM', 'UHREN', 'SÜDEN',
-  'OSTEN', 'LINKS',
-  // qualities
-  'KLEIN', 'BREIT', 'LANGE', 'KURZE', 'TIEFE', 'RUNDE', 'ECKIG', 'SPITZ',
-  'GLATT', 'WEICH', 'HARTE', 'SCHÖN', 'LIEBE', 'GUTEN', 'FROHE', 'LEISE',
-  'LAUTE', 'WARME', 'KALTE',
-  // verbs
-  'GEHEN', 'SEHEN', 'LEBEN', 'HÖREN', 'LESEN', 'REDEN', 'RUFEN', 'BADEN',
-  'LEGEN', 'SAGEN', 'TAGEN', 'MALEN', 'HOLEN', 'NÄHEN',
+  'STIRN', 'LIPPE', 'ZUNGE', 'BRUST', 'BAUCH', 'LEBER', 'NIERE', 'LUNGE',
+  'BUSEN', 'HODEN', 'PENIS', 'TITTE', 'ARSCH', 'MAGEN', 'NABEL', 'NAGEL',
+  'KEHLE', 'WANGE', 'FERSE', 'RIPPE', 'LOCKE', 'KLAUE',
+  // music, books & play
+  'FARBE', 'KLANG', 'MUSIK', 'GEIGE', 'FLÖTE', 'HARFE', 'SPIEL', 'KARTE',
+  'PUPPE', 'BRIEF', 'SEITE', 'ZEILE', 'SILBE', 'ROMAN', 'KRIMI', 'FABEL',
+  'STIFT', 'TINTE', 'FEDER', 'TITEL', 'THEMA', 'ZITAT', 'NOTIZ', 'LISTE',
+  'KOPIE', 'ORGEL', 'SAITE', 'RADIO', 'POKAL', 'PARTY', 'SZENE',
+  // time
+  'NACHT', 'ABEND', 'WOCHE', 'MONAT', 'DATUM', 'SÜDEN', 'OSTEN', 'WEILE',
+  'DAUER', 'FRIST', 'MITTE', 'PAUSE', 'REISE',
+  // people
+  'KÖNIG', 'PRINZ', 'VATER', 'TANTE', 'ONKEL', 'NEFFE', 'JUNGE', 'WITWE',
+  'ZEUGE', 'KUNDE', 'PILOT', 'ZWERG', 'RIESE', 'ENGEL', 'FIRMA',
+  // ideas & feelings
+  'LIEBE', 'LEBEN', 'ZWECK', 'GLÜCK', 'TRAUM', 'KRAFT', 'KUNST', 'RECHT',
+  'REGEL', 'SACHE', 'SORGE', 'WILLE', 'WÜRDE', 'SICHT', 'MENGE', 'SUMME',
+  'PREIS', 'PROBE', 'FRAGE', 'LEHRE', 'LOGIK', 'MAGIE', 'PANIK', 'HUMOR',
+  'JUBEL', 'GESTE', 'WESEN', 'SEELE', 'GEIST', 'KRIEG', 'KAMPF', 'KRONE',
+  'LAUNE', 'WONNE', 'DRAHT', 'BRAUT', 'SUCHE', 'ANGST', 'WETTE', 'TRICK',
 ];
