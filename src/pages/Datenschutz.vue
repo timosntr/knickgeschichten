@@ -45,8 +45,7 @@
           verarbeitet; es kann zu einer <strong>Übermittlung in die USA</strong>
           kommen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; die
           Übermittlung wird auf Standardvertragsklauseln (Art. 46 DSGVO)
-          gestützt. [PLATZHALTER: AVV/DPA mit Cloudflare abschließen und ggf.
-          verlinken.]
+          gestützt.
         </p>
 
         <h3>4. Spieldaten (Geschichten &amp; Namen)</h3>

@@ -41,12 +41,6 @@
           Die Ruhr-Universität verfügt über die Umsatzsteuer-ID-Nummer DE 127 056 261.
         </p>
 
-        <h3>Zuständige Aufsichtsbehörde</h3>
-        <p>
-          [PLATZHALTER: in der Regel das Ministerium für Kultur und Wissenschaft
-          des Landes Nordrhein-Westfalen – vor Veröffentlichung bestätigen.]
-        </p>
-
         <h3>Zum Projekt</h3>
         <p>
           Knickgeschichten ist ein nicht-kommerzielles studentisches Projekt.
@@ -91,10 +85,6 @@
           Autor:innen. Mit dem Absenden eines Beitrags in einer öffentlichen
           Session wird dem Projekt das einfache Recht eingeräumt, den Beitrag als
           Teil der Gesamtgeschichte auf dieser Website zu veröffentlichen.
-          [PLATZHALTER: Sollen einzelne Geschichten – wie im Projekt vorgesehen –
-          zusätzlich in gedruckter Form (Magazin) veröffentlicht werden, muss
-          dies hier und in den Nutzungshinweisen ausdrücklich geregelt werden;
-          ggf. ist eine gesonderte Einwilligung der Autor:innen erforderlich.]
         </p>
         <p>
           Die übrigen Inhalte und Werke auf diesen Seiten unterliegen dem
