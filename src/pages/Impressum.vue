@@ -134,10 +134,6 @@
           Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
           teilzunehmen.
         </p>
-
-        <div class="legal-back">
-          <router-link is="sui-button" to="/" size="small" basic>Zurück</router-link>
-        </div>
       </div>
     </ooc-menu>
     <ooc-util></ooc-util>
@@ -176,10 +172,6 @@
 }
 .legal a:hover {
   color: var(--kg-green-hover, #21562a);
-}
-.legal-back {
-  margin-top: 20px;
-  text-align: center;
 }
 </style>
 
