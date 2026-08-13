@@ -35,7 +35,8 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  /* Tighter between rows than within a row, so the six rows stay compact. */
+  gap: 4px;
 }
 .wg-row {
   display: grid;
