@@ -50,6 +50,10 @@
           Es werden keine Waren oder Dienstleistungen angeboten; eine
           Gewinnerzielungsabsicht besteht nicht.
         </p>
+        <p>
+          Konzept und Umsetzung: Jingtian Dong, Pavlos Gkegkas und Marlen Stuka.
+          Gestaltung: Luisa Bytom. Technische Betreuung: Timo Santehanser.
+        </p>
 
         <h3>Haftung für Inhalte</h3>
         <p>
