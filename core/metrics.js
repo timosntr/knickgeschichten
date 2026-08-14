@@ -243,8 +243,8 @@ function collect(io) {
       // rather than of the session it happens in.
       avgContributionChars: contributions ? Math.round(total.chars / contributions) : 0,
       avgContributionWords: contributions ? Math.round(total.words / contributions) : 0,
-      // Mean turn duration. In-memory (see metricsState) so it resets on
-      // restart — the dashboard tile is labelled accordingly.
+      // Mean turn duration. Event-driven rather than recomputed, but persisted
+      // across restarts (see metricsState), so it is a lifetime figure too.
       avgTurnSeconds: turnDuration.count ? Math.round(turnDuration.sum / turnDuration.count) : 0,
     },
     histograms: {
@@ -328,8 +328,9 @@ function renderPrometheus(snap) {
     zipBuckets(H.contributionChars), H.contributionChars.sum, H.contributionChars.count);
   hist('kg_contribution_length_words', 'Words per contribution',
     zipBuckets(H.contributionWords), H.contributionWords.sum, H.contributionWords.count);
-  // Turn duration is accumulated in memory since the last restart (see
-  // metricsState.js), so unlike the counts above it resets on restart.
+  // Turn duration is accumulated as turns happen (see metricsState.js) instead
+  // of being recomputed from the saves, but it is persisted, so like the counts
+  // above it keeps growing across restarts.
   hist('kg_turn_duration_seconds', 'Seconds from receiving a chain to submitting a contribution',
     H.turnDuration.buckets, H.turnDuration.sum, H.turnDuration.count);
 

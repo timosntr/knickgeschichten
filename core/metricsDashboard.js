@@ -97,7 +97,7 @@ const PAGE = `<!doctype html>
   var AVG = [
     ['avgContributionWords', 'Ø Wörter/Beitrag'],
     ['avgContributionChars', 'Ø Zeichen/Beitrag'],
-    ['avgTurnSeconds', 'Ø Zug-Dauer (s, seit Neustart)'],
+    ['avgTurnSeconds', 'Ø Zug-Dauer (s)'],
   ];
 
   function fmt(n) { return (n == null ? '–' : n.toLocaleString('de-DE')); }
