@@ -2,14 +2,6 @@
   <ooc-page>
     <ooc-menu title="Impressum" subtitle="Angaben gemäß § 5 DDG">
       <div class="legal">
-        <p class="legal-draft">
-          ⚠️ Entwurf – vor Veröffentlichung mit der zuständigen Einrichtung der
-          Ruhr-Universität Bochum (Lehrstuhl, Justiziariat, Datenschutz)
-          abstimmen und alle <code>[PLATZHALTER]</code> ausfüllen. Erst wenn
-          feststeht, wer formal Diensteanbieter ist, sind die Angaben
-          rechtsverbindlich.
-        </p>
-
         <h3>Diensteanbieter</h3>
         <p>
           Ruhr-Universität Bochum<br>
@@ -49,25 +41,25 @@
           Die Ruhr-Universität verfügt über die Umsatzsteuer-ID-Nummer DE 127 056 261.
         </p>
 
-        <h3>Zuständige Aufsichtsbehörde</h3>
-        <p>
-          [PLATZHALTER: in der Regel das Ministerium für Kultur und Wissenschaft
-          des Landes Nordrhein-Westfalen – vor Veröffentlichung bestätigen.]
-        </p>
-
         <h3>Zum Projekt</h3>
         <p>
           Knickgeschichten ist ein nicht-kommerzielles studentisches Projekt.
-          Die Website ist im Rahmen des Projektmoduls „Schreibszenen“ im
-          akademischen Jahr 2025/26 an der Ruhr-Universität Bochum entstanden.
+          Die Website ist im Rahmen des Projektmoduls „Schreibszenen“ bei
+          Prof. Dr. Stefan Rieger im akademischen Jahr 2025/26 an der
+          Ruhr-Universität Bochum entstanden.
           Es werden keine Waren oder Dienstleistungen angeboten; eine
           Gewinnerzielungsabsicht besteht nicht.
+        </p>
+        <p>
+          Konzept und Umsetzung: Jingtian Dong, Pavlos Gkegkas und Marlen Stuka<br>
+          Design: Luisa Bytom<br>
+          Technische Betreuung: Timo Santehanser
         </p>
 
         <h3>Haftung für Inhalte</h3>
         <p>
           Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach
-          den allgemeinen Gesetzen verantwortlich. Die von Nutzer:innen
+          den allgemeinen Gesetzen verantwortlich. Die von Nutzer*innen
           verfassten Geschichten sind fremde Inhalte; sie geben nicht die
           Auffassung des Anbieters wieder. Nach §§ 7 bis 10 DDG sind wir nicht
           verpflichtet, übermittelte oder gespeicherte fremde Informationen zu
@@ -96,13 +88,9 @@
         <h3>Urheberrecht</h3>
         <p>
           Die Rechte an den geschriebenen Beiträgen verbleiben bei den jeweiligen
-          Autor:innen. Mit dem Absenden eines Beitrags in einer öffentlichen
+          Autor*innen. Mit dem Absenden eines Beitrags in einer öffentlichen
           Session wird dem Projekt das einfache Recht eingeräumt, den Beitrag als
           Teil der Gesamtgeschichte auf dieser Website zu veröffentlichen.
-          [PLATZHALTER: Sollen einzelne Geschichten – wie im Projekt vorgesehen –
-          zusätzlich in gedruckter Form (Magazin) veröffentlicht werden, muss
-          dies hier und in den Nutzungshinweisen ausdrücklich geregelt werden;
-          ggf. ist eine gesonderte Einwilligung der Autor:innen erforderlich.]
         </p>
         <p>
           Die übrigen Inhalte und Werke auf diesen Seiten unterliegen dem
@@ -134,10 +122,6 @@
           Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
           teilzunehmen.
         </p>
-
-        <div class="legal-back">
-          <router-link is="sui-button" to="/" size="small" basic>Zurück</router-link>
-        </div>
       </div>
     </ooc-menu>
     <ooc-util></ooc-util>
@@ -155,13 +139,6 @@
   margin: 18px 0 4px;
   font-size: 1em;
 }
-.legal-draft {
-  background: #fff8e1;
-  border: 1px solid #ffe082;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 0.85em;
-}
 .legal code {
   background: #f0f0f0;
   padding: 0 3px;
@@ -174,12 +151,10 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+/* Both legal pages share this rule (SFC styles are global; Datenschutz has no
+   own .legal a). In-text links turn blue on hover, like the footer links. */
 .legal a:hover {
-  color: var(--kg-green-hover, #21562a);
-}
-.legal-back {
-  margin-top: 20px;
-  text-align: center;
+  color: var(--kg-blue);
 }
 </style>
 

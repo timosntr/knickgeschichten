@@ -18,7 +18,10 @@
     <div class="page-content">
       <slot></slot>
     </div>
-    <footer class="page-legal">
+    <!-- Home has its own richer footer with these links; hide the global one
+         there so they aren't shown twice. Everywhere else this is the only
+         Impressum/Datenschutz link (both must be reachable from every screen). -->
+    <footer v-if="$route.path !== '/'" class="page-legal">
       <router-link to="/impressum">Impressum</router-link>
       ·
       <router-link to="/datenschutz">Datenschutz</router-link>
@@ -94,16 +97,22 @@ body {
 .page-legal {
   text-align: center;
   padding: 14px 0 18px;
+  /* Keep the small footer size; only the links adopt the home-footer look. */
   font-size: 0.75em;
-  color: #aaa;
+  color: var(--kg-muted);
 }
+/* Match the home footer's links (underlined green, blue on hover) but at this
+   footer's smaller size. */
 .page-legal a {
-  color: #999;
-  text-decoration: none;
-}
-.page-legal a:hover {
+  font-family: var(--font-sans);
+  font-weight: 300;
   color: var(--kg-green);
   text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+.page-legal a:hover {
+  color: var(--kg-blue);
 }
 </style>
 

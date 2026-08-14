@@ -2,12 +2,6 @@
   <ooc-page>
     <ooc-menu title="Datenschutzerklärung" subtitle="Informationen nach Art. 13 DSGVO">
       <div class="legal">
-        <p class="legal-draft">
-          ⚠️ Entwurf – vor Veröffentlichung rechtlich prüfen lassen und alle
-          <code>[PLATZHALTER]</code> ausfüllen. Mit Hetzner und Cloudflare sollten
-          Auftragsverarbeitungsverträge (AVV) geschlossen werden.
-        </p>
-
         <h3>1. Verantwortlicher</h3>
         <p>
           Ruhr-Universität Bochum<br>
@@ -47,17 +41,16 @@
         <h3>3. Content Delivery / Tunnel (Cloudflare)</h3>
         <p>
           Zur Auslieferung und Absicherung nutzen wir Cloudflare (Cloudflare,
-          Inc., USA). Dabei wird die <strong>IP-Adresse</strong> der Besucher:innen
+          Inc., USA). Dabei wird die <strong>IP-Adresse</strong> der Besucher*innen
           verarbeitet; es kann zu einer <strong>Übermittlung in die USA</strong>
           kommen. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; die
           Übermittlung wird auf Standardvertragsklauseln (Art. 46 DSGVO)
-          gestützt. [PLATZHALTER: AVV/DPA mit Cloudflare abschließen und ggf.
-          verlinken.]
+          gestützt.
         </p>
 
         <h3>4. Spieldaten (Geschichten &amp; Namen)</h3>
         <p>
-          Beiträge, die Nutzer:innen schreiben, werden gespeichert und – bei
+          Beiträge, die Nutzer*innen schreiben, werden gespeichert und – bei
           öffentlichen Sessions – im <router-link to="/archive">Archiv</router-link>
           veröffentlicht. Ein selbst gewählter <strong>Anzeigename</strong> wird
           zusammen mit den Beiträgen gespeichert; eine <strong>anonyme</strong>
@@ -84,9 +77,13 @@
 
         <h3>7. Speicherdauer</h3>
         <p>
-          Laufende, unfertige Sessions werden nach ca. 30 Tagen Inaktivität
-          gelöscht. Im Archiv veröffentlichte Geschichten bleiben dauerhaft
-          verfügbar. [PLATZHALTER: an tatsächliche Aufbewahrung anpassen.]
+          Private Sessions (nur per Code zugänglich) werden nach ca. 30 Tagen
+          ohne Aktivität automatisch gelöscht. Öffentliche Sessions sind Teil
+          des Archivs und bleiben – ob abgeschlossen oder noch laufend –
+          dauerhaft verfügbar; die dort veröffentlichten Beiträge und
+          Anzeigenamen werden nicht automatisch gelöscht. Eine Löschung auf
+          Anfrage (Art. 17 DSGVO) ist über die im Impressum genannte
+          Kontaktadresse möglich.
         </p>
 
         <h3>8. Deine Rechte</h3>
@@ -97,10 +94,6 @@
           einer Aufsichtsbehörde. Wende dich dazu an den unter Punkt 1 genannten
           Verantwortlichen.
         </p>
-
-        <div class="legal-back">
-          <router-link is="sui-button" to="/" size="small" basic>Zurück</router-link>
-        </div>
       </div>
     </ooc-menu>
     <ooc-util></ooc-util>
@@ -118,21 +111,10 @@
   margin: 18px 0 4px;
   font-size: 1em;
 }
-.legal-draft {
-  background: #fff8e1;
-  border: 1px solid #ffe082;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 0.85em;
-}
 .legal code {
   background: #f0f0f0;
   padding: 0 3px;
   border-radius: 3px;
-}
-.legal-back {
-  margin-top: 20px;
-  text-align: center;
 }
 </style>
 
