@@ -21,7 +21,12 @@ app.use(bodyParser.json({ strict:  true }));
 const Member = require('./core/Member');
 const Lobby = require('./core/Lobby');
 const Persistence = require('./core/Persistence');
+const MetricsState = require('./core/metricsState');
 const GAMES = require('./gameInfo.js');
+
+// Turn durations are the one metric that cannot be recomputed from the saved
+// stories, so they are carried across restarts explicitly (see metricsState).
+MetricsState.load();
 
 let asyncSessionCounter = 0;
 
@@ -445,6 +450,10 @@ app.post('/api/v1/rocketcrab', (req, res) => {
 
 // handle the application closing - save lobbies if there are any
 function exitHandler(options, exitCode) {
+  // Metrics first: it is a single small synchronous write, and it must not be
+  // skipped if saving a lobby below throws.
+  MetricsState.flush();
+
   // save all the current lobbies
   _.each(Lobby.lobbies, lobby => {
     if(lobby._saved)
@@ -482,6 +491,10 @@ cron.schedule('*/5 * * * *', () => {
   _.each(Lobby.lobbies, lobby => {
     if (!lobby.empty()) Persistence.saveLobbyState(lobby);
   });
+  // Same idea for the turn-duration totals: the exit handler is not reached on
+  // SIGKILL (or SIGTERM, which this process does not trap), so a crash or a
+  // container stop would otherwise drop everything since the last restart.
+  MetricsState.flush();
 });
 
 // Every request goes through the index, Vue will handle 404s

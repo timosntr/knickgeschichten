@@ -38,6 +38,14 @@ const PAGE = `<!doctype html>
   .tile .val { font-size: 30px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
   .tile .lbl { font-size: 12px; color: var(--muted); margin-top: 6px; }
   .tile.live .val { color: var(--green-soft); }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  th, td { padding: 10px 14px; text-align: right; font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--line); }
+  th:first-child, td:first-child { text-align: left; font-variant-numeric: normal; }
+  thead th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+  tbody td { font-size: 16px; font-weight: 600; }
+  tbody td:first-child { font-size: 13px; font-weight: 400; color: var(--muted); }
+  tbody tr:last-child td { border-bottom: none; }
+  td.total { color: var(--green-soft); }
   footer { margin-top: 32px; font-size: 12px; color: var(--muted); }
   code { background: #ece7d8; padding: 1px 5px; border-radius: 4px; }
 </style>
@@ -53,7 +61,15 @@ const PAGE = `<!doctype html>
   <div class="grid" id="live"></div>
 
   <h2>Gesamt</h2>
-  <div class="grid" id="cumulative"></div>
+  <table>
+    <thead>
+      <tr><th>Metrik</th><th>öffentlich</th><th>privat</th><th>gesamt</th></tr>
+    </thead>
+    <tbody id="cumulative"></tbody>
+  </table>
+
+  <h2>Ø über alle Sessions</h2>
+  <div class="grid" id="averages"></div>
 
   <footer>
     Aggregiert & anonym — nur Zählwerte. Prometheus: <code>/metrics</code> · JSON: <code>/metrics.json</code>
@@ -65,18 +81,23 @@ const PAGE = `<!doctype html>
     ['onlineClients', 'online'],
     ['publicSessionsActive', 'öffentliche Sessions'],
     ['privateSessionsActive', 'private Sessions'],
-    ['writersNow', 'schreiben gerade'],
+    ['writersNowPublic', 'schreiben gerade (öffentl.)'],
+    ['writersNowPrivate', 'schreiben gerade (privat)'],
   ];
+  // Counts split by session kind — one row each, columns öffentlich/privat/gesamt.
   var CUM = [
     ['storiesCompleted', 'fertige Geschichten'],
     ['storiesInProgress', 'in Arbeit'],
     ['contributions', 'Beiträge'],
     ['wordsWritten', 'Wörter'],
     ['charsWritten', 'Zeichen'],
+    ['likes', 'Likes'],
+  ];
+  // Averages describe how people write, not where — shown combined only.
+  var AVG = [
     ['avgContributionWords', 'Ø Wörter/Beitrag'],
     ['avgContributionChars', 'Ø Zeichen/Beitrag'],
-    ['avgTurnSeconds', 'Ø Zug-Dauer (s, seit Neustart)'],
-    ['likes', 'Likes'],
+    ['avgTurnSeconds', 'Ø Zug-Dauer (s)'],
   ];
 
   function fmt(n) { return (n == null ? '–' : n.toLocaleString('de-DE')); }
@@ -86,6 +107,16 @@ const PAGE = `<!doctype html>
       return '<div class="tile ' + (cls || '') + '">' +
              '<div class="val">' + fmt(data[d[0]]) + '</div>' +
              '<div class="lbl">' + d[1] + '</div></div>';
+    }).join('');
+  }
+
+  function rows(el, defs, cum) {
+    var by = cum.byKind || { public: {}, private: {} };
+    el.innerHTML = defs.map(function (d) {
+      return '<tr><td>' + d[1] + '</td>' +
+             '<td>' + fmt(by.public[d[0]]) + '</td>' +
+             '<td>' + fmt(by.private[d[0]]) + '</td>' +
+             '<td class="total">' + fmt(cum[d[0]]) + '</td></tr>';
     }).join('');
   }
 
@@ -106,7 +137,8 @@ const PAGE = `<!doctype html>
       .then(function (r) { return r.json(); })
       .then(function (s) {
         tiles(document.getElementById('live'), LIVE, s.live, 'live');
-        tiles(document.getElementById('cumulative'), CUM, s.cumulative);
+        rows(document.getElementById('cumulative'), CUM, s.cumulative);
+        tiles(document.getElementById('averages'), AVG, s.cumulative);
         setUpdated(true, s.generatedAt);
       })
       .catch(function () { setUpdated(false); });
