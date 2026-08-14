@@ -51,8 +51,9 @@
           Gewinnerzielungsabsicht besteht nicht.
         </p>
         <p>
-          Konzept und Umsetzung: Jingtian Dong, Pavlos Gkegkas und Marlen Stuka.
-          Gestaltung: Luisa Bytom. Technische Betreuung: Timo Santehanser.
+          Konzept und Umsetzung: Jingtian Dong, Pavlos Gkegkas und Marlen Stuka<br>
+          Design: Luisa Bytom<br>
+          Technische Betreuung: Timo Santehanser
         </p>
 
         <h3>Haftung für Inhalte</h3>
