@@ -351,6 +351,12 @@ app.get('/api/v1/lobbies/search', (req, res) => {
 // quote (rendered as `„${text}"`, i.e. 2 chars longer than the raw sentence)
 // exceeds ~67 characters total. 65 here keeps the displayed text at 67.
 const QUOTE_MAX_CHARS = 65;
+// A contribution often stops mid-sentence for the next author to finish, and
+// that dangling last chunk is the only one the split can leave without terminal
+// punctuation — so require it. A closing quote or bracket may follow the mark
+// (`Er rief „Halt!"`). Sentences whose *start* was written by the previous
+// author still slip through; those can't be told apart from the text alone.
+const ENDS_SENTENCE = /[.!?][)\]"'“”»›]*$/;
 app.get('/api/v1/quote', (req, res) => {
   const sentences = [];
   for (const lobby of Object.values(Lobby.lobbies)) {
@@ -363,7 +369,8 @@ app.get('/api/v1/quote', (req, res) => {
         for (const s of parts) {
           const trimmed = s.trim();
           const wordCount = trimmed.split(/\s+/).filter(w => w.length > 0).length;
-          if (trimmed.length >= 20 && trimmed.length <= QUOTE_MAX_CHARS && wordCount >= 4) {
+          if (trimmed.length >= 20 && trimmed.length <= QUOTE_MAX_CHARS && wordCount >= 4
+              && ENDS_SENTENCE.test(trimmed)) {
             // Preserve '' (anonymous sentinel); only undefined/null become null
             sentences.push({ text: trimmed, code: lobby.code, authorName: entry.authorName ?? null });
           }
