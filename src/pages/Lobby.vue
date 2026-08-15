@@ -63,7 +63,8 @@
       <div class="lobby-waiting">
         <div v-if="!lobbyInfo.isAsync">
           <div class="kg-divider"><span>Code</span></div>
-          <div class="lobby-code">{{ codeDisplay }}</div>
+          <!-- One span per character, dots added in CSS — see .lobby-code__ch -->
+          <div class="lobby-code"><span v-for="(ch, i) in codeChars" :key="i" class="lobby-code__ch">{{ ch }}</span></div>
         </div>
 
         <!-- Buttons are absent from the XD; added in the name-screen style:
@@ -319,6 +320,15 @@
   margin: 14px 0 4px;
   letter-spacing: 2px;
 }
+/* The separators are decoration, not part of the code. As generated content
+   they stay out of the selection, so double-clicking the code copies "HQT8"
+   and it pastes into the join field as-is. Without this the dots are real
+   characters: they break the word, so a double-click grabs one letter. */
+.lobby-code__ch + .lobby-code__ch::before {
+  content: '·';
+  -webkit-user-select: none;
+  user-select: none;
+}
 
 /* "letzte Runde" stories: outlined white pills (307x33 r17), named after the
    first author, italic Metropolis-Light 11. Click a pill to expand its full
@@ -442,8 +452,8 @@ export default {
       return gameInfo[this.lobbyInfo.game];
     },
     // Room code shown big as "A·B·C·D" (XD: Boska-Black 45, middle dots).
-    codeDisplay() {
-      return (this.$route.params.code || '').toUpperCase().split('').join('·');
+    codeChars() {
+      return (this.$route.params.code || '').toUpperCase().split('');
     },
   },
   methods: {
