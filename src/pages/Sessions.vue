@@ -312,6 +312,7 @@ export default {
       sortDesc: true,
       sortOptions: [
         { value: 'lastActivity', label: 'zuletzt' },
+        { value: 'progress',     label: 'Fortschritt' },
         { value: 'number',       label: '#' },
       ],
     };
@@ -329,6 +330,13 @@ export default {
       return [...this.activeSessions].sort((a, b) => {
         if (this.sortBy === 'number') {
           return dir * ((a.number || 0) - (b.number || 0));
+        }
+        // Same 0..1 value the progress bar shows; ties fall back to recency so
+        // the order stays stable between the many stories at 0%.
+        if (this.sortBy === 'progress') {
+          const d = (a.progress || 0) - (b.progress || 0);
+          if (d !== 0) return dir * d;
+          return -((a.lastActivity || 0) - (b.lastActivity || 0));
         }
         return dir * ((a.lastActivity || 0) - (b.lastActivity || 0));
       });
