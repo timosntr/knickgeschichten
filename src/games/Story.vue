@@ -1,5 +1,10 @@
 <template>
   <div>
+    <!-- Everyone sees the wrap-up, not only whoever holds a story right now:
+         those waiting for their turn get no other signal that it's the last. -->
+    <div v-if="game.finalRound && !game.reading" class="final-round-note">
+      letzte Runde – danach sind die Geschichten fertig
+    </div>
     <div v-if="idleKicked" style="margin: 32px 16px; text-align: center;">
       <sui-icon name="clock outline" color="orange" size="huge"/>
       <p style="margin-top: 12px; font-size: 1.1em;">Platz freigegeben</p>
@@ -149,6 +154,17 @@
 </template>
 
 <style>
+
+/* Wrap-up banner, same italic 11px voice as the other hints. */
+.final-round-note {
+  text-align: center;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--kg-green);
+  margin: 0 0 12px;
+}
 
 .field {
   position: relative;

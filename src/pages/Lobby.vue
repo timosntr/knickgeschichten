@@ -82,6 +82,14 @@
           </button>
         </div>
 
+        <!-- Admins don't know the wrap-up exists until they're mid-game and
+             looking for it, so say it here, before the round starts. -->
+        <div v-if="!lobbyInfo.isAsync && currGame && lobbyInfo.admin === $root.playerId"
+          class="lobby-hint">
+          Du kannst jederzeit die letzte Runde einläuten – dann schreiben alle
+          noch einen Schluss und die Geschichten sind fertig.
+        </div>
+
         <div v-if="!lobbyInfo.isAsync && lobbyInfo.completedStories && lobbyInfo.completedStories.length">
           <div class="kg-divider"><span>letzte Runde</span></div>
           <div class="story-accordion">
@@ -360,6 +368,21 @@
   margin: 24px 0 4px;
 }
 .lobby-buttons .write-btn { margin: 0; }
+
+/* Admin note under the start button — same italic 11px voice as .name-hint,
+   capped at the 307px content column so it doesn't run wide. */
+.lobby-hint {
+  width: 307px;
+  max-width: 100%;
+  margin: 10px auto 0;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--kg-muted);
+  text-align: center;
+}
 
 </style>
 

@@ -228,6 +228,18 @@ io.on('connection', socket => {
     }
   });
 
+  // Admin wraps the round up: every story gets one more hand-off and ends.
+  socket.on('game:lastround', () => {
+    if(player.isAdmin()) {
+      player.interact();
+      const lobby = player.lobby;
+      if (lobby.game && lobby.game.startFinalRound) {
+        lobby.game.startFinalRound();
+        console.log(new Date(), `-- [lobby ${lobby.code}] final round started by admin`);
+      }
+    }
+  });
+
   socket.on('game:end', game => {
     if(player.isAdmin()) {
       player.interact();
