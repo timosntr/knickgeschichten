@@ -7,6 +7,10 @@ const MetricsState = require('../metricsState');
 
 const MIN_WORDS = 15;
 const MAX_CONTRIBUTION = 300;
+// How long someone may sit in the queue without a turn before they are dropped
+// (public sessions). Deliberately shorter than a turn: it only ever runs while
+// they hold no chain.
+const IDLE_MS = 5 * 60 * 1000;
 // Total length at which a story is considered finished. Also the effective
 // per-contribution ceiling near the end: a chain stays assignable while
 // sum + MAX_CONTRIBUTION <= MAX_STORY_CHARS, so the last contribution can run
@@ -85,6 +89,11 @@ module.exports = class Story extends Game {
   // Assign a chain to a player, starting a timer if configured
   assignChain(pid, chain) {
     chain.editor = pid;
+    // Their turn has started, so the queue-idle timer stops: from here the turn
+    // timer below is the only clock on them. Without this a writer who needs
+    // longer than IDLE_MS is kicked out mid-sentence, while their countdown
+    // still shows minutes left.
+    this.clearIdleTimer(pid);
     // Mark the turn's start so metrics can measure how long the writer takes
     // (received -> submitted). Ephemeral: not saved, refreshed on every assign.
     chain.assignedAt = Date.now();
@@ -109,11 +118,7 @@ module.exports = class Story extends Game {
   detachPlayer(pid) {
     const idx = this.players.indexOf(pid);
     if (idx >= 0) this.players.splice(idx, 1);
-    // Clear idle timer if running
-    if (this.idleTimers[pid]) {
-      clearTimeout(this.idleTimers[pid]);
-      delete this.idleTimers[pid];
-    }
+    this.clearIdleTimer(pid);
   }
 
   // Release a disconnected player's chain so other players aren't blocked
@@ -141,17 +146,31 @@ module.exports = class Story extends Game {
       this.emitTo(pid, 'story:result', this.compileStories());
       return;
     }
-    // 5-minute idle timer: remove from queue if player never writes anything
-    const IDLE_MS = 5 * 60 * 1000;
+    this.armIdleTimer(pid);
+    this.redistribute();
+  }
+
+  // Drops someone who is queued but doing nothing, so they don't sit in
+  // this.players forever. Only ever runs while they hold no chain: writers are
+  // governed by the turn timer instead (see assignChain), which is the longer
+  // of the two — otherwise this would cut a turn short mid-sentence.
+  armIdleTimer(pid) {
+    this.clearIdleTimer(pid);
     this.idleTimers[pid] = setTimeout(() => {
       delete this.idleTimers[pid];
       if (!this.players.includes(pid)) return; // already gone
       this.emitTo(pid, 'lobby:idle', 'idle');
-      this.releasePlayer(pid);  // release chain if they had one
+      this.releasePlayer(pid);  // no-op by construction; guards against a stuck chain
       this.detachPlayer(pid);   // remove from queue
-      console.log(new Date(), `-- [lobby ${this.lobby.code}] idle player "${pid}" removed after 5min`);
+      console.log(new Date(), `-- [lobby ${this.lobby.code}] idle player "${pid}" removed after ${IDLE_MS / 60000}min`);
     }, IDLE_MS);
-    this.redistribute();
+  }
+
+  clearIdleTimer(pid) {
+    if (this.idleTimers[pid]) {
+      clearTimeout(this.idleTimers[pid]);
+      delete this.idleTimers[pid];
+    }
   }
 
   // Clear timers without emitting results (used when async lobby empties)
@@ -455,11 +474,8 @@ module.exports = class Story extends Game {
 
       this.clearTimer(pid);
       this.lastEdit[pid] = Date.now();
-      // Clear idle timer — player has written, no need to kick them
-      if (this.idleTimers[pid]) {
-        clearTimeout(this.idleTimers[pid]);
-        delete this.idleTimers[pid];
-      }
+      // Contributed, so they keep their place in the queue for good
+      this.clearIdleTimer(pid);
       const playerObj = this.lobby.players.find(p => p.playerId === pid);
       const authorName = playerObj ? playerObj.name : null;
       const memberId = playerObj ? playerObj.id : '';
@@ -498,6 +514,9 @@ module.exports = class Story extends Game {
       const skipPlayerObj = this.lobby.players.find(p => p.playerId === pid);
       skipChain.lastEditorMemberId = skipPlayerObj ? skipPlayerObj.id : '';
       skipChain.editor = '';
+      // Back in the queue without having written, so the idle clock applies
+      // again — assignChain stopped it when the turn started.
+      this.armIdleTimer(pid);
       this.redistribute();
       break;
     }
