@@ -45,8 +45,10 @@
         </div>
 
         <!-- Satz des Tages -->
-        <div v-if="quote" class="qotd" @click="$router.push(`/lobby/${quote.code}`)">
-          <div class="qotd-card">
+        <!-- Click sits on the card, not the wrapper: the wrapper's spacing below
+             is not part of the scrap (see .qotd-card clip-path). -->
+        <div v-if="quote" class="qotd">
+          <div class="qotd-card" @click="$router.push(`/lobby/${quote.code}`)">
             <div class="qotd-label">Zitat des Tages</div>
             <div class="qotd-text">{{ quote.text }}</div>
             <div class="qotd-author" v-if="quote.authorName !== null">
@@ -320,7 +322,7 @@
 .info-list a { color: var(--kg-green); }
 
 /* Satz des Tages (torn-paper card) -------------------------------------- */
-.qotd { margin: 8px 0 22px; cursor: pointer; padding-bottom: 10%;}
+.qotd { margin: 8px 0 22px; padding-bottom: 10%;}
 .qotd-card {
   aspect-ratio: 700 / 470;
   background-image: url('../assets/quote-card.webp');
@@ -340,8 +342,14 @@
   padding: 17% 15% 15%;
   text-align: center;
   transition: transform 0.15s ease;
+  cursor: pointer;
+  /* The scrap doesn't fill its box: measured against the artwork it leaves the
+     top 5.5%, the right 6.8% and the left 1.4% empty (it does reach the bottom
+     edge). Clipping those away trims the click target to the visible paper —
+     no pixel of the scrap is cut, since the clipped strips are transparent. */
+  clip-path: inset(5% 6.5% 0 1%);
 }
-.qotd:hover .qotd-card { transform: translateY(-2px); }
+.qotd-card:hover { transform: translateY(-2px); }
 .qotd-label {
   font-family: var(--font-serif);
   font-weight: 700;
