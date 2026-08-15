@@ -82,12 +82,12 @@
           </button>
         </div>
 
-        <!-- Admins don't know the wrap-up exists until they're mid-game and
-             looking for it, so say it here, before the round starts. -->
-        <div v-if="!lobbyInfo.isAsync && currGame && lobbyInfo.admin === $root.playerId"
-          class="lobby-hint">
-          Du kannst jederzeit die letzte Runde einläuten – dann schreiben alle
-          noch einen Schluss und die Geschichten sind fertig.
+        <!-- Shown to everyone: admins learn the wrap-up exists before the round
+             instead of hunting for it mid-game, and the others know the round
+             can end without warning. -->
+        <div v-if="!lobbyInfo.isAsync && currGame" class="lobby-hint">
+          Die letzte Runde kann jederzeit eingeläutet werden –
+          dann schreiben alle noch einen Schluss.
         </div>
 
         <div v-if="!lobbyInfo.isAsync && lobbyInfo.completedStories && lobbyInfo.completedStories.length">
@@ -382,6 +382,8 @@
   line-height: 1.4;
   color: var(--kg-muted);
   text-align: center;
+  /* Two lines either way; balance keeps them from splitting 64/39 chars. */
+  text-wrap: balance;
 }
 
 </style>
