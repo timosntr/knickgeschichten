@@ -63,7 +63,8 @@
       <div class="lobby-waiting">
         <div v-if="!lobbyInfo.isAsync">
           <div class="kg-divider"><span>Code</span></div>
-          <div class="lobby-code">{{ codeDisplay }}</div>
+          <!-- One span per character, dots added in CSS — see .lobby-code__ch -->
+          <div class="lobby-code"><span v-for="(ch, i) in codeChars" :key="i" class="lobby-code__ch">{{ ch }}</span></div>
         </div>
 
         <!-- Buttons are absent from the XD; added in the name-screen style:
@@ -80,6 +81,14 @@
             @click="$socket.emit('game:start')">
             Geschichten starten
           </button>
+        </div>
+
+        <!-- Shown to everyone: admins learn the wrap-up exists before the round
+             instead of hunting for it mid-game, and the others know the round
+             can end without warning. -->
+        <div v-if="!lobbyInfo.isAsync && currGame" class="lobby-hint">
+          Die letzte Runde kann jederzeit eingeläutet werden –
+          dann schreiben alle noch einen Schluss.
         </div>
 
         <div v-if="!lobbyInfo.isAsync && lobbyInfo.completedStories && lobbyInfo.completedStories.length">
@@ -311,6 +320,15 @@
   margin: 14px 0 4px;
   letter-spacing: 2px;
 }
+/* The separators are decoration, not part of the code. As generated content
+   they stay out of the selection, so double-clicking the code copies "HQT8"
+   and it pastes into the join field as-is. Without this the dots are real
+   characters: they break the word, so a double-click grabs one letter. */
+.lobby-code__ch + .lobby-code__ch::before {
+  content: '·';
+  -webkit-user-select: none;
+  user-select: none;
+}
 
 /* "letzte Runde" stories: outlined white pills (307x33 r17), named after the
    first author, italic Metropolis-Light 11. Click a pill to expand its full
@@ -360,6 +378,23 @@
   margin: 24px 0 4px;
 }
 .lobby-buttons .write-btn { margin: 0; }
+
+/* Admin note under the start button — same italic 11px voice as .name-hint,
+   capped at the 307px content column so it doesn't run wide. */
+.lobby-hint {
+  width: 307px;
+  max-width: 100%;
+  margin: 10px auto 0;
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--kg-muted);
+  text-align: center;
+  /* Two lines either way; balance keeps them from splitting 64/39 chars. */
+  text-wrap: balance;
+}
 
 </style>
 
@@ -417,8 +452,8 @@ export default {
       return gameInfo[this.lobbyInfo.game];
     },
     // Room code shown big as "A·B·C·D" (XD: Boska-Black 45, middle dots).
-    codeDisplay() {
-      return (this.$route.params.code || '').toUpperCase().split('').join('·');
+    codeChars() {
+      return (this.$route.params.code || '').toUpperCase().split('');
     },
   },
   methods: {

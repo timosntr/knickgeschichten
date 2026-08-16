@@ -22,6 +22,11 @@ class Chain {
     // so completion no longer depends on the variable length of that final line.
     this.closed = false;
 
+    // Contributions this chain still gets, counted down from the moment the
+    // admin starts the final round (2 while someone is mid-write, else 1).
+    // null while the game runs on the normal char budget.
+    this.linksLeft = null;
+
     // List of lines in the chain
     this.chain = [];
 
@@ -45,6 +50,7 @@ class Chain {
       editor: this.editor,
       nextEditor: this.nextEditor,
       closed: this.closed,
+      linksLeft: this.linksLeft,
       chain: this.chain,
       type: this.type,
       editors: this.editors,
@@ -63,6 +69,7 @@ class Chain {
     this.editor = blob.editor;
     this.nextEditor = blob.nextEditor || '';
     this.closed = blob.closed || false;
+    this.linksLeft = blob.linksLeft ?? null;
     this.chain = blob.chain;
     this.editors = blob.editors;
     this.authorNames = blob.authorNames || [];

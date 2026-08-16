@@ -29,12 +29,19 @@
       <div v-if="!players.length" class="player-empty">keine Autor*innen da</div>
     </div>
 
-    <div>
-      <button type="button" class="write-btn"
+    <!-- Admin wrap-up, two stages: first "letzte Runde" (every story gets one
+         more hand-off and ends properly), then the hard stop for the case where
+         even that takes too long. Both keep the tap-twice confirmation. -->
+    <div v-if="$root.playerId === admin && lobbyState === 'PLAYING' && !gameState.reading">
+      <button v-if="!gameState.finalRound" type="button" class="write-btn"
+        :class="confirmLastRound ? 'write-btn--solid' : 'write-btn--outline'"
+        @click="tryLastRound">
+        {{ confirmLastRound ? 'bist du sicher?' : 'letzte Runde' }}
+      </button>
+      <button v-else type="button" class="write-btn"
         :class="confirmEndGame ? 'write-btn--solid' : 'write-btn--outline'"
-        @click="tryEndGame"
-        v-if="$root.playerId === admin && lobbyState === 'PLAYING' && !gameState.reading">
-        {{ confirmEndGame ? 'bist du sicher?' : 'Geschichten beenden' }}
+        @click="tryEndGame">
+        {{ confirmEndGame ? 'bist du sicher?' : 'sofort beenden' }}
       </button>
     </div>
   </div>
@@ -170,6 +177,16 @@ export default {
         this.confirmTimeout = setTimeout(() => this.confirmEndGame = false, 1000);
       }
     },
+    tryLastRound() {
+      clearTimeout(this.confirmTimeout);
+      if(this.confirmLastRound) {
+        this.confirmLastRound = false;
+        this.$socket.emit('game:lastround');
+      } else {
+        this.confirmLastRound = true;
+        this.confirmTimeout = setTimeout(() => this.confirmLastRound = false, 1000);
+      }
+    },
     // Pick the icon file for a player's row: the light variant on the viewer's
     // own (blue) row when one exists, the dark one otherwise.
     iconFor(name, p) {
@@ -199,6 +216,7 @@ export default {
     return {
       confirmTimeout: undefined,
       confirmEndGame: false,
+      confirmLastRound: false,
     };
   },
 };

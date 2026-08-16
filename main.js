@@ -228,6 +228,21 @@ io.on('connection', socket => {
     }
   });
 
+  // Admin wraps the round up: every story gets one more hand-off and ends.
+  // Private lobbies only. Public sessions delegate "admin" to whoever joined
+  // first (they just never see admin controls), so without this check any
+  // participant could cut the public stories short with a crafted client.
+  socket.on('game:lastround', () => {
+    if(player.isAdmin() && player.lobby && !player.lobby.isAsync) {
+      player.interact();
+      const lobby = player.lobby;
+      if (lobby.game && lobby.game.startFinalRound) {
+        lobby.game.startFinalRound();
+        console.log(new Date(), `-- [lobby ${lobby.code}] final round started by admin`);
+      }
+    }
+  });
+
   socket.on('game:end', game => {
     if(player.isAdmin()) {
       player.interact();

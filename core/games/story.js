@@ -37,6 +37,9 @@ module.exports = class Story extends Game {
     // Set once the game is aborted mid-way: players read the partial stories
     // instead of writing, and the game waits for them to finish reading.
     this.aborted = false;
+    // Set once the admin wraps the game up: every story ends after one more
+    // hand-off (see startFinalRound).
+    this.finalRound = false;
     // Fixed rotation ring for private games (built in start()/restore()).
     this.ring = null;
     this.succ = {};
@@ -50,6 +53,7 @@ module.exports = class Story extends Game {
     this.chains = blob.chains.map(Chain.restore);
     this.finishedReading = blob.finishedReading;
     this.aborted = blob.aborted || false;
+    this.finalRound = blob.finalRound || false;
     this.ring = blob.ring || null;
     this.succ = blob.succ || {};
     // Restore per-player last-contribution timestamps (feeds lastActivity in
@@ -64,8 +68,10 @@ module.exports = class Story extends Game {
     // assigned forever: redistribute() skips it and everyone else is stuck
     // on "Waiting on Other Authors". The previous session's turn timers are
     // intentionally dropped here — a fresh timer starts on reassignment.
-    for (const chain of this.chains)
+    for (const chain of this.chains) {
       chain.editor = '';
+      this.dropInFlightLink(chain);
+    }
   }
 
   save() {
@@ -75,6 +81,7 @@ module.exports = class Story extends Game {
       finishedReading: this.finishedReading,
       deadlines: this.deadlines,
       aborted: this.aborted,
+      finalRound: this.finalRound,
       ring: this.ring,
       succ: this.succ,
       lastEdit: this.lastEdit,
@@ -123,10 +130,18 @@ module.exports = class Story extends Game {
     if (chain) {
       this.clearTimer(pid);
       chain.editor = '';
+      this.dropInFlightLink(chain);
       this.redistribute();
       return true;
     }
     return false;
+  }
+
+  // A chain armed for the final round is owed two contributions while someone
+  // is writing: the one in flight plus the ending. If that writer leaves
+  // without submitting, the hand-off ahead becomes the ending.
+  dropInFlightLink(chain) {
+    if (chain.linksLeft === 2) chain.linksLeft = 1;
   }
 
   // Add a new player to a running async game and assign them a chain
@@ -174,8 +189,10 @@ module.exports = class Story extends Game {
     // redistribute()'s `!s.editor` filter skips it. The next joiner then sits
     // on "Waiting on Other Authors" with frozen progress until a server restart
     // frees it via restore().
-    for (const chain of this.chains)
+    for (const chain of this.chains) {
       chain.editor = '';
+      this.dropInFlightLink(chain);
+    }
   }
 
   // Called when a player's time runs out — release their chain, remove from queue, notify
@@ -185,6 +202,7 @@ module.exports = class Story extends Game {
     const chain = this.chains.find(s => s.editor === pid);
     if (chain) {
       chain.editor = '';
+      this.dropInFlightLink(chain);
     }
     // Notify the player before detaching (emitTo still works while in lobby.players).
     // Distinct reason 'timeout' so the client shows "turn expired", not "you were idle".
@@ -362,6 +380,34 @@ module.exports = class Story extends Game {
     this.sendGameInfo();
   }
 
+  // Admin wraps the round up: the contributions being written right now still
+  // count as normal ones — those authors started without knowing — but the next
+  // hand-off of every story is its last, and shows the writer the same "finish
+  // it" screen a naturally ending story does.
+  startFinalRound() {
+    if (this.finalRound) return;
+    this.finalRound = true;
+    for (const chain of this.chains) {
+      if (chain.closed) continue;
+      chain.linksLeft = chain.editor ? 2 : 1;
+    }
+    this.sendGameInfo();
+  }
+
+  // Does the contribution currently due on this chain end it? Either the char
+  // budget leaves no room for another hand-off, or the final round is on and
+  // this is the ending it armed.
+  isFinalLink(chain) {
+    if (chain.linksLeft === 1) return true;
+    return _.sumBy(chain.chain, l => l.length) + 2 * MAX_CONTRIBUTION > MAX_STORY_CHARS;
+  }
+
+  // A chain nobody can add to anymore: closed by its last link, or full.
+  isChainDone(chain) {
+    return chain.closed ||
+      _.sumBy(chain.chain, l => l.length) + MAX_CONTRIBUTION > MAX_STORY_CHARS;
+  }
+
   stop() {
     // Clear all timers
     for (const pid in this.timers) {
@@ -469,12 +515,13 @@ module.exports = class Story extends Game {
       // a short final line would leave the chain assignable in the
       // (MAX_STORY_CHARS - 2*MAX_CONTRIBUTION, MAX_STORY_CHARS - MAX_CONTRIBUTION]
       // char band and the "Finish" promise would be a lie.
-      const wasLastLink = _.sumBy(story.chain, l => l.length) + 2 * MAX_CONTRIBUTION > MAX_STORY_CHARS;
+      const wasLastLink = this.isFinalLink(story);
       // Turn duration (received -> submitted). Read before redistribute() below
       // reassigns the chain and overwrites assignedAt.
       if (story.assignedAt)
         MetricsState.recordTurnDuration((Date.now() - story.assignedAt) / 1000);
       story.addLink(pid, line, authorName, memberId);
+      if (story.linksLeft) story.linksLeft--;
       if (wasLastLink)
         story.closed = true;
 
@@ -524,9 +571,15 @@ module.exports = class Story extends Game {
 
   getGameProgress() {
     const { numStories } = this.config;
+    // In the final round the char budget no longer says how much is left —
+    // every story ends after one more hand-off, so count the endings instead.
+    // Otherwise the bar would sit at 30% and jump straight to done.
+    if (this.finalRound)
+      return _.sumBy(this.chains, s => this.isChainDone(s) ? 1 : 0) / numStories;
+
     const progressSum = _.sumBy(this.chains, s => {
       const chars = _.sumBy(s.chain, l => l.length);
-      return (s.closed || chars + MAX_CONTRIBUTION > MAX_STORY_CHARS) ? 1 : chars / MAX_STORY_CHARS;
+      return this.isChainDone(s) ? 1 : chars / MAX_STORY_CHARS;
     });
     return progressSum / numStories;
   }
@@ -538,7 +591,7 @@ module.exports = class Story extends Game {
     return story ? {
       id: pid,
       state: 'EDITING',
-      isLastLink: _.sumBy(story.chain, l => l.length) + 2 * MAX_CONTRIBUTION > MAX_STORY_CHARS,
+      isLastLink: this.isFinalLink(story),
       link: story.chain.slice(-CONTEXT_LEN).map((line, i, arr) => {
         if (i < arr.length - 1) return line;
         const words = line.trim().split(/\s+/);
@@ -604,6 +657,7 @@ module.exports = class Story extends Game {
           : hasStory[p] ? 'pencil' : 'clock',
       ]))),
       progress,
+      finalRound: this.finalRound,
       minWords: MIN_WORDS,
       likes: this.chains.map(s => _.size(_.filter(s.likes, l => l))),
       isComplete: progress === 1,
