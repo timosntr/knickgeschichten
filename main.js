@@ -143,7 +143,7 @@ io.on('connection', socket => {
     // Allow up to 256 contributors; async sessions always have exactly 1 story
     lobby.gameConfig.players = 256;
     lobby.gameConfig.numStories = 1;
-    // Async sessions have a fixed 5 minute turn time limit
+    // Async sessions have a fixed 10 minute turn time limit
     lobby.gameConfig.timeLimit = 'min10';
 
     // Apply user-supplied config values for allowed fields
