@@ -105,7 +105,9 @@
                   </div>
                   <div class="kg-card__foot">
                     <span class="kg-card__time">
-                      {{ timeAgo(recentSessions[carouselIndex].createdAt) }}
+                      <!-- Last edit, like the "begonnene Geschichten" list; the
+                           start date is only shown for finished stories. -->
+                      {{ timeAgo(recentSessions[carouselIndex].lastActivity) }}
                       <template v-if="recentSessions[carouselIndex].playersOnline > 0">
                         · {{ recentSessions[carouselIndex].playersOnline }} online
                       </template>
@@ -613,7 +615,7 @@ export default {
       } catch {}
     },
     timeAgo(ts) {
-      const diff = Date.now() - ts;
+      const diff = Date.now() - (ts || 0);
       const mins = Math.floor(diff / 60000);
       if (mins < 1) return 'gerade eben';
       if (mins < 60) return `vor ${mins} Minute${mins !== 1 ? 'n' : ''}`;

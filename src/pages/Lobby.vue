@@ -463,7 +463,9 @@ export default {
     },
     leaveLobby() {
       this.$socket.emit('lobby:leave');
-      this.$router.push('/');
+      // Back to wherever the lobby was opened from — "begonnene Geschichten"
+      // when the user picked the story there, home for a code/link join.
+      this.$router.push(this.$prevRoute.name === 'sessions' ? '/sessions' : '/');
     },
     enterName(event) {
       event.preventDefault();

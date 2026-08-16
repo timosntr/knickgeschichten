@@ -73,6 +73,15 @@ const router = new VueRouter({
   ]
 });
 
+// Name of the route the user came from, or null when the app was loaded
+// straight into the current one (fresh load, shared link). "zurück" buttons on
+// screens more than one step from home use it to return to the actual previous
+// screen (e.g. back to "begonnene Geschichten") instead of always to home.
+Vue.prototype.$prevRoute = Vue.observable({ name: null });
+router.afterEach((to, from) => {
+  if (from.name !== to.name) Vue.prototype.$prevRoute.name = from.name || null;
+});
+
 import './widgets';
 
 import Home from './pages/Home.vue';
