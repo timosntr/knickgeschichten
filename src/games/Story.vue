@@ -74,9 +74,8 @@
         </button>
       </sui-form>
     </div>
-    <div v-else-if="player.state === 'WAITING'"
-      style="margin: 16px">
-      <sui-loader active centered inline size="huge" >
+    <div v-else-if="player.state === 'WAITING'" class="wait-head">
+      <sui-loader active centered inline size="huge">
         Warte auf den nächsten Abschnitt
       </sui-loader>
     </div>
@@ -145,6 +144,11 @@
     <div class="kg-progress" style="margin-top: 14px" v-if="game.progress > 0 && game.progress !== 1">
       <div class="kg-progress__fill" :style="{ width: Math.round(game.progress * 100) + '%' }"></div>
     </div>
+    <!-- Private waiting screen only: a little word game to pass the time while
+         others write. v-show keeps it mounted so its progress survives the
+         switch to EDITING and back; :active gates the physical keyboard. -->
+    <word-game v-show="waitingGame" :active="waitingGame" @invalid="shakeGame" ref="wordgame"
+      :class="{ 'wg-shake': gameShake }" />
   </div>
 </template>
 
@@ -563,12 +567,44 @@
 /* Back link reuses .read-back (green, underline, blue on hover). */
 .share-back { margin-top: 14px; }
 
+/* Waiting header: keep the "Warte auf den nächsten Abschnitt" text at its
+   original size, but shrink just the spinning ring (not the text) and pull
+   the whole block closer to the header, so the word game below stays in
+   view without scrolling. */
+.wait-head {
+  /* Negative top margin eats into the shared header's 12px bottom padding,
+     lifting the whole waiting block (and everything below it) a little more. */
+  margin: -10px 16px 0;
+}
+.wait-head .ui.loader:before,
+.wait-head .ui.loader:after {
+  width: 1.71428571rem;
+  height: 1.71428571rem;
+  margin: 0 0 0 -0.85714286rem;
+}
+/* The huge loader reserves 4.93rem above its text for the (now small) ring.
+   Match the small ring's reservation instead, so the text — and the progress
+   bar, word game and player list below it — all move up with it. */
+.wait-head .ui.text.loader {
+  min-width: 1.71428571rem;
+  padding-top: 2.5rem;
+}
+/* Shake the word game when a guess isn't a real word. */
+.wg-shake { animation: wg-shake 0.35s; }
+@keyframes wg-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
 </style>
 
 <script>
 const clockIcon = require('../assets/icons/clock.png');
+const WordGame = require('./waiting/WordGame.vue').default;
 
 export default {
+  components: { WordGame },
   sockets: {
     'lobby:info': function(info) {
       this.lobby = info;
@@ -678,9 +714,19 @@ export default {
       const s = this.secondsLeft % 60;
       return m > 0 ? `${m}:${String(s).padStart(2, '0')} Min` : `${s}s`;
     },
+    // Show the waiting word game only while waiting in a private (sync) game.
+    waitingGame() {
+      return this.player.state === 'WAITING' && !this.lobby.isAsync;
+    },
   },
   methods: {
     update() { this.$forceUpdate(); },
+    // Brief shake when a guess isn't in the word list.
+    shakeGame() {
+      this.gameShake = true;
+      clearTimeout(this.gameShakeTimer);
+      this.gameShakeTimer = setTimeout(() => { this.gameShake = false; }, 400);
+    },
     // Resolve display name for a single entry: named / "Anonym" / fallback via nameTable
     entryAuthor(entry) {
       if (entry.authorName !== null && entry.authorName !== undefined) {
@@ -834,6 +880,8 @@ export default {
       countdownInterval: null,
       submitted: false,
       submittedLine: '',
+      gameShake: false,
+      gameShakeTimer: null,
       linkCopied: false,
       idleKicked: false,
       idleReason: 'idle',
